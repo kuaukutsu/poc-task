@@ -21,9 +21,9 @@ final class TaskStateError implements TaskStateInterface
     ) {
     }
 
-    public function getFlag(): int
+    public function getFlag(): TaskFlag
     {
-        return (new TaskFlag($this->flag))->setError()->toFlag();
+        return (new TaskFlag($this->flag))->setError();
     }
 
     public function getMessage(): TaskStateMessage

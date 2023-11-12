@@ -174,7 +174,7 @@ final class TaskFlag
             || $this->isSkiped();
     }
 
-    public function toFlag(): int
+    public function toValue(): int
     {
         return $this->flag;
     }

@@ -15,11 +15,11 @@ final class ProcessFactory
         $cmd = [
             'php',
             'handler.php',
-            $context->stage,
+            '--stage=' . $context->stage,
         ];
 
         if ($context->previous !== null) {
-            $cmd[] = $context->previous;
+            $cmd[] = '--previous=' . $context->previous;
         }
 
         return new Process(

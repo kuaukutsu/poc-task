@@ -33,5 +33,4 @@ $container = new Container($definitions);
  * @noinspection PhpUnhandledExceptionInspection
  */
 $handler = $container->get(StageHandler::class);
-$exitCode = $handler->handle($stageUuid, $previousUuid);
-exit($exitCode);
+$handler->handle($stageUuid, $previousUuid);

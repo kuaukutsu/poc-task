@@ -25,14 +25,14 @@ final class ActionResume implements TaskAction
         $state = new TaskStateRunning(
             uuid: $task->getUuid(),
             message: new TaskStateMessage('Resume'),
-            flag: $task->copyFlag()->unsetPaused()->toFlag(),
+            flag: $task->copyFlag()->unsetPaused()->toValue(),
         );
 
         $model = $this->command->update(
             new EntityUuid($task->getUuid()),
             TaskModel::hydrate(
                 [
-                    'flag' => $state->getFlag(),
+                    'flag' => $state->getFlag()->toValue(),
                     'state' => serialize($state),
                 ]
             ),

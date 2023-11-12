@@ -14,6 +14,12 @@ return static function (RectorConfig $rectorConfig): void {
         ]
     );
 
+    $rectorConfig->skip(
+        [
+            __DIR__ . '/src/tools/functions.php',
+        ]
+    );
+
     // register a single rule
     $rectorConfig->rule(InlineConstructorDefaultToPropertyRector::class);
 

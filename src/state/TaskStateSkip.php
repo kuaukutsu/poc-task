@@ -6,9 +6,6 @@ namespace kuaukutsu\poc\task\state;
 
 use kuaukutsu\poc\task\TaskResponseInterface;
 
-/**
- * @psalm-immutable
- */
 final class TaskStateSkip implements TaskStateInterface
 {
     use TaskStateSerialize;
@@ -24,12 +21,9 @@ final class TaskStateSkip implements TaskStateInterface
     ) {
     }
 
-    /**
-     * @psalm-suppress ImpureMethodCall
-     */
-    public function getFlag(): int
+    public function getFlag(): TaskFlag
     {
-        return (new TaskFlag($this->flag))->setSkiped()->toFlag();
+        return (new TaskFlag($this->flag))->setSkiped();
     }
 
     public function getMessage(): TaskStateMessage

@@ -34,7 +34,7 @@ final class TaskCreator
             TaskModel::hydrate(
                 [
                     'title' => $taskDraft->title,
-                    'flag' => $taskDraft->getState()->getFlag(),
+                    'flag' => $taskDraft->getState()->getFlag()->toValue(),
                     'state' => serialize($taskDraft->getState()),
                     'checksum' => $taskDraft->stages->getChecksum(),
                     'created_at' => gmdate('c'),

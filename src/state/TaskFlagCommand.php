@@ -10,7 +10,7 @@ trait TaskFlagCommand
 
     final public function getFlag(): int
     {
-        return $this->flag->toFlag();
+        return $this->flag->toValue();
     }
 
     final public function copyFlag(): TaskFlag

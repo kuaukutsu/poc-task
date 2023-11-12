@@ -6,14 +6,8 @@ namespace kuaukutsu\poc\task\state;
 
 use kuaukutsu\poc\task\TaskResponseInterface;
 
-/**
- * @psalm-immutable
- */
 final class TaskStateWaiting implements TaskStateInterface
 {
-    /**
-     * @psalm-suppress ImpureMethodCall
-     */
     use TaskStateSerialize;
 
     /**
@@ -29,12 +23,9 @@ final class TaskStateWaiting implements TaskStateInterface
     ) {
     }
 
-    /**
-     * @psalm-suppress ImpureMethodCall
-     */
-    public function getFlag(): int
+    public function getFlag(): TaskFlag
     {
-        return (new TaskFlag($this->flag))->setWaiting()->toFlag();
+        return (new TaskFlag($this->flag))->setWaiting();
     }
 
     public function getMessage(): TaskStateMessage

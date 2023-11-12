@@ -7,7 +7,6 @@ namespace kuaukutsu\poc\task;
 use kuaukutsu\poc\task\service\action\ActionResume;
 use kuaukutsu\poc\task\service\action\ActionRun;
 use kuaukutsu\poc\task\service\action\ActionStop;
-use kuaukutsu\poc\task\state\TaskFlag;
 use kuaukutsu\poc\task\state\TaskFlagCommand;
 use kuaukutsu\poc\task\state\TaskStateCanceled;
 use kuaukutsu\poc\task\state\TaskStateInterface;
@@ -31,7 +30,7 @@ final class Task implements TaskInterface
         private readonly ActionResume $actionResume,
         private readonly ActionStop $actionStop,
     ) {
-        $this->flag = new TaskFlag($this->state->getFlag());
+        $this->flag = $this->state->getFlag();
     }
 
     public function getUuid(): string

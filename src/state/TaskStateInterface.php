@@ -13,7 +13,7 @@ use kuaukutsu\poc\task\TaskResponseInterface;
  */
 interface TaskStateInterface extends Serializable
 {
-    public function getFlag(): int;
+    public function getFlag(): TaskFlag;
 
     /**
      * Для выдачи сообщения в интерфейс клиента.

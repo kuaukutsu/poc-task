@@ -6,16 +6,13 @@ namespace kuaukutsu\poc\task\state;
 
 use kuaukutsu\poc\task\TaskResponseInterface;
 
-/**
- * @psalm-immutable
- */
 final class TaskStateReady implements TaskStateInterface
 {
     use TaskStateSerialize;
 
-    public function getFlag(): int
+    public function getFlag(): TaskFlag
     {
-        return (new TaskFlag())->toFlag();
+        return new TaskFlag();
     }
 
     public function getMessage(): TaskStateMessage

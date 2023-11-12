@@ -36,7 +36,7 @@ final class ActionRun implements TaskAction
             new EntityUuid($task->getUuid()),
             TaskModel::hydrate(
                 [
-                    'flag' => $state->getFlag(),
+                    'flag' => $state->getFlag()->toValue(),
                     'state' => serialize($state),
                 ]
             ),
