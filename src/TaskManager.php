@@ -6,7 +6,6 @@ namespace kuaukutsu\poc\task;
 
 use RuntimeException;
 use DateTimeImmutable;
-use SplQueue;
 use Symfony\Component\Process\Exception\ProcessTimedOutException;
 use Revolt\EventLoop;
 use Revolt\EventLoop\UnsupportedFeatureException;
@@ -24,11 +23,6 @@ final class TaskManager implements EventPublisherInterface
     use PublisherEvent;
 
     /**
-     * @var SplQueue<TaskProcessContext>
-     */
-    private readonly SplQueue $stageReady;
-
-    /**
      * @var array<non-empty-string, TaskProcess>
      */
     private array $processesActive = [];
@@ -43,10 +37,8 @@ final class TaskManager implements EventPublisherInterface
      */
     private ?string $keeperId = null;
 
-    public function __construct(
-        private readonly TaskProcessing $processing,
-    ) {
-        $this->stageReady = new SplQueue();
+    public function __construct(private readonly TaskProcessing $processing)
+    {
     }
 
     /**
@@ -62,28 +54,14 @@ final class TaskManager implements EventPublisherInterface
                     new LoopTickEvent(new DateTimeImmutable())
                 );
 
-                // Первым делом в очередь добавляем те что на Паузе
-                if ($this->stageReady->isEmpty()) {
-                    $this->processing->loadingPaused(
-                        $this->stageReady,
-                        $options->getTaskQueueSize(),
-                    );
-                }
-
-                // Если capacity позволяет, добавляем в очередь задачи из Ожидания
-                if ($this->stageReady->count() < $options->getTaskQueueSize()) {
-                    $this->processing->loadingReady(
-                        $this->stageReady,
-                        $options->getTaskQueueSize() - $this->stageReady->count(),
-                    );
-                }
+                $this->processing->loadTaskProcess($options);
 
                 while (
-                    $this->stageReady->isEmpty() === false
+                    $this->processing->hasTaskProcess()
                     && count($this->processesActive) < $options->getTaskQueueSize()
                 ) {
-                    $context = $this->stageReady->dequeue();
-                    if ($this->processExists($context->stage) === false) {
+                    $context = $this->processing->getTaskProcess();
+                    if (array_key_exists($context->stage, $this->processesActive) === false) {
                         $this->processPush(
                             $this->processing->start($context, $options),
                         );
@@ -110,10 +88,7 @@ final class TaskManager implements EventPublisherInterface
                         // Если должна выполнится связанная задача, то загружаем в очередь все этапы
                         // Кол-во нужно сохранить,
                         // когда оно будет равно кол-ву выполненых, закрыть и перейти к следующему этапу
-                        $this->processing->loadingNext(
-                            $this->stageReady,
-                            $process,
-                        );
+                        $this->processing->next($process);
 
                         $this->processPull($process);
                         unset($process);
@@ -210,15 +185,6 @@ final class TaskManager implements EventPublisherInterface
         }
 
         exit($signal);
-    }
-
-    private function processExists(string $uuid): bool
-    {
-        if (array_key_exists($uuid, $this->processesActive)) {
-            return true;
-        }
-
-        return false;
     }
 
     private function processPush(TaskProcess $process): void

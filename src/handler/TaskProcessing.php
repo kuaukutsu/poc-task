@@ -16,6 +16,11 @@ use kuaukutsu\poc\task\TaskManagerOptions;
 
 final class TaskProcessing
 {
+    /**
+     * @var SplQueue<TaskProcessContext>
+     */
+    private readonly SplQueue $stageReady;
+
     public function __construct(
         private readonly TaskQuery $taskQuery,
         private readonly StageQuery $stageQuery,
@@ -23,6 +28,34 @@ final class TaskProcessing
         private readonly StateFactory $stateFactory,
         private readonly ProcessFactory $processFactory,
     ) {
+        $this->stageReady = new SplQueue();
+    }
+
+    public function hasTaskProcess(): bool
+    {
+        return $this->stageReady->isEmpty() === false;
+    }
+
+    public function getTaskProcess(): TaskProcessContext
+    {
+        return $this->stageReady->dequeue();
+    }
+
+    public function loadTaskProcess(TaskManagerOptions $options): void
+    {
+        // Первым делом в очередь добавляем те что на Паузе
+        if ($this->stageReady->isEmpty()) {
+            $this->loadingPaused(
+                $options->getTaskQueueSize(),
+            );
+        }
+
+        // Если capacity позволяет, добавляем в очередь задачи из Ожидания
+        if ($this->stageReady->count() < $options->getTaskQueueSize()) {
+            $this->loadingReady(
+                $options->getTaskQueueSize() - $this->stageReady->count(),
+            );
+        }
     }
 
     public function start(TaskProcessContext $context, TaskManagerOptions $options): TaskProcess
@@ -37,7 +70,51 @@ final class TaskProcessing
         );
     }
 
-    public function loadingPaused(SplQueue $queue, int $limit): void
+    public function next(TaskProcess $process): void
+    {
+        try {
+            $task = $this->taskFactory->create(
+                $this->taskQuery->getOne(
+                    new EntityUuid($process->task)
+                )
+            );
+        } catch (BuilderException) {
+            return;
+        }
+
+        if ($process->isSuccessful() === false) {
+            $task->stop();
+            return;
+        }
+
+        if ($task->isFinished() || $task->isPromised()) {
+            return;
+        }
+
+        $state = $this->stateFactory->create(
+            $process->getOutput()
+        );
+
+        if ($state->getFlag()->isWaiting()) {
+            return;
+        }
+
+        $stage = $this->loadStageReadyOntoQueue($task->getUuid());
+        if ($stage === null) {
+            $task->stop();
+            return;
+        }
+
+        $this->stageReady->enqueue(
+            new TaskProcessContext(
+                task: $task->getUuid(),
+                stage: $stage->uuid,
+                previous: $process->stage,
+            )
+        );
+    }
+
+    private function loadingPaused(int $limit): void
     {
         if ($limit < 1) {
             return;
@@ -57,13 +134,13 @@ final class TaskProcessing
             }
 
             $task->run();
-            $queue->enqueue(
+            $this->stageReady->enqueue(
                 new TaskProcessContext(task: $task->getUuid(), stage: $stage->uuid)
             );
         }
     }
 
-    public function loadingReady(SplQueue $queue, int $limit): void
+    private function loadingReady(int $limit): void
     {
         if ($limit < 1) {
             return;
@@ -85,7 +162,7 @@ final class TaskProcessing
 
                 $task->run();
                 foreach ($collection as $stage) {
-                    $queue->enqueue(
+                    $this->stageReady->enqueue(
                         new TaskProcessContext(task: $task->getUuid(), stage: $stage->uuid)
                     );
                 }
@@ -104,58 +181,10 @@ final class TaskProcessing
             }
 
             $task->run();
-            $queue->enqueue(
+            $this->stageReady->enqueue(
                 new TaskProcessContext(task: $task->getUuid(), stage: $stage->uuid)
             );
         }
-    }
-
-    public function loadingNext(SplQueue $queue, TaskProcess $process): void
-    {
-        try {
-            $task = $this->taskFactory->create(
-                $this->taskQuery->getOne(
-                    new EntityUuid($process->task)
-                )
-            );
-        } catch (BuilderException) {
-            return;
-        }
-
-        if ($task->isFinished() || $task->isPromised()) {
-            return;
-        }
-
-        $state = $this->stateFactory->create(
-            $process->getOutput()
-        );
-
-        if ($state->getFlag()->isWaiting()) {
-            return;
-        }
-
-        if ($process->isSuccessful() === false) {
-            $task->stop();
-            return;
-        }
-
-        $stage = $this->loadStageReadyOntoQueue($task->getUuid());
-        if ($stage === null) {
-            $task->stop();
-            return;
-        }
-
-        $queue->enqueue(
-            new TaskProcessContext(
-                task: $task->getUuid(),
-                stage: $stage->uuid,
-                previous: $process->stage,
-            )
-        );
-    }
-
-    public function loadingPromise(SplQueue $queue, string $uuid): void
-    {
     }
 
     /**

@@ -50,13 +50,7 @@ final class Task implements TaskInterface
 
     public function run(): TaskStateInterface
     {
-        if ($this->isReady()) {
-            return $this->actionRun
-                ->execute($this)
-                ->getState();
-        }
-
-        if ($this->isPromised()) {
+        if ($this->isReady() || $this->isPromised()) {
             return $this->actionRun
                 ->execute($this)
                 ->getState();
