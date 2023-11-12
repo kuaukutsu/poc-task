@@ -82,16 +82,7 @@ final class TaskFlag
 
     public function setWaiting(): self
     {
-        $this->flag |= self::FLAG_WAITING;
-        return $this;
-    }
-
-    public function unsetWaiting(): self
-    {
-        if ($this->isWaiting()) {
-            $this->flag ^= self::FLAG_WAITING;
-        }
-
+        $this->flag = self::FLAG_WAITING;
         return $this;
     }
 

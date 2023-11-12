@@ -12,7 +12,9 @@ declare(strict_types=1);
 
 use DI\Container;
 use kuaukutsu\poc\task\TaskBuilder;
+use kuaukutsu\poc\task\EntityWrapper;
 use kuaukutsu\poc\task\tests\stub\OneStageStub;
+use kuaukutsu\poc\task\tests\stub\PromiseStageStub;
 use kuaukutsu\poc\task\tests\stub\TwoStageStub;
 
 use function kuaukutsu\poc\task\tools\argument;
@@ -31,8 +33,24 @@ while ($taskCount > 0) {
     $builder->build(
         $builder->create(
             'title',
-            new OneStageStub('one' . $taskCount),
-            new TwoStageStub('two' . $taskCount),
+            new EntityWrapper(
+                class: OneStageStub::class,
+                params: [
+                    'name' => 'one',
+                ],
+            ),
+            new EntityWrapper(
+                class: PromiseStageStub::class,
+                params: [
+                    'name' => 'promise',
+                ],
+            ),
+            new EntityWrapper(
+                class: TwoStageStub::class,
+                params: [
+                    'name' => 'two',
+                ],
+            ),
         )
     );
 }

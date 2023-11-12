@@ -4,8 +4,13 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\state;
 
+use TypeError;
+
 trait TaskStatePrepare
 {
+    /**
+     * @throws TypeError
+     */
     private function prepareState(string $state): TaskStateInterface
     {
         if ($state === '') {
@@ -22,7 +27,7 @@ trait TaskStatePrepare
                     TaskStateCanceled::class,
                     TaskStateError::class,
                     TaskStatePaused::class,
-                    TaskStatePromised::class,
+                    TaskStateRelation::class,
                     TaskStateReady::class,
                     TaskStateRunning::class,
                     TaskStateSkip::class,

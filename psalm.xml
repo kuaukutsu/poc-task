@@ -20,6 +20,5 @@
         <MixedArrayAssignment errorLevel="suppress"/>
         <UncaughtThrowInGlobalScope errorLevel="info"/>
         <MixedPropertyTypeCoercion errorLevel="info"/>
-        <MutableDependency errorLevel="info"/>
     </issueHandlers>
 </psalm>

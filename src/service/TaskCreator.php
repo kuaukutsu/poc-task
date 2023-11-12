@@ -11,9 +11,12 @@ use kuaukutsu\poc\task\dto\TaskModel;
 use kuaukutsu\poc\task\exception\BuilderException;
 use kuaukutsu\poc\task\handler\TaskFactory;
 use kuaukutsu\poc\task\EntityUuid;
+use kuaukutsu\poc\task\state\TaskFlag;
+use kuaukutsu\poc\task\state\TaskStateRelation;
 use kuaukutsu\poc\task\TaskDraft;
 use kuaukutsu\poc\task\TaskInterface;
-use kuaukutsu\poc\task\TaskStageCollection;
+use kuaukutsu\poc\task\EntityCollection;
+use kuaukutsu\poc\task\TaskStageContext;
 
 final class TaskCreator
 {
@@ -34,8 +37,33 @@ final class TaskCreator
             TaskModel::hydrate(
                 [
                     'title' => $taskDraft->title,
-                    'flag' => $taskDraft->getState()->getFlag()->toValue(),
-                    'state' => serialize($taskDraft->getState()),
+                    'flag' => (new TaskFlag())->setReady()->toValue(),
+                    'state' => '',
+                    'checksum' => $taskDraft->stages->getChecksum(),
+                    'created_at' => gmdate('c'),
+                    'updated_at' => gmdate('c'),
+                ]
+            ),
+            $taskDraft->stages
+        );
+
+        return $this->factory->create($dto);
+    }
+
+    /**
+     * @throws Exception
+     * @throws BuilderException
+     */
+    public function createFromContext(TaskDraft $taskDraft, TaskStageContext $context): TaskInterface
+    {
+        $promise = new TaskStateRelation(task: $context->task, stage: $context->stage);
+
+        $dto = $this->save(
+            TaskModel::hydrate(
+                [
+                    'title' => $taskDraft->title,
+                    'flag' => $promise->getFlag()->toValue(),
+                    'state' => serialize($promise),
                     'checksum' => $taskDraft->stages->getChecksum(),
                     'created_at' => gmdate('c'),
                     'updated_at' => gmdate('c'),
@@ -50,7 +78,7 @@ final class TaskCreator
     /**
      * @throws Exception
      */
-    private function save(TaskModel $model, TaskStageCollection $stageCollection): TaskDto
+    private function save(TaskModel $model, EntityCollection $stageCollection): TaskDto
     {
         $uuid = new EntityUuid();
         $task = $this->taskCommand->create($uuid, $model);

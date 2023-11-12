@@ -9,13 +9,16 @@ use kuaukutsu\poc\task\state\TaskStateReady;
 
 final class TaskDraft
 {
+    /**
+     * @param non-empty-string $title
+     */
     public function __construct(
         public readonly string $title,
-        public readonly TaskStageCollection $stages = new TaskStageCollection(),
+        public readonly EntityCollection $stages = new EntityCollection(),
     ) {
     }
 
-    public function addStage(TaskStageInterface ...$stages): self
+    public function addStage(EntityWrapper ...$stages): self
     {
         foreach ($stages as $stage) {
             if ($this->stages->contains($stage) === false) {

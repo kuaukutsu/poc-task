@@ -13,6 +13,8 @@ use Symfony\Component\Process\Process;
  */
 final class TaskProcess
 {
+    private ?string $output = null;
+
     /**
      * @param non-empty-string $task
      * @param non-empty-string $stage
@@ -31,16 +33,11 @@ final class TaskProcess
 
     public function getOutput(): string
     {
-        if ($this->process->isSuccessful()) {
-            return $this->process->getOutput();
+        if ($this->output === null) {
+            $this->output = $this->prepareOutput($this->process);
         }
 
-        $output = $this->process->getOutput();
-        if ($output === '') {
-            $output = $this->process->getErrorOutput();
-        }
-
-        return $output;
+        return $this->output;
     }
 
     public function isSuccessful(): bool
@@ -80,5 +77,19 @@ final class TaskProcess
     public function checkTimeout(): void
     {
         $this->process->checkTimeout();
+    }
+
+    private function prepareOutput(Process $process): string
+    {
+        if ($process->isSuccessful()) {
+            return $process->getOutput();
+        }
+
+        $output = $process->getOutput();
+        if ($output === '') {
+            $output = $process->getErrorOutput();
+        }
+
+        return $output;
     }
 }

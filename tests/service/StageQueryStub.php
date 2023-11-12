@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\tests\service;
 
+use kuaukutsu\poc\task\dto\StageCollection;
 use kuaukutsu\poc\task\dto\StageDto;
 use kuaukutsu\poc\task\EntityUuid;
 use kuaukutsu\poc\task\exception\NotFoundException;
@@ -22,6 +23,21 @@ final class StageQueryStub implements StageQuery
         }
 
         return $storage[$uuid->getUuid()];
+    }
+
+    public function getPromiseByTask(EntityUuid $taskUuid): StageCollection
+    {
+        $collection = new StageCollection();
+        foreach ($this->getData() as $item) {
+            if ($item->taskUuid === $taskUuid->getUuid()) {
+                $flag = new TaskFlag($item->flag);
+                if ($flag->isPromised()) {
+                    $collection->attach($item);
+                }
+            }
+        }
+
+        return $collection;
     }
 
     public function findReadyByTask(EntityUuid $taskUuid): ?StageDto

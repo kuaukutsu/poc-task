@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\state;
 
+use kuaukutsu\poc\task\TaskInterface;
 use kuaukutsu\poc\task\TaskResponseInterface;
 use kuaukutsu\poc\task\TaskStageContext;
 
@@ -57,18 +58,14 @@ trait TaskStateCommand
         );
     }
 
-    /**
-     * @param positive-int $delay
-     */
-    final protected function wait(
-        int $delay,
-        TaskStageContext $context,
-        string $message = 'Waiting',
-    ): TaskStateWaiting {
+    final protected function wait(TaskInterface $task, TaskStageContext $context): TaskStateWaiting
+    {
         return new TaskStateWaiting(
             uuid: $context->stage,
-            delay: $delay,
-            message: new TaskStateMessage($message),
+            task: $task->getUuid(),
+            message: new TaskStateMessage(
+                "Waiting [{$task->getUuid()}] {$task->getTitle()}."
+            ),
         );
     }
 }

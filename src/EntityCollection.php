@@ -7,13 +7,13 @@ namespace kuaukutsu\poc\task;
 use kuaukutsu\ds\collection\Collection;
 
 /**
- * @extends Collection<TaskStageInterface>
+ * @extends Collection<EntityWrapper>
  */
-final class TaskStageCollection extends Collection
+final class EntityCollection extends Collection
 {
     public function getType(): string
     {
-        return TaskStageInterface::class;
+        return EntityWrapper::class;
     }
 
     public function getChecksum(): string

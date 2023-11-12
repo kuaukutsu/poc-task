@@ -6,17 +6,17 @@ namespace kuaukutsu\poc\task\state;
 
 use kuaukutsu\poc\task\TaskResponseInterface;
 
-final class TaskStatePromised implements TaskStateInterface
+final class TaskStateRelation implements TaskStateInterface
 {
     use TaskStateSerialize;
 
     /**
-     * @param non-empty-string $uuid Context::UUID
-     * @param class-string<> Обработчик обещания.
+     * @param non-empty-string $task TaskRelation::UUID
+     * @param non-empty-string $stage StageRelation::UUID
      */
     public function __construct(
-        public readonly string $uuid,
-        private readonly string $handler,
+        public readonly string $task,
+        public readonly string $stage,
         private readonly int $flag = 0,
         private readonly ?TaskResponseInterface $response = null,
     ) {
@@ -29,7 +29,7 @@ final class TaskStatePromised implements TaskStateInterface
 
     public function getMessage(): TaskStateMessage
     {
-        return new TaskStateMessage($this->handler);
+        return new TaskStateMessage("[$this->task] $this->stage relation.");
     }
 
     public function getResponse(): ?TaskResponseInterface

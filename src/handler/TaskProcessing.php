@@ -20,6 +20,7 @@ final class TaskProcessing
         private readonly TaskQuery $taskQuery,
         private readonly StageQuery $stageQuery,
         private readonly TaskFactory $taskFactory,
+        private readonly StateFactory $stateFactory,
         private readonly ProcessFactory $processFactory,
     ) {
     }
@@ -75,6 +76,27 @@ final class TaskProcessing
                 continue;
             }
 
+            if ($task->isPromised()) {
+                $collection = $this->stageQuery->getPromiseByTask(new EntityUuid($task->getUuid()));
+                if ($collection->isEmpty()) {
+                    $task->stop();
+                    continue;
+                }
+
+                $task->run();
+                foreach ($collection as $stage) {
+                    $queue->enqueue(
+                        new TaskProcessContext(task: $task->getUuid(), stage: $stage->uuid)
+                    );
+                }
+
+                continue;
+            }
+
+            if ($task->isWaiting()) {
+                continue;
+            }
+
             $stage = $this->loadStageReadyOntoQueue($task->getUuid());
             if ($stage === null) {
                 $task->stop();
@@ -101,6 +123,14 @@ final class TaskProcessing
         }
 
         if ($task->isFinished() || $task->isPromised()) {
+            return;
+        }
+
+        $state = $this->stateFactory->create(
+            $process->getOutput()
+        );
+
+        if ($state->getFlag()->isWaiting()) {
             return;
         }
 

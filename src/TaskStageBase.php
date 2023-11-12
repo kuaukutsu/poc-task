@@ -11,5 +11,4 @@ abstract class TaskStageBase implements TaskStageInterface
 {
     use TaskFlagCommand;
     use TaskStateCommand;
-    use TaskStageSerialize;
 }

@@ -25,18 +25,23 @@ final class TaskBuilder
         $this->factory = $container->get(TaskCreator::class);
     }
 
-    public function create(string $title, TaskStageInterface ...$stages): TaskDraft
+    /**
+     * @param non-empty-string $title
+     */
+    public function create(string $title, EntityWrapper ...$stages): TaskDraft
     {
-        return new TaskDraft($title, new TaskStageCollection(...$stages));
+        return new TaskDraft($title, new EntityCollection(...$stages));
     }
 
     /**
      * @throws BuilderException
      */
-    public function build(TaskDraft $draft, ?TaskStageInterface $stageRelation = null): TaskInterface
+    public function build(TaskDraft $draft, ?TaskStageContext $context = null): TaskInterface
     {
         try {
-            return $this->factory->create($draft);
+            return $context === null
+                ? $this->factory->create($draft)
+                : $this->factory->createFromContext($draft, $context);
         } catch (Throwable $exception) {
             throw new BuilderException("[$draft->title] Task builder failed.", $exception);
         }

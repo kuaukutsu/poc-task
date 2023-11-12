@@ -6,9 +6,6 @@ namespace kuaukutsu\poc\task\state;
 
 use Serializable;
 
-/**
- * @psalm-immutable
- */
 final class TaskStateMessage implements Serializable
 {
     use TaskStateSerialize;

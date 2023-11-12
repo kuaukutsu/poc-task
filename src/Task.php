@@ -56,6 +56,12 @@ final class Task implements TaskInterface
                 ->getState();
         }
 
+        if ($this->isPromised()) {
+            return $this->actionRun
+                ->execute($this)
+                ->getState();
+        }
+
         if ($this->isPaused()) {
             return $this->actionResume
                 ->execute($this)

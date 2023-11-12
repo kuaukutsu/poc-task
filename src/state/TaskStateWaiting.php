@@ -12,11 +12,10 @@ final class TaskStateWaiting implements TaskStateInterface
 
     /**
      * @param non-empty-string $uuid Context::UUID
-     * @param positive-int $delay
      */
     public function __construct(
         public readonly string $uuid,
-        public readonly int $delay,
+        public readonly string $task,
         private readonly TaskStateMessage $message,
         private readonly int $flag = 0,
         private readonly ?TaskResponseInterface $response = null,

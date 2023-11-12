@@ -49,7 +49,7 @@ cli:
 
 test-builder:
 	docker-compose -f ./docker-compose.yml run --rm -u ${USER} -w /src/tests -e XDEBUG_MODE=off cli \
-		php builder.php --task=5
+		php builder.php --task=1
 
 test-pm:
 	docker-compose -f ./docker-compose.yml run --rm -u ${USER} -w /src/tests -e XDEBUG_MODE=off cli \
