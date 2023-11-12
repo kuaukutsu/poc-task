@@ -1,0 +1,43 @@
+version: '3.9'
+
+x-services-volume:
+  &services-volume
+  - type: bind
+    source: ./src
+    target: /src/src
+  - type: bind
+    source: ./tests
+    target: /src/tests
+  - type: bind
+    source: ./vendor
+    target: /src/vendor
+
+x-default-logging:
+  &default-logging
+  driver: local
+  options:
+    max-size: "1m"
+    max-file: "3"
+
+services:
+  cli:
+    container_name: poc_task_cli
+    profiles: ["cli"]
+    build:
+      context: docker/php/cli
+      target: app_devel
+      args:
+        UID: ${USER:-1} # ID:1 daemon, support: linux, mac
+        WORKDIR: "/src"
+    networks:
+      - poc_task
+    env_file:
+      - ./docker/base.env
+    volumes: *services-volume
+    logging: *default-logging
+
+networks:
+  poc_task:
+
+volumes:
+  poc_task_database:
