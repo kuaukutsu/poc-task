@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace kuaukutsu\poc\task\handler;
+namespace kuaukutsu\poc\task\processing;
 
 use SplQueue;
 use kuaukutsu\poc\task\dto\StageDto;
 use kuaukutsu\poc\task\exception\BuilderException;
+use kuaukutsu\poc\task\handler\StateFactory;
+use kuaukutsu\poc\task\handler\TaskFactory;
 use kuaukutsu\poc\task\service\StageQuery;
 use kuaukutsu\poc\task\service\TaskQuery;
 use kuaukutsu\poc\task\EntityUuid;
-use kuaukutsu\poc\task\TaskProcess;
-use kuaukutsu\poc\task\TaskProcessContext;
 use kuaukutsu\poc\task\TaskManagerOptions;
 
 final class TaskProcessing

@@ -2,11 +2,10 @@
 
 declare(strict_types=1);
 
-namespace kuaukutsu\poc\task\handler;
+namespace kuaukutsu\poc\task\processing;
 
 use Symfony\Component\Process\Process;
 use kuaukutsu\poc\task\TaskManagerOptions;
-use kuaukutsu\poc\task\TaskProcessContext;
 
 final class ProcessFactory
 {

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\event;
 
+use kuaukutsu\poc\task\processing\TaskProcess;
 use Symfony\Component\Process\Process;
-use kuaukutsu\poc\task\TaskProcess;
 
 final class StageTimeoutEvent implements EventInterface
 {

@@ -6,9 +6,9 @@ namespace kuaukutsu\poc\task;
 
 use RuntimeException;
 use DateTimeImmutable;
-use Symfony\Component\Process\Exception\ProcessTimedOutException;
 use Revolt\EventLoop;
 use Revolt\EventLoop\UnsupportedFeatureException;
+use Symfony\Component\Process\Exception\ProcessTimedOutException;
 use kuaukutsu\poc\task\event\Event;
 use kuaukutsu\poc\task\event\EventPublisherInterface;
 use kuaukutsu\poc\task\event\LoopTickEvent;
@@ -16,7 +16,8 @@ use kuaukutsu\poc\task\event\LoopTimeoutEvent;
 use kuaukutsu\poc\task\event\PublisherEvent;
 use kuaukutsu\poc\task\event\StageEvent;
 use kuaukutsu\poc\task\event\StageTimeoutEvent;
-use kuaukutsu\poc\task\handler\TaskProcessing;
+use kuaukutsu\poc\task\processing\TaskProcess;
+use kuaukutsu\poc\task\processing\TaskProcessing;
 
 final class TaskManager implements EventPublisherInterface
 {

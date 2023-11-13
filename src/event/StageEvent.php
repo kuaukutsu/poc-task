@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\event;
 
-use kuaukutsu\poc\task\TaskProcess;
+use kuaukutsu\poc\task\processing\TaskProcess;
 
 final class StageEvent implements EventInterface
 {
