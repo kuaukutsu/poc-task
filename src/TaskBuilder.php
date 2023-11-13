@@ -36,7 +36,7 @@ final class TaskBuilder
     /**
      * @throws BuilderException
      */
-    public function build(TaskDraft $draft, ?TaskStageContext $context = null): TaskInterface
+    public function build(TaskDraft $draft, ?TaskStageContext $context = null): EntityTask
     {
         try {
             return $context === null

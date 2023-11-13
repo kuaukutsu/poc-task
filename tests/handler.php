@@ -3,8 +3,6 @@
 
 /**
  * Task Stage handler file.
- *
- * @var array $argv
  * @var array $definitions bootstrap.php
  */
 

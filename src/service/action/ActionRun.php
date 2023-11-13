@@ -11,7 +11,7 @@ use kuaukutsu\poc\task\service\TaskCommand;
 use kuaukutsu\poc\task\state\TaskStateMessage;
 use kuaukutsu\poc\task\state\TaskStateRunning;
 use kuaukutsu\poc\task\EntityUuid;
-use kuaukutsu\poc\task\TaskInterface;
+use kuaukutsu\poc\task\EntityTask;
 
 final class ActionRun implements TaskAction
 {
@@ -24,7 +24,7 @@ final class ActionRun implements TaskAction
     /**
      * @throws BuilderException
      */
-    public function execute(TaskInterface $task): TaskInterface
+    public function execute(EntityTask $task): EntityTask
     {
         $state = new TaskStateRunning(
             uuid: $task->getUuid(),

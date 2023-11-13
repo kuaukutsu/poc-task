@@ -6,7 +6,7 @@ namespace kuaukutsu\poc\task;
 
 use kuaukutsu\poc\task\state\TaskStateInterface;
 
-interface TaskInterface extends TaskEntityInterface, TaskRunnable
+interface EntityTask extends EntityState, EntityRunnable
 {
     /**
      * @return non-empty-string

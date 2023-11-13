@@ -10,7 +10,7 @@ use kuaukutsu\poc\task\service\TaskCommand;
 use kuaukutsu\poc\task\state\TaskStateMessage;
 use kuaukutsu\poc\task\state\TaskStateSkip;
 use kuaukutsu\poc\task\EntityUuid;
-use kuaukutsu\poc\task\TaskInterface;
+use kuaukutsu\poc\task\EntityTask;
 
 final class ActionStop implements TaskAction
 {
@@ -20,7 +20,7 @@ final class ActionStop implements TaskAction
     ) {
     }
 
-    public function execute(TaskInterface $task): TaskInterface
+    public function execute(EntityTask $task): EntityTask
     {
         // @fixme: Исправить на верное состояние.
         $state = new TaskStateSkip(

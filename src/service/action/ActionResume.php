@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace kuaukutsu\poc\task\service\action;
 
 use kuaukutsu\poc\task\dto\TaskModel;
+use kuaukutsu\poc\task\EntityTask;
 use kuaukutsu\poc\task\handler\TaskFactory;
 use kuaukutsu\poc\task\service\TaskCommand;
 use kuaukutsu\poc\task\state\TaskStateMessage;
 use kuaukutsu\poc\task\state\TaskStateRunning;
 use kuaukutsu\poc\task\EntityUuid;
-use kuaukutsu\poc\task\TaskInterface;
 
 final class ActionResume implements TaskAction
 {
@@ -20,7 +20,7 @@ final class ActionResume implements TaskAction
     ) {
     }
 
-    public function execute(TaskInterface $task): TaskInterface
+    public function execute(EntityTask $task): EntityTask
     {
         $state = new TaskStateRunning(
             uuid: $task->getUuid(),

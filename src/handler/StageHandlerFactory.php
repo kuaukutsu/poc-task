@@ -8,7 +8,7 @@ use DI\Container;
 use DI\DependencyException;
 use DI\NotFoundException;
 use kuaukutsu\poc\task\dto\StageDto;
-use kuaukutsu\poc\task\TaskStageInterface;
+use kuaukutsu\poc\task\EntityStage;
 use kuaukutsu\poc\task\EntityWrapper;
 
 final class StageHandlerFactory
@@ -21,7 +21,7 @@ final class StageHandlerFactory
      * @throws DependencyException
      * @throws NotFoundException
      */
-    public function create(StageDto $stage): TaskStageInterface
+    public function create(StageDto $stage): EntityStage
     {
         /** @var EntityWrapper $taskStage */
         $taskStage = unserialize(
@@ -34,7 +34,7 @@ final class StageHandlerFactory
         );
 
         /**
-         * @var TaskStageInterface
+         * @var EntityStage
          */
         return $this->container->make($taskStage->class, $taskStage->params);
     }

@@ -11,7 +11,7 @@ use DI\Container;
 use kuaukutsu\poc\task\dto\TaskDto;
 use kuaukutsu\poc\task\exception\BuilderException;
 use kuaukutsu\poc\task\state\TaskStatePrepare;
-use kuaukutsu\poc\task\TaskInterface;
+use kuaukutsu\poc\task\EntityTask;
 use kuaukutsu\poc\task\Task;
 
 final class TaskFactory
@@ -25,11 +25,11 @@ final class TaskFactory
     /**
      * @throws BuilderException
      */
-    public function create(TaskDto $dto): TaskInterface
+    public function create(TaskDto $dto): EntityTask
     {
         try {
             /**
-             * @var TaskInterface
+             * @var EntityTask
              */
             return $this->container->make(
                 Task::class,

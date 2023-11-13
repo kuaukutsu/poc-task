@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace kuaukutsu\poc\task\service\action;
 
 use kuaukutsu\poc\task\exception\BuilderException;
-use kuaukutsu\poc\task\TaskInterface;
+use kuaukutsu\poc\task\EntityTask;
 
 interface TaskAction
 {
     /**
      * @throws BuilderException
      */
-    public function execute(TaskInterface $task): TaskInterface;
+    public function execute(EntityTask $task): EntityTask;
 }

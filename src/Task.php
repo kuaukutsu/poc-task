@@ -14,7 +14,7 @@ use kuaukutsu\poc\task\state\TaskStateMessage;
 use kuaukutsu\poc\task\state\TaskStatePaused;
 use kuaukutsu\poc\task\state\TaskStateSkip;
 
-final class Task implements TaskInterface
+final class Task implements EntityTask
 {
     use TaskFlagCommand;
 

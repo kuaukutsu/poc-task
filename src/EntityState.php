@@ -6,7 +6,7 @@ namespace kuaukutsu\poc\task;
 
 use kuaukutsu\poc\task\state\TaskFlag;
 
-interface TaskEntityInterface
+interface EntityState
 {
     public function getFlag(): int;
 

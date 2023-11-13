@@ -167,6 +167,8 @@ final class TaskProcessing
                     );
                 }
 
+                // завести счётчик этапов
+
                 continue;
             }
 

@@ -13,10 +13,10 @@ use kuaukutsu\poc\task\handler\TaskFactory;
 use kuaukutsu\poc\task\EntityUuid;
 use kuaukutsu\poc\task\state\TaskFlag;
 use kuaukutsu\poc\task\state\TaskStateRelation;
-use kuaukutsu\poc\task\TaskDraft;
-use kuaukutsu\poc\task\TaskInterface;
-use kuaukutsu\poc\task\EntityCollection;
 use kuaukutsu\poc\task\TaskStageContext;
+use kuaukutsu\poc\task\TaskDraft;
+use kuaukutsu\poc\task\EntityCollection;
+use kuaukutsu\poc\task\EntityTask;
 
 final class TaskCreator
 {
@@ -31,8 +31,10 @@ final class TaskCreator
      * @throws Exception
      * @throws BuilderException
      */
-    public function create(TaskDraft $taskDraft): TaskInterface
+    public function create(TaskDraft $taskDraft): EntityTask
     {
+        // $taskDraft->stages->isEmpty - exception ?
+
         $dto = $this->save(
             TaskModel::hydrate(
                 [
@@ -54,8 +56,10 @@ final class TaskCreator
      * @throws Exception
      * @throws BuilderException
      */
-    public function createFromContext(TaskDraft $taskDraft, TaskStageContext $context): TaskInterface
+    public function createFromContext(TaskDraft $taskDraft, TaskStageContext $context): EntityTask
     {
+        // $taskDraft->stages->isEmpty - exception ?
+
         $promise = new TaskStateRelation(task: $context->task, stage: $context->stage);
 
         $dto = $this->save(

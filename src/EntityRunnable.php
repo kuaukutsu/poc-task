@@ -8,7 +8,7 @@ use kuaukutsu\poc\task\exception\StateTransitionException;
 use kuaukutsu\poc\task\exception\RunnerException;
 use kuaukutsu\poc\task\state\TaskStateInterface;
 
-interface TaskRunnable
+interface EntityRunnable
 {
     /**
      * Выполнить задачу.

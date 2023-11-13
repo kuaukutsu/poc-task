@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\state;
 
-use kuaukutsu\poc\task\TaskInterface;
+use kuaukutsu\poc\task\EntityTask;
 use kuaukutsu\poc\task\TaskResponseInterface;
 use kuaukutsu\poc\task\TaskStageContext;
 
@@ -58,7 +58,7 @@ trait TaskStateCommand
         );
     }
 
-    final protected function wait(TaskInterface $task, TaskStageContext $context): TaskStateWaiting
+    final protected function wait(EntityTask $task, TaskStageContext $context): TaskStateWaiting
     {
         return new TaskStateWaiting(
             uuid: $context->stage,

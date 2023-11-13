@@ -3,8 +3,6 @@
 
 /**
  * Task Process Manager handler file.
- *
- * @var array $argv
  * @var array $definitions bootstrap.php
  */
 
