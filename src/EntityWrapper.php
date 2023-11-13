@@ -8,7 +8,7 @@ use Serializable;
 use kuaukutsu\poc\task\exception\UnsupportedException;
 
 /**
- * @template T of EntityStage|object
+ * @template T of EntityStage|EntityTask
  */
 final class EntityWrapper implements Serializable
 {

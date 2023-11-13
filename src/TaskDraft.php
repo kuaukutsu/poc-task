@@ -14,7 +14,7 @@ final class TaskDraft
      */
     public function __construct(
         public readonly string $title,
-        public readonly EntityCollection $stages = new EntityCollection(),
+        public readonly EntityWrapperCollection $stages = new EntityWrapperCollection(),
     ) {
     }
 

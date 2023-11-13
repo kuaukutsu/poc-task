@@ -10,13 +10,13 @@ use kuaukutsu\poc\task\dto\TaskDto;
 use kuaukutsu\poc\task\dto\TaskModel;
 use kuaukutsu\poc\task\exception\BuilderException;
 use kuaukutsu\poc\task\handler\TaskFactory;
-use kuaukutsu\poc\task\EntityUuid;
 use kuaukutsu\poc\task\state\TaskFlag;
 use kuaukutsu\poc\task\state\TaskStateRelation;
+use kuaukutsu\poc\task\EntityWrapperCollection;
+use kuaukutsu\poc\task\EntityUuid;
+use kuaukutsu\poc\task\EntityTask;
 use kuaukutsu\poc\task\TaskStageContext;
 use kuaukutsu\poc\task\TaskDraft;
-use kuaukutsu\poc\task\EntityCollection;
-use kuaukutsu\poc\task\EntityTask;
 
 final class TaskCreator
 {
@@ -82,7 +82,7 @@ final class TaskCreator
     /**
      * @throws Exception
      */
-    private function save(TaskModel $model, EntityCollection $stageCollection): TaskDto
+    private function save(TaskModel $model, EntityWrapperCollection $stageCollection): TaskDto
     {
         $uuid = new EntityUuid();
         $task = $this->taskCommand->create($uuid, $model);

@@ -9,7 +9,7 @@ use kuaukutsu\ds\collection\Collection;
 /**
  * @extends Collection<EntityWrapper>
  */
-final class EntityCollection extends Collection
+final class EntityWrapperCollection extends Collection
 {
     public function getType(): string
     {

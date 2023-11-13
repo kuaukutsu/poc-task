@@ -30,7 +30,7 @@ final class TaskBuilder
      */
     public function create(string $title, EntityWrapper ...$stages): TaskDraft
     {
-        return new TaskDraft($title, new EntityCollection(...$stages));
+        return new TaskDraft($title, new EntityWrapperCollection(...$stages));
     }
 
     /**
