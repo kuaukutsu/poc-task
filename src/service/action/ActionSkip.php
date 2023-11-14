@@ -8,14 +8,12 @@ use kuaukutsu\poc\task\dto\TaskModel;
 use kuaukutsu\poc\task\handler\TaskFactory;
 use kuaukutsu\poc\task\service\TaskCommand;
 use kuaukutsu\poc\task\state\TaskStateMessage;
-use kuaukutsu\poc\task\state\TaskStateRunning;
+use kuaukutsu\poc\task\state\TaskStateSkip;
 use kuaukutsu\poc\task\EntityUuid;
 use kuaukutsu\poc\task\EntityTask;
 
-final class ActionRun implements TaskAction
+final class ActionSkip implements TaskAction
 {
-    use TransitionStateTrait;
-
     public function __construct(
         private readonly TaskCommand $command,
         private readonly TaskFactory $factory,
@@ -24,16 +22,10 @@ final class ActionRun implements TaskAction
 
     public function execute(EntityTask $task): EntityTask
     {
-        $state = new TaskStateRunning(
+        $state = new TaskStateSkip(
             uuid: $task->getUuid(),
-            message: new TaskStateMessage('Runned'),
+            message: new TaskStateMessage('Skiped'),
             flag: $task->getFlag(),
-        );
-
-        $this->canAccessTransitionState(
-            $task->getUuid(),
-            $task->getFlag(),
-            $state->getFlag()->toValue(),
         );
 
         $model = $this->command->update(

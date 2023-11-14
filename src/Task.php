@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task;
 
+use kuaukutsu\poc\task\service\action\ActionCancel;
 use kuaukutsu\poc\task\service\action\ActionResume;
 use kuaukutsu\poc\task\service\action\ActionRun;
+use kuaukutsu\poc\task\service\action\ActionSkip;
 use kuaukutsu\poc\task\service\action\ActionStop;
 use kuaukutsu\poc\task\state\TaskFlagCommand;
-use kuaukutsu\poc\task\state\TaskStateCanceled;
 use kuaukutsu\poc\task\state\TaskStateInterface;
 use kuaukutsu\poc\task\state\TaskStateMessage;
 use kuaukutsu\poc\task\state\TaskStatePaused;
-use kuaukutsu\poc\task\state\TaskStateSkip;
 
 final class Task implements EntityTask
 {
@@ -26,8 +26,10 @@ final class Task implements EntityTask
         private readonly string $uuid,
         private readonly string $title,
         private readonly TaskStateInterface $state,
+        private readonly ActionCancel $actionCancel,
         private readonly ActionRun $actionRun,
         private readonly ActionResume $actionResume,
+        private readonly ActionSkip $actionSkip,
         private readonly ActionStop $actionStop,
     ) {
         $this->flag = $this->state->getFlag();
@@ -67,18 +69,16 @@ final class Task implements EntityTask
 
     public function skip(): TaskStateInterface
     {
-        return new TaskStateSkip(
-            uuid: $this->uuid,
-            message: new TaskStateMessage('Skiped'),
-        );
+        return $this->actionSkip
+            ->execute($this)
+            ->getState();
     }
 
     public function cancel(): TaskStateInterface
     {
-        return new TaskStateCanceled(
-            uuid: $this->uuid,
-            message: new TaskStateMessage('Canceled'),
-        );
+        return $this->actionCancel
+            ->execute($this)
+            ->getState();
     }
 
     public function stop(): TaskStateInterface

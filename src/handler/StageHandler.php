@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\handler;
 
-use kuaukutsu\poc\task\exception\NotFoundException;
 use Throwable;
+use Symfony\Component\Console\Output\ConsoleOutput;
+use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use kuaukutsu\poc\task\dto\StageDto;
+use kuaukutsu\poc\task\exception\NotFoundException;
 use kuaukutsu\poc\task\exception\BuilderException;
 use kuaukutsu\poc\task\service\StageCommand;
 use kuaukutsu\poc\task\service\StageQuery;
@@ -20,6 +22,7 @@ final class StageHandler
         private readonly StageCommand $stageCommand,
         private readonly StageContextFactory $contextFactory,
         private readonly StageExecutor $executor,
+        private readonly ConsoleOutputInterface $output = new ConsoleOutput(),
     ) {
     }
 
@@ -76,11 +79,11 @@ final class StageHandler
 
     private function stdout(string $message): void
     {
-        fwrite(STDOUT, $message . PHP_EOL);
+        $this->output->writeln($message);
     }
 
     private function stderr(string $message): void
     {
-        fwrite(STDERR, $message . PHP_EOL);
+        $this->output->getErrorOutput()->writeln($message);
     }
 }

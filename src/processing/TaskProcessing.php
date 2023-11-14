@@ -7,6 +7,8 @@ namespace kuaukutsu\poc\task\processing;
 use SplQueue;
 use kuaukutsu\poc\task\dto\StageDto;
 use kuaukutsu\poc\task\exception\BuilderException;
+use kuaukutsu\poc\task\exception\StateTransitionException;
+use kuaukutsu\poc\task\state\TaskStateRelation;
 use kuaukutsu\poc\task\handler\StateFactory;
 use kuaukutsu\poc\task\handler\TaskFactory;
 use kuaukutsu\poc\task\service\StageQuery;
@@ -14,12 +16,20 @@ use kuaukutsu\poc\task\service\TaskQuery;
 use kuaukutsu\poc\task\EntityUuid;
 use kuaukutsu\poc\task\TaskManagerOptions;
 
+/**
+ * @fixme: Черновик.
+ */
 final class TaskProcessing
 {
     /**
      * @var SplQueue<TaskProcessContext>
      */
     private readonly SplQueue $stageReady;
+
+    /**
+     * @var array<string, TaskRelationContext>
+     */
+    private array $relationIndex = [];
 
     public function __construct(
         private readonly TaskQuery $taskQuery,
@@ -83,12 +93,28 @@ final class TaskProcessing
         }
 
         if ($process->isSuccessful() === false) {
-            $task->stop();
+            try {
+                $task->stop();
+            } catch (BuilderException | StateTransitionException) {
+            }
             return;
         }
 
         if ($task->isFinished() || $task->isPromised()) {
             return;
+        }
+
+        if (isset($this->relationIndex[$process->task])) {
+            $relation = $this->relationIndex[$process->task];
+            unset($relation->index[$process->stage]);
+            if ($relation->index === []) {
+                // записать результат
+                // найти связанную задачу и положить в очередь
+                $this->stageReady->enqueue(
+                    new TaskProcessContext(task: $relation->task, stage: $relation->stage)
+                );
+                $task->cancel();
+            }
         }
 
         $state = $this->stateFactory->create(
@@ -101,7 +127,10 @@ final class TaskProcessing
 
         $stage = $this->loadStageReadyOntoQueue($task->getUuid());
         if ($stage === null) {
-            $task->stop();
+            try {
+                $task->stop();
+            } catch (BuilderException | StateTransitionException) {
+            }
             return;
         }
 
@@ -112,6 +141,28 @@ final class TaskProcessing
                 previous: $process->stage,
             )
         );
+    }
+
+    public function pause(TaskProcess $process): void
+    {
+        try {
+            $task = $this->taskFactory->create(
+                $this->taskQuery->getOne(
+                    new EntityUuid($process->task)
+                )
+            );
+        } catch (BuilderException) {
+            return;
+        }
+
+        if ($task->isFinished()) {
+            return;
+        }
+
+        try {
+            $task->pause();
+        } catch (BuilderException | StateTransitionException) {
+        }
     }
 
     private function loadingPaused(int $limit): void
@@ -129,11 +180,18 @@ final class TaskProcessing
 
             $stage = $this->loadStagePausedOntoQueue($task->getUuid());
             if ($stage === null) {
-                $task->stop();
+                try {
+                    $task->stop();
+                } catch (BuilderException | StateTransitionException) {
+                }
                 continue;
             }
 
-            $task->run();
+            try {
+                $task->run();
+            } catch (BuilderException | StateTransitionException) {
+            }
+
             $this->stageReady->enqueue(
                 new TaskProcessContext(task: $task->getUuid(), stage: $stage->uuid)
             );
@@ -156,18 +214,31 @@ final class TaskProcessing
             if ($task->isPromised()) {
                 $collection = $this->stageQuery->getPromiseByTask(new EntityUuid($task->getUuid()));
                 if ($collection->isEmpty()) {
-                    $task->stop();
+                    try {
+                        $task->stop();
+                    } catch (BuilderException | StateTransitionException) {
+                    }
                     continue;
                 }
 
-                $task->run();
+                /** @var TaskStateRelation $state */
+                $state = $task->getState();
+                $relation = new TaskRelationContext($state->task, $state->stage);
+
+                try {
+                    $task->run();
+                } catch (BuilderException | StateTransitionException $e) {
+                    return;
+                }
+
                 foreach ($collection as $stage) {
+                    $relation->index[$stage->uuid] = true;
                     $this->stageReady->enqueue(
-                        new TaskProcessContext(task: $task->getUuid(), stage: $stage->uuid)
+                        new TaskProcessContext(task: $stage->taskUuid, stage: $stage->uuid)
                     );
                 }
 
-                // завести счётчик этапов
+                $this->relationIndex[$task->getUuid()] = $relation;
 
                 continue;
             }
@@ -178,11 +249,18 @@ final class TaskProcessing
 
             $stage = $this->loadStageReadyOntoQueue($task->getUuid());
             if ($stage === null) {
-                $task->stop();
+                try {
+                    $task->stop();
+                } catch (BuilderException | StateTransitionException) {
+                }
                 continue;
             }
 
-            $task->run();
+            try {
+                $task->run();
+            } catch (BuilderException | StateTransitionException) {
+            }
+
             $this->stageReady->enqueue(
                 new TaskProcessContext(task: $task->getUuid(), stage: $stage->uuid)
             );

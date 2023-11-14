@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\tools;
 
+use Symfony\Component\Console\Output\ConsoleOutput;
+use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use kuaukutsu\poc\task\event\Event;
 use kuaukutsu\poc\task\event\EventInterface;
 use kuaukutsu\poc\task\event\EventSubscriberInterface;
@@ -11,6 +13,11 @@ use kuaukutsu\poc\task\event\StageEvent;
 
 final class TaskManagerOutput implements EventSubscriberInterface
 {
+    public function __construct(
+        private readonly ConsoleOutputInterface $output = new ConsoleOutput(),
+    ) {
+    }
+
     public function subscriptions(): array
     {
         $subscriptions = [];
@@ -56,6 +63,6 @@ final class TaskManagerOutput implements EventSubscriberInterface
 
     private function stdout(string $message): void
     {
-        fwrite(STDOUT, $message . PHP_EOL);
+        $this->output->writeln($message);
     }
 }

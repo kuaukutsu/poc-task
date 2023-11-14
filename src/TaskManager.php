@@ -86,11 +86,7 @@ final class TaskManager implements EventPublisherInterface
                             new StageEvent($process)
                         );
 
-                        // Если должна выполнится связанная задача, то загружаем в очередь все этапы
-                        // Кол-во нужно сохранить,
-                        // когда оно будет равно кол-ву выполненых, закрыть и перейти к следующему этапу
                         $this->processing->next($process);
-
                         $this->processPull($process);
                         unset($process);
                         continue;
@@ -182,6 +178,7 @@ final class TaskManager implements EventPublisherInterface
             if ($process->isRunning() || $process->isStarted()) {
                 $this->trigger(Event::StageStop, new StageEvent($process));
                 $process->stop(10., $signal);
+                $this->processing->pause($process);
             }
         }
 
