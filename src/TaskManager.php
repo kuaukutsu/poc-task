@@ -182,6 +182,8 @@ final class TaskManager implements EventPublisherInterface
             }
         }
 
+        $this->processing->terminate();
+
         exit($signal);
     }
 

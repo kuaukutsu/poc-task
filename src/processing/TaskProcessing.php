@@ -4,17 +4,14 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\processing;
 
-use SplQueue;
-use kuaukutsu\poc\task\dto\StageDto;
 use kuaukutsu\poc\task\exception\BuilderException;
 use kuaukutsu\poc\task\exception\StateTransitionException;
-use kuaukutsu\poc\task\state\TaskStateRelation;
 use kuaukutsu\poc\task\handler\StateFactory;
 use kuaukutsu\poc\task\handler\TaskFactory;
-use kuaukutsu\poc\task\service\StageQuery;
+use kuaukutsu\poc\task\state\TaskStateRelation;
 use kuaukutsu\poc\task\service\TaskQuery;
-use kuaukutsu\poc\task\EntityUuid;
 use kuaukutsu\poc\task\TaskManagerOptions;
+use kuaukutsu\poc\task\EntityUuid;
 
 /**
  * @fixme: Черновик.
@@ -22,49 +19,42 @@ use kuaukutsu\poc\task\TaskManagerOptions;
 final class TaskProcessing
 {
     /**
-     * @var SplQueue<TaskProcessContext>
-     */
-    private readonly SplQueue $stageReady;
-
-    /**
      * @var array<string, TaskRelationContext>
      */
     private array $relationIndex = [];
 
     public function __construct(
         private readonly TaskQuery $taskQuery,
-        private readonly StageQuery $stageQuery,
         private readonly TaskFactory $taskFactory,
         private readonly StateFactory $stateFactory,
         private readonly ProcessFactory $processFactory,
+        private readonly TaskProcessReady $processReady,
     ) {
-        $this->stageReady = new SplQueue();
     }
 
     public function hasTaskProcess(): bool
     {
-        return $this->stageReady->isEmpty() === false;
+        return $this->processReady->has();
     }
 
     public function getTaskProcess(): TaskProcessContext
     {
-        return $this->stageReady->dequeue();
+        return $this->processReady->dequeue();
     }
 
     public function loadTaskProcess(TaskManagerOptions $options): void
     {
         // Первым делом в очередь добавляем те что на Паузе
-        if ($this->stageReady->isEmpty()) {
+        if ($this->processReady->isEmpty()) {
             $this->loadingPaused(
                 $options->getTaskQueueSize(),
             );
         }
 
         // Если capacity позволяет, добавляем в очередь задачи из Ожидания
-        if ($this->stageReady->count() < $options->getTaskQueueSize()) {
-            $this->loadingReady(
-                $options->getTaskQueueSize() - $this->stageReady->count(),
-            );
+        $capacity = $options->getTaskQueueSize() - $this->processReady->count();
+        if ($capacity > 0) {
+            $this->loadingReady($capacity);
         }
     }
 
@@ -110,11 +100,13 @@ final class TaskProcessing
             if ($relation->index === []) {
                 // записать результат
                 // найти связанную задачу и положить в очередь
-                $this->stageReady->enqueue(
+                $this->processReady->enqueue(
                     new TaskProcessContext(task: $relation->task, stage: $relation->stage)
                 );
                 $task->cancel();
             }
+
+            return;
         }
 
         $state = $this->stateFactory->create(
@@ -125,22 +117,17 @@ final class TaskProcessing
             return;
         }
 
-        $stage = $this->loadStageReadyOntoQueue($task->getUuid());
-        if ($stage === null) {
-            try {
+        try {
+            if ($this->processReady->pushStageNext($task->getUuid(), $process->stage) === false) {
                 $task->stop();
-            } catch (BuilderException | StateTransitionException) {
             }
-            return;
+        } catch (BuilderException | StateTransitionException) {
         }
+    }
 
-        $this->stageReady->enqueue(
-            new TaskProcessContext(
-                task: $task->getUuid(),
-                stage: $stage->uuid,
-                previous: $process->stage,
-            )
-        );
+    public function terminate(): void
+    {
+        $this->processReady->terminate();
     }
 
     public function pause(TaskProcess $process): void
@@ -165,12 +152,11 @@ final class TaskProcessing
         }
     }
 
+    /**
+     * @param positive-int $limit
+     */
     private function loadingPaused(int $limit): void
     {
-        if ($limit < 1) {
-            return;
-        }
-
         foreach ($this->taskQuery->getPaused($limit) as $item) {
             try {
                 $task = $this->taskFactory->create($item);
@@ -178,32 +164,21 @@ final class TaskProcessing
                 continue;
             }
 
-            $stage = $this->loadStagePausedOntoQueue($task->getUuid());
-            if ($stage === null) {
-                try {
-                    $task->stop();
-                } catch (BuilderException | StateTransitionException) {
-                }
+            try {
+                $this->processReady->pushStageOnPause($task->getUuid())
+                    ? $task->run()
+                    : $task->stop();
+            } catch (BuilderException | StateTransitionException) {
                 continue;
             }
-
-            try {
-                $task->run();
-            } catch (BuilderException | StateTransitionException) {
-            }
-
-            $this->stageReady->enqueue(
-                new TaskProcessContext(task: $task->getUuid(), stage: $stage->uuid)
-            );
         }
     }
 
+    /**
+     * @param positive-int $limit
+     */
     private function loadingReady(int $limit): void
     {
-        if ($limit < 1) {
-            return;
-        }
-
         foreach ($this->taskQuery->getReady($limit) as $item) {
             try {
                 $task = $this->taskFactory->create($item);
@@ -212,8 +187,8 @@ final class TaskProcessing
             }
 
             if ($task->isPromised()) {
-                $collection = $this->stageQuery->getPromiseByTask(new EntityUuid($task->getUuid()));
-                if ($collection->isEmpty()) {
+                $index = $this->processReady->pushStagePromise($task->getUuid());
+                if ($index === []) {
                     try {
                         $task->stop();
                     } catch (BuilderException | StateTransitionException) {
@@ -223,19 +198,16 @@ final class TaskProcessing
 
                 /** @var TaskStateRelation $state */
                 $state = $task->getState();
-                $relation = new TaskRelationContext($state->task, $state->stage);
+                $relation = new TaskRelationContext(
+                    $state->task,
+                    $state->stage,
+                    $index
+                );
 
                 try {
                     $task->run();
-                } catch (BuilderException | StateTransitionException $e) {
+                } catch (BuilderException | StateTransitionException) {
                     return;
-                }
-
-                foreach ($collection as $stage) {
-                    $relation->index[$stage->uuid] = true;
-                    $this->stageReady->enqueue(
-                        new TaskProcessContext(task: $stage->taskUuid, stage: $stage->uuid)
-                    );
                 }
 
                 $this->relationIndex[$task->getUuid()] = $relation;
@@ -243,47 +215,13 @@ final class TaskProcessing
                 continue;
             }
 
-            if ($task->isWaiting()) {
-                continue;
-            }
-
-            $stage = $this->loadStageReadyOntoQueue($task->getUuid());
-            if ($stage === null) {
-                try {
-                    $task->stop();
-                } catch (BuilderException | StateTransitionException) {
-                }
-                continue;
-            }
-
             try {
-                $task->run();
+                $this->processReady->pushStageOnReady($task->getUuid())
+                    ? $task->run()
+                    : $task->stop();
             } catch (BuilderException | StateTransitionException) {
+                continue;
             }
-
-            $this->stageReady->enqueue(
-                new TaskProcessContext(task: $task->getUuid(), stage: $stage->uuid)
-            );
         }
-    }
-
-    /**
-     * @param non-empty-string $taskUuid
-     */
-    private function loadStageReadyOntoQueue(string $taskUuid): ?StageDto
-    {
-        return $this->stageQuery->findReadyByTask(
-            new EntityUuid($taskUuid)
-        );
-    }
-
-    /**
-     * @param non-empty-string $taskUuid
-     */
-    private function loadStagePausedOntoQueue(string $taskUuid): ?StageDto
-    {
-        return $this->stageQuery->findPausedByTask(
-            new EntityUuid($taskUuid)
-        );
     }
 }

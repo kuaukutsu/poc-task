@@ -38,6 +38,9 @@ final class TaskManagerOptions
         return max(1., $this->keeperInterval);
     }
 
+    /**
+     * @return positive-int
+     */
     public function getTaskQueueSize(): int
     {
         return max(1, $this->taskQueueSize);

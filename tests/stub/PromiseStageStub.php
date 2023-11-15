@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\tests\stub;
 
+use kuaukutsu\poc\task\EntityTask;
 use kuaukutsu\poc\task\state\TaskStateInterface;
+use kuaukutsu\poc\task\state\TaskStateMessage;
 use kuaukutsu\poc\task\TaskBuilder;
 use kuaukutsu\poc\task\EntityWrapper;
 use kuaukutsu\poc\task\TaskStageBase;
@@ -39,6 +41,17 @@ final class PromiseStageStub extends TaskStageBase
         return $this->wait(
             $this->builder->build($task, $context),
             $context,
+        );
+    }
+
+    public function handleRelation(TaskStageContext $context, EntityTask $relation): TaskStateInterface
+    {
+        return $this->success(
+            new TaskStateMessage(
+                'Task: ' . $relation->getUuid(),
+                $relation->getState()->getMessage()->message,
+            ),
+            $context
         );
     }
 }
