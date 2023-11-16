@@ -9,5 +9,4 @@ namespace kuaukutsu\poc\task;
  */
 interface TaskResponseInterface
 {
-    public function toArrayRecursive(): array;
 }

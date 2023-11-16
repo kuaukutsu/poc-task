@@ -95,7 +95,15 @@ final class TaskManager implements EventPublisherInterface
                             new StageEvent($process)
                         );
 
-                        $this->processing->next($process);
+                        try {
+                            $this->processing->next($process);
+                        } catch (ProcessingException $exception) {
+                            $this->trigger(
+                                Event::LoopException,
+                                new LoopExceptionEvent($exception)
+                            );
+                        }
+
                         $this->processPull($process);
                         unset($process);
                         continue;

@@ -28,6 +28,7 @@ final class TaskProcessing
         private readonly ProcessFactory $processFactory,
         private readonly TaskProcessReady $processReady,
         private readonly TaskProcessPromise $processPromise,
+        private readonly TaskProcessCompletion $processCompletion,
     ) {
     }
 
@@ -72,24 +73,27 @@ final class TaskProcessing
         );
     }
 
+    /**
+     * @throws ProcessingException
+     */
     public function next(TaskProcess $process): void
     {
+        if ($process->isSuccessful() === false) {
+            return;
+        }
+
         try {
             $task = $this->taskFactory->create(
                 $this->taskQuery->getOne(
                     new EntityUuid($process->task)
                 )
             );
-        } catch (BuilderException) {
-            return;
-        }
-
-        if ($process->isSuccessful() === false) {
-            try {
-                $task->stop();
-            } catch (BuilderException | StateTransitionException) {
-            }
-            return;
+        } catch (Throwable $exception) {
+            throw new ProcessingException(
+                "[$process->task] TaskProcessing error: " . $exception->getMessage(),
+                101,
+                $exception,
+            );
         }
 
         if ($task->isFinished() || $task->isPromised()) {
@@ -98,11 +102,9 @@ final class TaskProcessing
 
         if ($this->processPromise->has($process->task)) {
             $context = $this->processPromise->dequeue($process->task, $process->stage);
-            if ($context !== null) {
-                // записать результат
-                // найти связанную задачу и положить в очередь
+            if ($context !== null && $this->processPromise->canCloseProcess($context)) {
+                $this->processCompletion->success($task);
                 $this->processReady->pushStageWaiting($context);
-                $task->cancel();
             }
 
             return;
@@ -111,16 +113,12 @@ final class TaskProcessing
         $state = $this->stateFactory->create(
             $process->getOutput()
         );
-
         if ($state->getFlag()->isWaiting()) {
             return;
         }
 
-        try {
-            if ($this->processReady->pushStageNext($task->getUuid(), $process->stage) === false) {
-                $task->stop();
-            }
-        } catch (BuilderException | StateTransitionException) {
+        if ($this->processReady->pushStageNext($task->getUuid(), $process->stage) === false) {
+            $this->processCompletion->success($task);
         }
     }
 

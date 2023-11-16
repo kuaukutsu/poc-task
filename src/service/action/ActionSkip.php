@@ -7,6 +7,7 @@ namespace kuaukutsu\poc\task\service\action;
 use kuaukutsu\poc\task\dto\TaskModel;
 use kuaukutsu\poc\task\handler\TaskFactory;
 use kuaukutsu\poc\task\service\TaskCommand;
+use kuaukutsu\poc\task\state\TaskStateInterface;
 use kuaukutsu\poc\task\state\TaskStateMessage;
 use kuaukutsu\poc\task\state\TaskStateSkip;
 use kuaukutsu\poc\task\EntityUuid;
@@ -20,9 +21,9 @@ final class ActionSkip implements TaskAction
     ) {
     }
 
-    public function execute(EntityTask $task): EntityTask
+    public function execute(EntityTask $task, ?TaskStateInterface $state = null): EntityTask
     {
-        $state = new TaskStateSkip(
+        $state ??= new TaskStateSkip(
             uuid: $task->getUuid(),
             message: new TaskStateMessage('Skiped'),
             flag: $task->getFlag(),

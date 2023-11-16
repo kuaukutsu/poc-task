@@ -16,14 +16,13 @@ final class TaskStateSuccess implements TaskStateInterface
     public function __construct(
         public readonly string $uuid,
         private readonly TaskStateMessage $message,
-        private readonly int $flag = 0,
         private readonly ?TaskResponseInterface $response = null,
     ) {
     }
 
     public function getFlag(): TaskFlag
     {
-        return (new TaskFlag($this->flag))->setSuccess();
+        return (new TaskFlag())->setSuccess();
     }
 
     public function getMessage(): TaskStateMessage

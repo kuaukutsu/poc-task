@@ -25,6 +25,18 @@ final class StageQueryStub implements StageQuery
         return $storage[$uuid->getUuid()];
     }
 
+    /**
+     * @return iterable<StageDto>
+     */
+    public function findByTask(EntityUuid $taskUuid): iterable
+    {
+        foreach ($this->getData() as $item) {
+            if ($item->taskUuid === $taskUuid->getUuid()) {
+                yield $item;
+            }
+        }
+    }
+
     public function getPromiseByTask(EntityUuid $taskUuid): StageCollection
     {
         $collection = new StageCollection();

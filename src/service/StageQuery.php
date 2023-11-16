@@ -16,6 +16,11 @@ interface StageQuery
      */
     public function getOne(EntityUuid $uuid): StageDto;
 
+    /**
+     * @return iterable<StageDto>
+     */
+    public function findByTask(EntityUuid $taskUuid): iterable;
+
     public function getPromiseByTask(EntityUuid $taskUuid): StageCollection;
 
     public function findReadyByTask(EntityUuid $taskUuid): ?StageDto;

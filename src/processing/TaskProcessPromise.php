@@ -22,20 +22,6 @@ final class TaskProcessPromise
             && $this->queue[$uuid]->storage !== [];
     }
 
-    public function dequeue(string $uuid, string $stage): ?TaskProcessContext
-    {
-        if (array_key_exists($uuid, $this->queue) === false) {
-            return null;
-        }
-
-        unset($this->queue[$uuid]->storage[$stage]);
-        if ($this->queue[$uuid]->storage === []) {
-            return $this->queue[$uuid];
-        }
-
-        return null;
-    }
-
     /**
      * @param non-empty-string $uuid
      * @param array<string, true> $index
@@ -54,5 +40,22 @@ final class TaskProcessPromise
         );
 
         return true;
+    }
+
+    public function dequeue(string $uuid, string $stage): ?TaskProcessContext
+    {
+        if (array_key_exists($uuid, $this->queue)) {
+            unset($this->queue[$uuid]->storage[$stage]);
+            return $this->queue[$uuid];
+        }
+
+        return null;
+    }
+
+    public function canCloseProcess(TaskProcessContext $context): bool
+    {
+        return $context->previous !== null
+            && array_key_exists($context->previous, $this->queue)
+            && $this->queue[$context->previous]->storage === [];
     }
 }

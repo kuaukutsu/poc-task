@@ -56,10 +56,7 @@ final class TaskProcessReady
      */
     public function pushStageOnPause(string $taskUuid): bool
     {
-        $stage = $this->query->findPausedByTask(
-            new EntityUuid($taskUuid)
-        );
-
+        $stage = $this->query->findPausedByTask(new EntityUuid($taskUuid));
         if ($stage === null) {
             return false;
         }
@@ -75,10 +72,7 @@ final class TaskProcessReady
      */
     public function pushStageOnReady(string $taskUuid): bool
     {
-        $stage = $this->query->findReadyByTask(
-            new EntityUuid($taskUuid)
-        );
-
+        $stage = $this->query->findReadyByTask(new EntityUuid($taskUuid));
         if ($stage === null) {
             return false;
         }
@@ -95,10 +89,7 @@ final class TaskProcessReady
      */
     public function pushStagePromise(string $taskUuid): array
     {
-        $collection = $this->query->getPromiseByTask(
-            new EntityUuid($taskUuid)
-        );
-
+        $collection = $this->query->getPromiseByTask(new EntityUuid($taskUuid));
         if ($collection->isEmpty()) {
             return [];
         }

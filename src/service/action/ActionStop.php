@@ -7,6 +7,7 @@ namespace kuaukutsu\poc\task\service\action;
 use kuaukutsu\poc\task\dto\TaskModel;
 use kuaukutsu\poc\task\handler\TaskFactory;
 use kuaukutsu\poc\task\service\TaskCommand;
+use kuaukutsu\poc\task\state\TaskStateInterface;
 use kuaukutsu\poc\task\state\TaskStateMessage;
 use kuaukutsu\poc\task\state\TaskStateSkip;
 use kuaukutsu\poc\task\EntityUuid;
@@ -20,10 +21,10 @@ final class ActionStop implements TaskAction
     ) {
     }
 
-    public function execute(EntityTask $task): EntityTask
+    public function execute(EntityTask $task, ?TaskStateInterface $state = null): EntityTask
     {
         // @fixme: Исправить на верное состояние.
-        $state = new TaskStateSkip(
+        $state ??= new TaskStateSkip(
             uuid: $task->getUuid(),
             message: new TaskStateMessage('Stopped'),
             flag: $task->getFlag(),

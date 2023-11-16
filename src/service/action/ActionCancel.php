@@ -8,6 +8,7 @@ use kuaukutsu\poc\task\dto\TaskModel;
 use kuaukutsu\poc\task\handler\TaskFactory;
 use kuaukutsu\poc\task\service\TaskCommand;
 use kuaukutsu\poc\task\state\TaskStateCanceled;
+use kuaukutsu\poc\task\state\TaskStateInterface;
 use kuaukutsu\poc\task\state\TaskStateMessage;
 use kuaukutsu\poc\task\EntityUuid;
 use kuaukutsu\poc\task\EntityTask;
@@ -22,9 +23,9 @@ final class ActionCancel implements TaskAction
     ) {
     }
 
-    public function execute(EntityTask $task): EntityTask
+    public function execute(EntityTask $task, ?TaskStateInterface $state = null): EntityTask
     {
-        $state = new TaskStateCanceled(
+        $state ??= new TaskStateCanceled(
             uuid: $task->getUuid(),
             message: new TaskStateMessage('Canceled'),
             flag: $task->getFlag(),
