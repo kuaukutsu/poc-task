@@ -16,7 +16,7 @@ final class TaskProcessContext
         public readonly string $task,
         public readonly string $stage,
         public readonly ?string $previous = null,
-        public readonly array $storage = [],
+        public array $storage = [],
     ) {
     }
 }

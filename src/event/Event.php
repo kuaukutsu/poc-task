@@ -12,6 +12,8 @@ enum Event: string
 
     case LoopTimeout = 'loop-timeout-event';
 
+    case LoopException = 'loop-exception-event';
+
     case StagePush = 'process-push-event';
 
     case StagePull = 'process-pull-event';

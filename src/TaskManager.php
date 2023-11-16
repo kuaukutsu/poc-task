@@ -13,9 +13,11 @@ use kuaukutsu\poc\task\event\Event;
 use kuaukutsu\poc\task\event\EventPublisherInterface;
 use kuaukutsu\poc\task\event\LoopTickEvent;
 use kuaukutsu\poc\task\event\LoopTimeoutEvent;
+use kuaukutsu\poc\task\event\LoopExceptionEvent;
 use kuaukutsu\poc\task\event\PublisherEvent;
 use kuaukutsu\poc\task\event\StageEvent;
 use kuaukutsu\poc\task\event\StageTimeoutEvent;
+use kuaukutsu\poc\task\exception\ProcessingException;
 use kuaukutsu\poc\task\processing\TaskProcess;
 use kuaukutsu\poc\task\processing\TaskProcessing;
 
@@ -55,7 +57,14 @@ final class TaskManager implements EventPublisherInterface
                     new LoopTickEvent(new DateTimeImmutable())
                 );
 
-                $this->processing->loadTaskProcess($options);
+                try {
+                    $this->processing->loadTaskProcess($options);
+                } catch (ProcessingException $exception) {
+                    $this->trigger(
+                        Event::LoopException,
+                        new LoopExceptionEvent($exception)
+                    );
+                }
 
                 while (
                     $this->processing->hasTaskProcess()

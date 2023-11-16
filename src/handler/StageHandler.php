@@ -68,7 +68,10 @@ final class StageHandler
     {
         $previousState = null;
         if ($previous !== null) {
-            $previousState = $this->query->getOne(new EntityUuid($previous))->state;
+            try {
+                $previousState = $this->query->getOne(new EntityUuid($previous))->state;
+            } catch (NotFoundException) {
+            }
         }
 
         return $this->executor->execute(

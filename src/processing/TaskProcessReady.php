@@ -8,6 +8,7 @@ use RuntimeException;
 use SplQueue;
 use kuaukutsu\poc\task\dto\StageDto;
 use kuaukutsu\poc\task\dto\StageModel;
+use kuaukutsu\poc\task\exception\NotFoundException;
 use kuaukutsu\poc\task\state\TaskStateReady;
 use kuaukutsu\poc\task\state\TaskStateMessage;
 use kuaukutsu\poc\task\state\TaskStateRunning;
@@ -49,23 +50,9 @@ final class TaskProcessReady
         return $this->queue->dequeue();
     }
 
-    public function enqueue(TaskProcessContext $processContext): void
-    {
-        $this->queue->enqueue($processContext);
-    }
-
-    public function terminate(): void
-    {
-        while ($this->has()) {
-            $context = $this->dequeue();
-            $this->revertToReady($context);
-            // stage to ready
-            // task to pause
-        }
-    }
-
     /**
      * @param non-empty-string $taskUuid
+     * @throws RuntimeException Ошибка выполнения комманды
      */
     public function pushStageOnPause(string $taskUuid): bool
     {
@@ -77,11 +64,14 @@ final class TaskProcessReady
             return false;
         }
 
-        return $this->enqueueAndRun($stage);
+        return $this->enqueue(
+            $this->stageToRun($stage->uuid)
+        );
     }
 
     /**
      * @param non-empty-string $taskUuid
+     * @throws RuntimeException Ошибка выполнения комманды
      */
     public function pushStageOnReady(string $taskUuid): bool
     {
@@ -93,12 +83,15 @@ final class TaskProcessReady
             return false;
         }
 
-        return $this->enqueueAndRun($stage);
+        return $this->enqueue(
+            $this->stageToRun($stage->uuid)
+        );
     }
 
     /**
      * @param non-empty-string $taskUuid
      * @return array<string, true>
+     * @throws RuntimeException Ошибка выполнения комманды
      */
     public function pushStagePromise(string $taskUuid): array
     {
@@ -113,15 +106,33 @@ final class TaskProcessReady
         $index = [];
         foreach ($collection as $stage) {
             $index[$stage->uuid] = true;
-            $this->enqueueAndRun($stage);
+            $this->enqueue(
+                $this->stageToRun($stage->uuid)
+            );
         }
 
         return $index;
     }
 
     /**
+     * @throws NotFoundException
+     */
+    public function pushStageWaiting(TaskProcessContext $processContext): bool
+    {
+        $stage = $this->query->getOne(new EntityUuid($processContext->stage));
+        if ($stage->taskUuid !== $processContext->task) {
+            return false;
+        }
+
+        $this->enqueue($stage);
+
+        return true;
+    }
+
+    /**
      * @param non-empty-string $taskUuid
      * @param non-empty-string $previous
+     * @throws RuntimeException Ошибка выполнения комманды
      */
     public function pushStageNext(string $taskUuid, string $previous): bool
     {
@@ -133,33 +144,27 @@ final class TaskProcessReady
             return false;
         }
 
-        return $this->enqueueAndRun($stage, $previous);
+        return $this->enqueue(
+            $this->stageToRun($stage->uuid),
+            $previous,
+        );
+    }
+
+    public function terminate(): void
+    {
+        while ($this->has()) {
+            $context = $this->dequeue();
+            $this->processTerminate($context);
+            // stage to ready
+            // task to pause
+        }
     }
 
     /**
      * @param non-empty-string|null $previous
      */
-    private function enqueueAndRun(StageDto $stage, ?string $previous = null): bool
+    private function enqueue(StageDto $stage, ?string $previous = null): bool
     {
-        $state = new TaskStateRunning(
-            uuid: $stage->uuid,
-            message: new TaskStateMessage('Runned'),
-        );
-
-        try {
-            $this->command->update(
-                new EntityUuid($stage->uuid),
-                StageModel::hydrate(
-                    [
-                        'flag' => $state->getFlag()->toValue(),
-                        'state' => serialize($state),
-                    ]
-                ),
-            );
-        } catch (RuntimeException) {
-            return false;
-        }
-
         $this->queue->enqueue(
             new TaskProcessContext(
                 task: $stage->taskUuid,
@@ -171,7 +176,29 @@ final class TaskProcessReady
         return true;
     }
 
-    private function revertToReady(TaskProcessContext $context): void
+    /**
+     * @param non-empty-string $uuid
+     * @throws RuntimeException Ошибка выполнения комманды
+     */
+    private function stageToRun(string $uuid): StageDto
+    {
+        $state = new TaskStateRunning(
+            uuid: $uuid,
+            message: new TaskStateMessage('Runned'),
+        );
+
+        return $this->command->update(
+            new EntityUuid($uuid),
+            StageModel::hydrate(
+                [
+                    'flag' => $state->getFlag()->toValue(),
+                    'state' => serialize($state),
+                ]
+            ),
+        );
+    }
+
+    private function processTerminate(TaskProcessContext $context): void
     {
         $state = new TaskStateReady();
 
