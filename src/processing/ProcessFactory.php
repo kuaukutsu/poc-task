@@ -26,7 +26,7 @@ final class ProcessFactory
             $options->getBindir(),
             getenv(),
             null,
-            300.
+            $options->handlerTimeout
         );
     }
 }

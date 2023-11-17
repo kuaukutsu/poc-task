@@ -42,7 +42,7 @@ final class StageContextFactory
             return $this->container->make(TaskStageContext::class, $parameters);
         } catch (DependencyException | NotFoundException | TypeError $exception) {
             throw new BuilderException(
-                "[$stage->uuid] TaskStageContext error: " . $exception->getMessage(),
+                "[$stage->uuid] TaskStageContext factory error: " . $exception->getMessage(),
                 $exception,
             );
         }

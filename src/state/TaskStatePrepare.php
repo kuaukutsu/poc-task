@@ -26,6 +26,7 @@ trait TaskStatePrepare
                 'allowed_classes' => [
                     TaskStateCanceled::class,
                     TaskStateError::class,
+                    TaskStateMessage::class,
                     TaskStatePaused::class,
                     TaskStateRelation::class,
                     TaskStateReady::class,
@@ -33,7 +34,6 @@ trait TaskStatePrepare
                     TaskStateSkip::class,
                     TaskStateSuccess::class,
                     TaskStateWaiting::class,
-                    TaskStateMessage::class,
                 ],
             ]
         );

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace kuaukutsu\poc\task\state;
 
 use kuaukutsu\poc\task\exception\UnsupportedException;
-use kuaukutsu\poc\task\tools\SerializerJsonDecorator;
+use kuaukutsu\poc\task\tools\SerializerJson;
 use kuaukutsu\poc\task\TaskResponseInterface;
 
 trait TaskStateSerialize
@@ -33,7 +33,7 @@ trait TaskStateSerialize
         if (isset($attributes['response']) && is_object($attributes['response'])) {
             $attributes['response'] = [
                 'O' => get_class($attributes['response']),
-                's' => (new SerializerJsonDecorator())->serialize($attributes['response']),
+                's' => (new SerializerJson())->serialize($attributes['response']),
             ];
         }
 
@@ -47,16 +47,27 @@ trait TaskStateSerialize
     {
         foreach ($data as $property => $value) {
             if (property_exists($this, $property)) {
-                if ($property === 'response' && is_array($value) && isset($value['O'], $value['s'])) {
-                    /** @psalm-suppress MixedAssignment */
-                    $value = (new SerializerJsonDecorator())->deserialize(
-                        (string)$value['s'],
-                        (string)$value['O'],
-                    );
+                if ($property === 'response' && is_array($value)) {
+                    $value = $this->prepareValueResponse($value);
                 }
 
                 $this->{$property} = $value;
             }
         }
+    }
+
+    private function prepareValueResponse(array $value): TaskResponseInterface | array
+    {
+        if (isset($value['O'], $value['s'])) {
+            /**
+             * @var TaskResponseInterface
+             */
+            return (new SerializerJson())->deserialize(
+                (string)$value['s'],
+                (string)$value['O'],
+            );
+        }
+
+        return $value;
     }
 }

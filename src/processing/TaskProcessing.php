@@ -5,9 +5,7 @@ declare(strict_types=1);
 namespace kuaukutsu\poc\task\processing;
 
 use Throwable;
-use kuaukutsu\poc\task\exception\BuilderException;
 use kuaukutsu\poc\task\exception\ProcessingException;
-use kuaukutsu\poc\task\exception\StateTransitionException;
 use kuaukutsu\poc\task\handler\StateFactory;
 use kuaukutsu\poc\task\handler\TaskFactory;
 use kuaukutsu\poc\task\state\TaskStateRelation;
@@ -16,9 +14,6 @@ use kuaukutsu\poc\task\TaskManagerOptions;
 use kuaukutsu\poc\task\EntityTask;
 use kuaukutsu\poc\task\EntityUuid;
 
-/**
- * @fixme: Черновик.
- */
 final class TaskProcessing
 {
     public function __construct(
@@ -101,11 +96,11 @@ final class TaskProcessing
 
         if ($this->processPromise->has($process->task)) {
             $context = $this->processPromise->dequeue($process->task, $process->stage);
-            if ($context !== null && $this->processPromise->canCloseProcess($context)) {
-                $this->processReady->pushStageWaiting(
-                    $context,
-                    $this->processCompletion->success($task)
-                );
+            if ($context !== null && $this->processPromise->canCompleted($context)) {
+                $task = $this->processCompletion->success($task);
+                if ($this->processPromise->completed($context, $task)) {
+                    $this->processReady->pushStageNext($context->task, $context->stage);
+                }
             }
 
             return;
@@ -123,11 +118,32 @@ final class TaskProcessing
         }
     }
 
-    public function terminate(): void
+    /**
+     * @throws ProcessingException
+     */
+    public function cancel(TaskProcess $process): void
     {
-        $this->processReady->terminate();
+        try {
+            $task = $this->taskFactory->create(
+                $this->taskQuery->getOne(
+                    new EntityUuid($process->task)
+                )
+            );
+
+            if ($task->isFinished() === false) {
+                $task->cancel();
+            }
+        } catch (Throwable $exception) {
+            throw new ProcessingException(
+                "[$process->task] TaskProcessing error: " . $exception->getMessage(),
+                $exception,
+            );
+        }
     }
 
+    /**
+     * @throws ProcessingException
+     */
     public function pause(TaskProcess $process): void
     {
         try {
@@ -136,18 +152,21 @@ final class TaskProcessing
                     new EntityUuid($process->task)
                 )
             );
-        } catch (BuilderException) {
-            return;
-        }
 
-        if ($task->isFinished()) {
-            return;
+            if ($task->isFinished() === false) {
+                $task->pause();
+            }
+        } catch (Throwable $exception) {
+            throw new ProcessingException(
+                "[$process->task] TaskProcessing error: " . $exception->getMessage(),
+                $exception,
+            );
         }
+    }
 
-        try {
-            $task->pause();
-        } catch (BuilderException | StateTransitionException) {
-        }
+    public function terminate(): void
+    {
+        $this->processReady->terminate();
     }
 
     /**

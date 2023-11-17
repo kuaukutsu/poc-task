@@ -67,13 +67,6 @@ final class Task implements EntityTask
         return $this->getState();
     }
 
-    public function skip(): TaskStateInterface
-    {
-        return $this->actionSkip
-            ->execute($this)
-            ->getState();
-    }
-
     public function cancel(): TaskStateInterface
     {
         return $this->actionCancel

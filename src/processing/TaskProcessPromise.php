@@ -4,7 +4,16 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\processing;
 
+use RuntimeException;
+use kuaukutsu\poc\task\dto\StageDto;
+use kuaukutsu\poc\task\dto\StageModel;
+use kuaukutsu\poc\task\state\TaskStateError;
+use kuaukutsu\poc\task\state\TaskStateInterface;
 use kuaukutsu\poc\task\state\TaskStateRelation;
+use kuaukutsu\poc\task\state\TaskStateSuccess;
+use kuaukutsu\poc\task\service\StageCommand;
+use kuaukutsu\poc\task\service\StageQuery;
+use kuaukutsu\poc\task\EntityUuid;
 
 final class TaskProcessPromise
 {
@@ -13,6 +22,12 @@ final class TaskProcessPromise
      */
     private array $queue = [];
 
+    public function __construct(
+        private readonly StageQuery $query,
+        private readonly StageCommand $command,
+    ) {
+    }
+
     /**
      * @param non-empty-string $uuid
      */
@@ -20,6 +35,13 @@ final class TaskProcessPromise
     {
         return array_key_exists($uuid, $this->queue)
             && $this->queue[$uuid]->storage !== [];
+    }
+
+    public function canCompleted(TaskProcessContext $context): bool
+    {
+        return $context->previous !== null
+            && array_key_exists($context->previous, $this->queue)
+            && $this->queue[$context->previous]->storage === [];
     }
 
     /**
@@ -52,10 +74,64 @@ final class TaskProcessPromise
         return null;
     }
 
-    public function canCloseProcess(TaskProcessContext $context): bool
+    public function completed(TaskProcessContext $context, TaskStateInterface $statePrevious): bool
     {
-        return $context->previous !== null
-            && array_key_exists($context->previous, $this->queue)
-            && $this->queue[$context->previous]->storage === [];
+        $stage = $this->query->getOne(new EntityUuid($context->stage));
+        if ($stage->taskUuid !== $context->task) {
+            return false;
+        }
+
+        if ($statePrevious->getFlag()->isSuccess()) {
+            $this->stageSuccess($stage, $statePrevious);
+            return true;
+        }
+
+        $this->stageError($stage, $statePrevious);
+        return false;
+    }
+
+    /**
+     * @throws RuntimeException Ошибка выполнения комманды
+     */
+    private function stageError(StageDto $stage, TaskStateInterface $statePrevious): void
+    {
+        $state = new TaskStateError(
+            uuid: $stage->uuid,
+            message: $statePrevious->getMessage(),
+            flag: $stage->flag,
+            response: $statePrevious->getResponse(),
+        );
+
+        $this->command->update(
+            new EntityUuid($stage->uuid),
+            StageModel::hydrate(
+                [
+                    'flag' => $state->getFlag()->toValue(),
+                    'state' => serialize($state),
+                ]
+            ),
+        );
+    }
+
+    /**
+     * @throws RuntimeException Ошибка выполнения комманды
+     */
+    private function stageSuccess(StageDto $stage, TaskStateInterface $statePrevious): void
+    {
+        $state = new TaskStateSuccess(
+            uuid: $stage->uuid,
+            message: $statePrevious->getMessage(),
+            response: $statePrevious->getResponse(),
+        );
+
+        $this->command->update(
+            new EntityUuid($stage->uuid),
+            StageModel::hydrate(
+                [
+                    'flag' => $state->getFlag()->toValue(),
+                    'state' => serialize($state),
+                ]
+            ),
+        );
     }
 }

@@ -25,6 +25,11 @@ final class StageQueryStub implements StageQuery
         return $storage[$uuid->getUuid()];
     }
 
+    public function findOne(EntityUuid $uuid): ?StageDto
+    {
+        return $this->getData()[$uuid->getUuid()] ?? null;
+    }
+
     /**
      * @return iterable<StageDto>
      */
@@ -35,6 +40,21 @@ final class StageQueryStub implements StageQuery
                 yield $item;
             }
         }
+    }
+
+    public function getReadyByTask(EntityUuid $taskUuid): StageCollection
+    {
+        $collection = new StageCollection();
+        foreach ($this->getData() as $item) {
+            if ($item->taskUuid === $taskUuid->getUuid()) {
+                $flag = new TaskFlag($item->flag);
+                if ($flag->isReady()) {
+                    $collection->attach($item);
+                }
+            }
+        }
+
+        return $collection;
     }
 
     public function getPromiseByTask(EntityUuid $taskUuid): StageCollection

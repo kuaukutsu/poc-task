@@ -2,6 +2,7 @@
   "name": "kuaukutsu/poc-task",
   "description": "Proof of Concept: Task manager",
   "keywords": [
+    "php",
     "proof of concept",
     "task",
     "event-loop"

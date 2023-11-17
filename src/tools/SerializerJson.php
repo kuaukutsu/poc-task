@@ -9,7 +9,7 @@ use Symfony\Component\Serializer\Exception\UnsupportedFormatException;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Serializer;
 
-final class SerializerJsonDecorator
+final class SerializerJson
 {
     private readonly Serializer $serializer;
 

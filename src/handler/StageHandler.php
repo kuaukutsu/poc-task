@@ -8,7 +8,6 @@ use Throwable;
 use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use kuaukutsu\poc\task\dto\StageDto;
-use kuaukutsu\poc\task\exception\NotFoundException;
 use kuaukutsu\poc\task\exception\BuilderException;
 use kuaukutsu\poc\task\service\StageCommand;
 use kuaukutsu\poc\task\service\StageQuery;
@@ -19,7 +18,7 @@ final class StageHandler
 {
     public function __construct(
         private readonly StageQuery $query,
-        private readonly StageCommand $stageCommand,
+        private readonly StageCommand $command,
         private readonly StageContextFactory $contextFactory,
         private readonly StageExecutor $executor,
         private readonly ConsoleOutputInterface $output = new ConsoleOutput(),
@@ -49,7 +48,7 @@ final class StageHandler
         );
 
         try {
-            $this->stageCommand->replace(new EntityUuid($uuid), $stage);
+            $this->command->replace(new EntityUuid($uuid), $stage);
         } catch (Throwable $exception) {
             $this->stderr($exception->getMessage());
             exit(1);
@@ -61,17 +60,13 @@ final class StageHandler
 
     /**
      * @param non-empty-string|null $previous
-     * @throws NotFoundException
      * @throws BuilderException
      */
     private function execute(StageDto $stage, ?string $previous): TaskStateInterface
     {
         $previousState = null;
         if ($previous !== null) {
-            try {
-                $previousState = $this->query->getOne(new EntityUuid($previous))->state;
-            } catch (NotFoundException) {
-            }
+            $previousState = $this->query->findOne(new EntityUuid($previous))?->state;
         }
 
         return $this->executor->execute(

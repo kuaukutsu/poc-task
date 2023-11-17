@@ -20,13 +20,13 @@ interface EntityRunnable
     public function run(): TaskStateInterface;
 
     /**
-     * Пропустить выполнение шага.
-     * Шаг выполняться не будет, но будет считаться законченным.
+     * Остановить выполнение задачи.
+     * Если в задаче нет доступных этапов, то закрываем задачу.
      *
      * @throws BuilderException
      * @throws StateTransitionException
      */
-    public function skip(): TaskStateInterface;
+    public function stop(): TaskStateInterface;
 
     /**
      * Отменить выполнение задачи/шага.
@@ -36,15 +36,6 @@ interface EntityRunnable
      * @throws StateTransitionException
      */
     public function cancel(): TaskStateInterface;
-
-    /**
-     * Остановить выполнение задачи.
-     * Если в задаче нет доступных этапов, то закрываем задачу.
-     *
-     * @throws BuilderException
-     * @throws StateTransitionException
-     */
-    public function stop(): TaskStateInterface;
 
     /**
      * Ставит задачу на паузу.
