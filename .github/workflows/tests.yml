@@ -41,5 +41,5 @@ jobs:
         with:
           bootstrap: vendor/autoload.php
           configuration: phpunit.xml.dist
-          php_extensions: pcntl xdebug
+          php_extensions: pcntl sync xdebug
           args: tests --coverage-clover ./coverage.xml
