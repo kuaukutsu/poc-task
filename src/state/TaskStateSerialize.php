@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace kuaukutsu\poc\task\state;
 
 use kuaukutsu\poc\task\exception\UnsupportedException;
+use kuaukutsu\poc\task\tools\SerializerJsonDecorator;
 use kuaukutsu\poc\task\TaskResponseInterface;
 
 trait TaskStateSerialize
@@ -27,16 +28,33 @@ trait TaskStateSerialize
 
     public function __serialize(): array
     {
-        return get_object_vars($this);
+        /** @var array<string, mixed> $attributes */
+        $attributes = get_object_vars($this);
+        if (isset($attributes['response']) && is_object($attributes['response'])) {
+            $attributes['response'] = [
+                'O' => get_class($attributes['response']),
+                's' => (new SerializerJsonDecorator())->serialize($attributes['response']),
+            ];
+        }
+
+        return $attributes;
     }
 
     /**
-     * @param array<string, string|int|TaskStateMessage|TaskResponseInterface> $data
+     * @param array<string, array|string|int|TaskStateMessage|TaskResponseInterface> $data
      */
     public function __unserialize(array $data): void
     {
         foreach ($data as $property => $value) {
             if (property_exists($this, $property)) {
+                if ($property === 'response' && is_array($value) && isset($value['O'], $value['s'])) {
+                    /** @psalm-suppress MixedAssignment */
+                    $value = (new SerializerJsonDecorator())->deserialize(
+                        (string)$value['s'],
+                        (string)$value['O'],
+                    );
+                }
+
                 $this->{$property} = $value;
             }
         }

@@ -22,6 +22,12 @@ final class OneStageStub extends TaskStageBase
         return $this->success(
             new TaskStateMessage($this->name . ' test', $this->description),
             $context,
+            new DataResponse(
+                $this->name,
+                [
+                    'date' => date('c'),
+                ]
+            ),
         );
     }
 }

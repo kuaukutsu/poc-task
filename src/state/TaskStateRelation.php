@@ -18,7 +18,6 @@ final class TaskStateRelation implements TaskStateInterface
         public readonly string $task,
         public readonly string $stage,
         private readonly int $flag = 0,
-        private readonly ?TaskResponseInterface $response = null,
     ) {
     }
 
@@ -34,6 +33,6 @@ final class TaskStateRelation implements TaskStateInterface
 
     public function getResponse(): ?TaskResponseInterface
     {
-        return $this->response;
+        return null;
     }
 }

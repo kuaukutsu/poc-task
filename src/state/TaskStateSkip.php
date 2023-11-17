@@ -17,7 +17,6 @@ final class TaskStateSkip implements TaskStateInterface
         public readonly string $uuid,
         private readonly TaskStateMessage $message,
         private readonly int $flag = 0,
-        private readonly ?TaskResponseInterface $response = null,
     ) {
     }
 
@@ -33,6 +32,6 @@ final class TaskStateSkip implements TaskStateInterface
 
     public function getResponse(): ?TaskResponseInterface
     {
-        return $this->response;
+        return null;
     }
 }

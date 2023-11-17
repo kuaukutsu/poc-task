@@ -199,12 +199,15 @@ final class TaskProcessing
 
     private function enqueuePromise(EntityTask $task): bool
     {
-        /** @var TaskStateRelation $state */
         $state = $task->getState();
-        return $this->processPromise->enqueue(
-            $task->getUuid(),
-            $this->processReady->pushStagePromise($task->getUuid()),
-            $state,
-        );
+        if ($state instanceof TaskStateRelation) {
+            return $this->processPromise->enqueue(
+                $task->getUuid(),
+                $this->processReady->pushStagePromise($task->getUuid()),
+                $state,
+            );
+        }
+
+        return false;
     }
 }
