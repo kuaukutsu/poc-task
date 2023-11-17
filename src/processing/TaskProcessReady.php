@@ -128,10 +128,9 @@ final class TaskProcessReady
     public function terminate(): void
     {
         while ($this->has()) {
-            $context = $this->dequeue();
-            $this->processTerminate($context);
-            // stage to ready
-            // task to pause
+            $this->processTerminate(
+                $this->dequeue()
+            );
         }
     }
 

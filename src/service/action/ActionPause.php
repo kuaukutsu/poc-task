@@ -11,13 +11,13 @@ use kuaukutsu\poc\task\handler\TaskFactory;
 use kuaukutsu\poc\task\service\StageCommand;
 use kuaukutsu\poc\task\service\StageQuery;
 use kuaukutsu\poc\task\service\TaskCommand;
-use kuaukutsu\poc\task\state\TaskStateCanceled;
 use kuaukutsu\poc\task\state\TaskStateInterface;
 use kuaukutsu\poc\task\state\TaskStateMessage;
+use kuaukutsu\poc\task\state\TaskStatePaused;
 use kuaukutsu\poc\task\EntityUuid;
 use kuaukutsu\poc\task\EntityTask;
 
-final class ActionCancel implements TaskAction
+final class ActionPause implements TaskAction
 {
     use TransitionStateTrait;
 
@@ -32,14 +32,14 @@ final class ActionCancel implements TaskAction
     public function execute(EntityTask $task, ?TaskStateInterface $state = null): EntityTask
     {
         $uuid = new EntityUuid($task->getUuid());
-        $state ??= new TaskStateCanceled(
+        $state ??= new TaskStatePaused(
             uuid: $task->getUuid(),
-            message: new TaskStateMessage('Canceled'),
+            message: new TaskStateMessage('Paused'),
             flag: $task->getFlag(),
         );
 
         $model = $this->taskCommand->update(
-            new EntityUuid($task->getUuid()),
+            $uuid,
             TaskModel::hydrate(
                 [
                     'flag' => $state->getFlag()->toValue(),
@@ -48,18 +48,18 @@ final class ActionCancel implements TaskAction
             ),
         );
 
-        $this->stageCancel($uuid);
+        $this->stagePause($uuid);
 
         return $this->factory->create($model);
     }
 
-    private function stageCancel(EntityUuid $uuid): void
+    private function stagePause(EntityUuid $uuid): void
     {
         $stageCollection = $this->stageQuery->getReadyByTask($uuid);
         foreach ($stageCollection as $stage) {
-            $state = new TaskStateCanceled(
+            $state = new TaskStatePaused(
                 uuid: $stage->uuid,
-                message: new TaskStateMessage('Canceled'),
+                message: new TaskStateMessage('Paused'),
                 flag: $stage->flag,
             );
 

@@ -56,6 +56,11 @@ final class TaskProcessing
         }
     }
 
+    public function terminate(): void
+    {
+        $this->processReady->terminate();
+    }
+
     public function start(TaskProcessContext $context, TaskManagerOptions $options): TaskProcess
     {
         $process = $this->processFactory->create($context, $options);
@@ -162,11 +167,6 @@ final class TaskProcessing
                 $exception,
             );
         }
-    }
-
-    public function terminate(): void
-    {
-        $this->processReady->terminate();
     }
 
     /**
