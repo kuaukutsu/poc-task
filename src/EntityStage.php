@@ -12,6 +12,4 @@ interface EntityStage extends EntityState
     public function handle(TaskStageContext $context): TaskStateInterface;
 
     public function handleError(TaskStageContext $context, TaskStateError $state): TaskStateError;
-
-    public function handleRelation(TaskStageContext $context, EntityTask $relation): TaskStateInterface;
 }

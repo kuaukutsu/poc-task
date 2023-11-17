@@ -9,9 +9,12 @@ use SplQueue;
 use kuaukutsu\poc\task\dto\StageDto;
 use kuaukutsu\poc\task\dto\StageModel;
 use kuaukutsu\poc\task\exception\NotFoundException;
+use kuaukutsu\poc\task\state\TaskStateError;
+use kuaukutsu\poc\task\state\TaskStateSuccess;
 use kuaukutsu\poc\task\state\TaskStateReady;
 use kuaukutsu\poc\task\state\TaskStateMessage;
 use kuaukutsu\poc\task\state\TaskStateRunning;
+use kuaukutsu\poc\task\state\TaskStateInterface;
 use kuaukutsu\poc\task\service\StageQuery;
 use kuaukutsu\poc\task\service\StageCommand;
 use kuaukutsu\poc\task\EntityUuid;
@@ -108,16 +111,21 @@ final class TaskProcessReady
     /**
      * @throws NotFoundException
      */
-    public function pushStageWaiting(TaskProcessContext $processContext): bool
+    public function pushStageWaiting(TaskProcessContext $processContext, TaskStateInterface $statePrevious): bool
     {
         $stage = $this->query->getOne(new EntityUuid($processContext->stage));
         if ($stage->taskUuid !== $processContext->task) {
             return false;
         }
 
-        $this->enqueue($stage);
+        // save response
+        if ($statePrevious->getFlag()->isSuccess()) {
+            $this->stageToSuccess($stage, $statePrevious);
+            return $this->pushStageNext($stage->taskUuid, $stage->uuid);
+        }
 
-        return true;
+        $this->stageToError($stage, $statePrevious);
+        return false;
     }
 
     /**
@@ -180,6 +188,51 @@ final class TaskProcessReady
 
         return $this->command->update(
             new EntityUuid($uuid),
+            StageModel::hydrate(
+                [
+                    'flag' => $state->getFlag()->toValue(),
+                    'state' => serialize($state),
+                ]
+            ),
+        );
+    }
+
+    /**
+     * @throws RuntimeException Ошибка выполнения комманды
+     */
+    private function stageToError(StageDto $stage, TaskStateInterface $statePrevious): void
+    {
+        $state = new TaskStateError(
+            uuid: $stage->uuid,
+            message: $statePrevious->getMessage(),
+            flag: $stage->flag,
+            response: $statePrevious->getResponse(),
+        );
+
+        $this->command->update(
+            new EntityUuid($stage->uuid),
+            StageModel::hydrate(
+                [
+                    'flag' => $state->getFlag()->toValue(),
+                    'state' => serialize($state),
+                ]
+            ),
+        );
+    }
+
+    /**
+     * @throws RuntimeException Ошибка выполнения комманды
+     */
+    private function stageToSuccess(StageDto $stage, TaskStateInterface $statePrevious): void
+    {
+        $state = new TaskStateSuccess(
+            uuid: $stage->uuid,
+            message: $statePrevious->getMessage(),
+            response: $statePrevious->getResponse(),
+        );
+
+        $this->command->update(
+            new EntityUuid($stage->uuid),
             StageModel::hydrate(
                 [
                     'flag' => $state->getFlag()->toValue(),

@@ -6,13 +6,15 @@ namespace kuaukutsu\poc\task\processing;
 
 use kuaukutsu\poc\task\TaskResponseInterface;
 
-final class TaskResponseContext implements \kuaukutsu\poc\task\TaskResponseInterface
+final class TaskResponseContext implements TaskResponseInterface
 {
     /**
-     * @param TaskResponseInterface[] $items
+     * @param array<non-empty-string, TaskResponseInterface> $success
+     * @param array<non-empty-string, TaskResponseInterface> $failure
      */
     public function __construct(
-        public readonly array $items,
+        public readonly array $success = [],
+        public readonly array $failure = [],
     ) {
     }
 }

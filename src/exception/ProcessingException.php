@@ -9,8 +9,8 @@ use RuntimeException;
 
 final class ProcessingException extends RuntimeException
 {
-    public function __construct(string $message, int $code = 0, Throwable $exception = null)
+    public function __construct(string $message, Throwable $exception = null)
     {
-        parent::__construct($message, $code, $exception);
+        parent::__construct($message, 0, $exception);
     }
 }

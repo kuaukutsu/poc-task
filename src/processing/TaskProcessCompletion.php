@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\processing;
 
+use Throwable;
 use kuaukutsu\poc\task\exception\ProcessingException;
 use kuaukutsu\poc\task\handler\StateFactory;
 use kuaukutsu\poc\task\service\action\ActionSuccess;
@@ -33,7 +34,8 @@ final class TaskProcessCompletion
         }
 
         // получить все этапы, собрать все не пустые response
-        $collection = [];
+        $success = [];
+        $failure = [];
         foreach ($this->query->findByTask(new EntityUuid($task->getUuid())) as $item) {
             $state = $this->stateFactory->create($item->state);
             if ($state->getFlag()->isFinished() === false) {
@@ -44,7 +46,9 @@ final class TaskProcessCompletion
 
             $response = $state->getResponse();
             if ($response !== null) {
-                $collection[] = $response;
+                $state->getFlag()->isSuccess()
+                    ? $success[$item->uuid] = $response
+                    : $failure[$item->uuid] = $response;
             }
         }
 
@@ -52,11 +56,18 @@ final class TaskProcessCompletion
         $state = new TaskStateSuccess(
             uuid: $task->getUuid(),
             message: new TaskStateMessage('TaskProcessCompletion'),
-            response: new TaskResponseContext($collection),
+            response: new TaskResponseContext($success, $failure),
         );
 
-        return $this->actionSuccess
-            ->execute($task, $state)
-            ->getState();
+        try {
+            return $this->actionSuccess
+                ->execute($task, $state)
+                ->getState();
+        } catch (Throwable $exception) {
+            throw new ProcessingException(
+                "[{$task->getUuid()}] Task cannot be completed. " . $exception->getMessage(),
+                $exception
+            );
+        }
     }
 }

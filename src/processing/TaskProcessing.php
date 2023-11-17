@@ -91,7 +91,6 @@ final class TaskProcessing
         } catch (Throwable $exception) {
             throw new ProcessingException(
                 "[$process->task] TaskProcessing error: " . $exception->getMessage(),
-                101,
                 $exception,
             );
         }
@@ -103,8 +102,10 @@ final class TaskProcessing
         if ($this->processPromise->has($process->task)) {
             $context = $this->processPromise->dequeue($process->task, $process->stage);
             if ($context !== null && $this->processPromise->canCloseProcess($context)) {
-                $this->processCompletion->success($task);
-                $this->processReady->pushStageWaiting($context);
+                $this->processReady->pushStageWaiting(
+                    $context,
+                    $this->processCompletion->success($task)
+                );
             }
 
             return;
@@ -164,7 +165,6 @@ final class TaskProcessing
             } catch (Throwable $exception) {
                 throw new ProcessingException(
                     "[$item->uuid] TaskProcessing error: " . $exception->getMessage(),
-                    132,
                     $exception,
                 );
             }
@@ -190,7 +190,6 @@ final class TaskProcessing
             } catch (Throwable $exception) {
                 throw new ProcessingException(
                     "[$item->uuid] TaskProcessing error: " . $exception->getMessage(),
-                    100,
                     $exception,
                 );
             }

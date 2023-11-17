@@ -11,20 +11,13 @@ use kuaukutsu\poc\task\dto\StageDto;
 use kuaukutsu\poc\task\exception\BuilderException;
 use kuaukutsu\poc\task\state\TaskStateError;
 use kuaukutsu\poc\task\state\TaskStateInterface;
-use kuaukutsu\poc\task\state\TaskStateWaiting;
 use kuaukutsu\poc\task\state\TaskStateMessage;
-use kuaukutsu\poc\task\service\TaskQuery;
 use kuaukutsu\poc\task\TaskStageContext;
-use kuaukutsu\poc\task\EntityUuid;
-use kuaukutsu\poc\task\EntityTask;
 use kuaukutsu\poc\task\EntityStage;
 
 final class StageExecutor
 {
     public function __construct(
-        private readonly TaskQuery $taskQuery,
-        private readonly TaskFactory $taskFactory,
-        private readonly StateFactory $stateFactory,
         private readonly StageHandlerFactory $handlerFactory,
     ) {
     }
@@ -44,16 +37,7 @@ final class StageExecutor
             );
         }
 
-        $state = $this->stateFactory->create($stage->state);
-
         try {
-            if ($state instanceof TaskStateWaiting) {
-                return $handler->handleRelation(
-                    $context,
-                    $this->factoryTask($state),
-                );
-            }
-
             return $handler->handle($context);
         } catch (Throwable $e) {
             return $handler->handleError(
@@ -62,15 +46,9 @@ final class StageExecutor
                     uuid: $stage->taskUuid,
                     message: new TaskStateMessage($e->getMessage(), $e->getTraceAsString()),
                     flag: $stage->flag,
+                    response: $context->previous?->getResponse(),
                 )
             );
         }
-    }
-
-    private function factoryTask(TaskStateWaiting $state): EntityTask
-    {
-        return $this->taskFactory->create(
-            $this->taskQuery->getOne(new EntityUuid($state->task))
-        );
     }
 }
