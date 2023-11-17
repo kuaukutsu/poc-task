@@ -5,14 +5,12 @@ declare(strict_types=1);
 namespace kuaukutsu\poc\task;
 
 use kuaukutsu\poc\task\service\action\ActionCancel;
+use kuaukutsu\poc\task\service\action\ActionPause;
 use kuaukutsu\poc\task\service\action\ActionResume;
 use kuaukutsu\poc\task\service\action\ActionRun;
-use kuaukutsu\poc\task\service\action\ActionSkip;
 use kuaukutsu\poc\task\service\action\ActionStop;
 use kuaukutsu\poc\task\state\TaskFlagCommand;
 use kuaukutsu\poc\task\state\TaskStateInterface;
-use kuaukutsu\poc\task\state\TaskStateMessage;
-use kuaukutsu\poc\task\state\TaskStatePaused;
 
 final class Task implements EntityTask
 {
@@ -27,9 +25,9 @@ final class Task implements EntityTask
         private readonly string $title,
         private readonly TaskStateInterface $state,
         private readonly ActionCancel $actionCancel,
-        private readonly ActionRun $actionRun,
+        private readonly ActionPause $actionPause,
         private readonly ActionResume $actionResume,
-        private readonly ActionSkip $actionSkip,
+        private readonly ActionRun $actionRun,
         private readonly ActionStop $actionStop,
     ) {
         $this->flag = $this->state->getFlag();
@@ -67,13 +65,6 @@ final class Task implements EntityTask
         return $this->getState();
     }
 
-    public function cancel(): TaskStateInterface
-    {
-        return $this->actionCancel
-            ->execute($this)
-            ->getState();
-    }
-
     public function stop(): TaskStateInterface
     {
         return $this->actionStop
@@ -81,11 +72,17 @@ final class Task implements EntityTask
             ->getState();
     }
 
+    public function cancel(): TaskStateInterface
+    {
+        return $this->actionCancel
+            ->execute($this)
+            ->getState();
+    }
+
     public function pause(): TaskStateInterface
     {
-        return new TaskStatePaused(
-            uuid: $this->uuid,
-            message: new TaskStateMessage('Paused'),
-        );
+        return $this->actionPause
+            ->execute($this)
+            ->getState();
     }
 }

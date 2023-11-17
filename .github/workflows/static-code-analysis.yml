@@ -22,18 +22,20 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php-version }}
+          extensions: pcntl, sync
           coverage: none
         env:
           fail-fast: true
           COMPOSER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Install composer dependencies
+      - name: Composer install dependencies
         uses: ramsey/composer-install@v2
         with:
           dependency-versions: "highest"
+          composer-options: "--optimize-autoloader"
 
-      - name: Run phpcs
+      - name: 'phpcs'
         run: vendor/bin/phpcs
 
-      - name: Psalm
+      - name: 'psalm'
         run: vendor/bin/psalm --stats --output-format=github
