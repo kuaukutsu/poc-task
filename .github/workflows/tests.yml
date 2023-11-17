@@ -27,10 +27,17 @@ jobs:
           fail-fast: true
           COMPOSER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Install composer dependencies
-        uses: ramsey/composer-install@v2
+      - name: Composer install dependencies
+        uses: php-actions/composer@v6
         with:
-          dependency-versions: "highest"
+          args: --ignore-platform-reqs
 
       - name: PHPUnit
-        run: vendor/bin/phpunit
+        uses: php-actions/phpunit@v3
+        env:
+          XDEBUG_MODE: coverage
+        with:
+          bootstrap: vendor/autoload.php
+          configuration: phpunit.xml.dist
+          php_extensions: pcntl xdebug
+          args: tests --coverage-clover ./coverage.xml
