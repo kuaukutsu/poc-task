@@ -14,7 +14,6 @@ use kuaukutsu\poc\task\state\TaskResponseContext;
 use kuaukutsu\poc\task\state\TaskStateInterface;
 use kuaukutsu\poc\task\state\TaskStateMessage;
 use kuaukutsu\poc\task\state\TaskStatePaused;
-use kuaukutsu\poc\task\state\TaskStateReady;
 use kuaukutsu\poc\task\state\TaskStateSuccess;
 use kuaukutsu\poc\task\EntityUuid;
 use kuaukutsu\poc\task\EntityTask;
@@ -24,9 +23,9 @@ final class ActionCompletion implements TaskAction
     public function __construct(
         private readonly StageQuery $stageQuery,
         private readonly StageCommand $stageCommand,
+        private readonly StateFactory $stateFactory,
         private readonly TaskCommand $taskCommand,
         private readonly TaskFactory $factory,
-        private readonly StateFactory $stateFactory,
         private readonly ActionCancel $actionCancel,
     ) {
     }
@@ -75,13 +74,13 @@ final class ActionCompletion implements TaskAction
             if ($state->getFlag()->isPaused()) {
                 return new TaskStatePaused(
                     uuid: $task->getUuid(),
-                    message: new TaskStateMessage('Paused'),
+                    message: $state->getMessage(),
                     flag: $task->getFlag(),
                 );
             }
 
             if ($state->getFlag()->isReady() || $state->getFlag()->isPromised()) {
-                return new TaskStateReady();
+                return $state;
             }
 
             return null;

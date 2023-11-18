@@ -22,7 +22,7 @@ require __DIR__ . '/bootstrap.php';
 $container = new Container($definitions);
 
 /** @noinspection PhpUnhandledExceptionInspection */
-$builder = new TaskBuilder($container);
+$builder = $container->get(TaskBuilder::class);
 
 $taskCount = (int)argument('task', 4);
 while ($taskCount > 0) {

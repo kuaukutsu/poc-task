@@ -37,3 +37,4 @@ exclude:
       - rector.php
 include:
   - name: CheckDependencyLicenses
+  - name: PhpVarTagWithoutVariableNameInspection
