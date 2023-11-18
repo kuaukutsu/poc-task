@@ -14,6 +14,10 @@ trait TransitionStateTrait
      */
     final protected function canAccessTransitionState(string $uuid, int $currentState, int $transitionState): void
     {
+        if ((new TaskFlag($currentState))->isFinished()) {
+            throw new StateTransitionException($uuid, $currentState, $transitionState);
+        }
+
         if (in_array($transitionState, $this->mapTransitionState($currentState), true) === false) {
             throw new StateTransitionException($uuid, $currentState, $transitionState);
         }
@@ -28,16 +32,19 @@ trait TransitionStateTrait
             (new TaskFlag())->setReady()->toValue() => [
                 (new TaskFlag())->setRunning()->toValue(),
                 (new TaskFlag())->setSkiped()->toValue(),
+                (new TaskFlag())->setCanceled()->toValue(),
                 (new TaskFlag())->setError()->toValue(),
             ],
             (new TaskFlag())->setPromised()->toValue() => [
                 (new TaskFlag())->setRunning()->toValue(),
                 (new TaskFlag())->setSkiped()->toValue(),
+                (new TaskFlag())->setCanceled()->toValue(),
                 (new TaskFlag())->setError()->toValue(),
             ],
             (new TaskFlag())->setRunning()->toValue() => [
                 (new TaskFlag())->setSuccess()->toValue(),
                 (new TaskFlag())->setSkiped()->toValue(),
+                (new TaskFlag())->setCanceled()->toValue(),
                 (new TaskFlag())->setWaiting()->toValue(),
                 (new TaskFlag())->setRunning()->setPaused()->toValue(),
                 (new TaskFlag())->setRunning()->setCanceled()->toValue(),
@@ -46,13 +53,9 @@ trait TransitionStateTrait
             (new TaskFlag())->setPaused()->toValue() => [
                 (new TaskFlag())->setRunning()->toValue(),
                 (new TaskFlag())->setSkiped()->toValue(),
+                (new TaskFlag())->setCanceled()->toValue(),
                 (new TaskFlag())->setError()->toValue(),
             ],
-            // finish state
-            (new TaskFlag())->setError()->toValue() => [],
-            (new TaskFlag())->setSuccess()->toValue() => [],
-            (new TaskFlag())->setCanceled()->toValue() => [],
-            (new TaskFlag())->setSkiped()->toValue() => [],
         ];
 
         return $map[$state] ?? [];

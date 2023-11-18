@@ -23,7 +23,6 @@ final class TaskProcessing
         private readonly ProcessFactory $processFactory,
         private readonly TaskProcessReady $processReady,
         private readonly TaskProcessPromise $processPromise,
-        private readonly TaskProcessCompletion $processCompletion,
     ) {
     }
 
@@ -101,10 +100,13 @@ final class TaskProcessing
 
         if ($this->processPromise->has($process->task)) {
             $context = $this->processPromise->dequeue($process->task, $process->stage);
-            if ($context !== null && $this->processPromise->canCompleted($context)) {
-                $task = $this->processCompletion->success($task);
-                if ($this->processPromise->completed($context, $task)) {
-                    $this->processReady->pushStageNext($context->task, $context->stage);
+            if ($this->processPromise->canCompleted($context)) {
+                $state = $task->stop();
+                if (
+                    $this->processPromise->completed($context, $state)
+                    && $this->processReady->pushStageNext($context->task, $context->stage) === false
+                ) {
+                    $task->stop();
                 }
             }
 
@@ -119,7 +121,7 @@ final class TaskProcessing
         }
 
         if ($this->processReady->pushStageNext($task->getUuid(), $process->stage) === false) {
-            $this->processCompletion->success($task);
+            $task->stop();
         }
     }
 

@@ -23,7 +23,7 @@ interface StageQuery
      */
     public function findByTask(EntityUuid $taskUuid): iterable;
 
-    public function getReadyByTask(EntityUuid $taskUuid): StageCollection;
+    public function getOpenByTask(EntityUuid $taskUuid): StageCollection;
 
     public function getPromiseByTask(EntityUuid $taskUuid): StageCollection;
 
