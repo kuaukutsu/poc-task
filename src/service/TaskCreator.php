@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace kuaukutsu\poc\task\service;
 
 use Exception;
+use LogicException;
+use Throwable;
 use kuaukutsu\poc\task\dto\StageModel;
 use kuaukutsu\poc\task\dto\TaskDto;
 use kuaukutsu\poc\task\dto\TaskModel;
@@ -28,55 +30,58 @@ final class TaskCreator
     }
 
     /**
-     * @throws Exception
      * @throws BuilderException
      */
     public function create(TaskDraft $taskDraft): EntityTask
     {
-        // $taskDraft->stages->isEmpty - exception ?
-
-        $dto = $this->save(
-            TaskModel::hydrate(
-                [
-                    'title' => $taskDraft->title,
-                    'flag' => (new TaskFlag())->setReady()->toValue(),
-                    'state' => '',
-                    'checksum' => $taskDraft->stages->getChecksum(),
-                    'created_at' => gmdate('c'),
-                    'updated_at' => gmdate('c'),
-                ]
-            ),
-            $taskDraft->stages
+        $model = TaskModel::hydrate(
+            [
+                'title' => $taskDraft->title,
+                'flag' => (new TaskFlag())->setReady()->toValue(),
+                'state' => '',
+                'checksum' => $taskDraft->stages->getChecksum(),
+                'created_at' => gmdate('c'),
+                'updated_at' => gmdate('c'),
+            ]
         );
 
-        return $this->factory->create($dto);
+        try {
+            return $this->factory->create(
+                $this->save($model, $taskDraft->stages)
+            );
+        } catch (Throwable $exception) {
+            throw new BuilderException("[$taskDraft->title] TaskBuilder failed.", $exception);
+        }
     }
 
     /**
-     * @throws Exception
      * @throws BuilderException
      */
     public function createFromContext(TaskDraft $taskDraft, TaskStageContext $context): EntityTask
     {
-        // $taskDraft->stages->isEmpty - exception ?
-
-        $promise = new TaskStateRelation(task: $context->task, stage: $context->stage);
-
-        $dto = $this->save(
-            TaskModel::hydrate(
-                [
-                    'title' => $taskDraft->title,
-                    'flag' => $promise->getFlag()->toValue(),
-                    'state' => serialize($promise),
-                    'checksum' => $taskDraft->stages->getChecksum(),
-                    'created_at' => gmdate('c'),
-                    'updated_at' => gmdate('c'),
-                ]
-            ),
-            $taskDraft->stages
+        $promise = new TaskStateRelation(
+            task: $context->task,
+            stage: $context->stage,
         );
 
-        return $this->factory->create($dto);
+        $model = TaskModel::hydrate(
+            [
+                'title' => $taskDraft->title,
+                'flag' => $promise->getFlag()->toValue(),
+                'state' => serialize($promise),
+                'checksum' => $taskDraft->stages->getChecksum(),
+                'created_at' => gmdate('c'),
+                'updated_at' => gmdate('c'),
+            ]
+        );
+
+        try {
+            return $this->factory->create(
+                $this->save($model, $taskDraft->stages)
+            );
+        } catch (Throwable $exception) {
+            throw new BuilderException("[$taskDraft->title] TaskBuilder failed.", $exception);
+        }
     }
 
     /**
@@ -84,6 +89,10 @@ final class TaskCreator
      */
     private function save(TaskModel $model, EntityWrapperCollection $stageCollection): TaskDto
     {
+        if ($stageCollection->isEmpty()) {
+            throw new LogicException();
+        }
+
         $uuid = new EntityUuid();
         $task = $this->taskCommand->create($uuid, $model);
 
@@ -97,7 +106,7 @@ final class TaskCreator
                             'task_uuid' => $task->uuid,
                             'flag' => $model->flag,
                             'handler' => serialize($stage),
-                            'state' => '',
+                            'state' => serialize($task->state),
                             'order' => ++$order,
                             'created_at' => gmdate('c'),
                             'updated_at' => gmdate('c'),

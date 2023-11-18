@@ -17,13 +17,12 @@ final class TaskStateRelation implements TaskStateInterface
     public function __construct(
         public readonly string $task,
         public readonly string $stage,
-        private readonly int $flag = 0,
     ) {
     }
 
     public function getFlag(): TaskFlag
     {
-        return (new TaskFlag($this->flag))->setPromised();
+        return (new TaskFlag())->setPromised();
     }
 
     public function getMessage(): TaskStateMessage
