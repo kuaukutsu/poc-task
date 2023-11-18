@@ -7,6 +7,7 @@ namespace kuaukutsu\poc\task\processing;
 use RuntimeException;
 use kuaukutsu\poc\task\dto\StageDto;
 use kuaukutsu\poc\task\dto\StageModel;
+use kuaukutsu\poc\task\exception\ProcessingException;
 use kuaukutsu\poc\task\state\TaskStateError;
 use kuaukutsu\poc\task\state\TaskStateInterface;
 use kuaukutsu\poc\task\state\TaskStateRelation;
@@ -64,18 +65,25 @@ final class TaskProcessPromise
         return true;
     }
 
-    public function dequeue(string $uuid, string $stage): ?TaskProcessContext
+    /**
+     * @throws ProcessingException
+     */
+    public function dequeue(string $uuid, string $stage): TaskProcessContext
     {
         if (array_key_exists($uuid, $this->queue)) {
             unset($this->queue[$uuid]->storage[$stage]);
             return $this->queue[$uuid];
         }
 
-        return null;
+        throw new ProcessingException("[$uuid] Queue promise is empty.");
     }
 
     public function completed(TaskProcessContext $context, TaskStateInterface $statePrevious): bool
     {
+        if ($statePrevious->getFlag()->isFinished() === false) {
+            return false;
+        }
+
         $stage = $this->query->getOne(new EntityUuid($context->stage));
         if ($stage->taskUuid !== $context->task) {
             return false;

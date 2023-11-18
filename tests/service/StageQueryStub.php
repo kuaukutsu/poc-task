@@ -42,13 +42,13 @@ final class StageQueryStub implements StageQuery
         }
     }
 
-    public function getReadyByTask(EntityUuid $taskUuid): StageCollection
+    public function getOpenByTask(EntityUuid $taskUuid): StageCollection
     {
         $collection = new StageCollection();
         foreach ($this->getData() as $item) {
             if ($item->taskUuid === $taskUuid->getUuid()) {
                 $flag = new TaskFlag($item->flag);
-                if ($flag->isReady()) {
+                if ($flag->isReady() || $flag->isRunning() || $flag->isWaiting()) {
                     $collection->attach($item);
                 }
             }

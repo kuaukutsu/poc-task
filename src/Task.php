@@ -8,7 +8,7 @@ use kuaukutsu\poc\task\service\action\ActionCancel;
 use kuaukutsu\poc\task\service\action\ActionPause;
 use kuaukutsu\poc\task\service\action\ActionResume;
 use kuaukutsu\poc\task\service\action\ActionRun;
-use kuaukutsu\poc\task\service\action\ActionStop;
+use kuaukutsu\poc\task\service\action\ActionCompletion;
 use kuaukutsu\poc\task\state\TaskFlagCommand;
 use kuaukutsu\poc\task\state\TaskStateInterface;
 
@@ -25,10 +25,10 @@ final class Task implements EntityTask
         private readonly string $title,
         private readonly TaskStateInterface $state,
         private readonly ActionCancel $actionCancel,
+        private readonly ActionCompletion $actionCompletion,
         private readonly ActionPause $actionPause,
         private readonly ActionResume $actionResume,
         private readonly ActionRun $actionRun,
-        private readonly ActionStop $actionStop,
     ) {
         $this->flag = $this->state->getFlag();
     }
@@ -67,7 +67,7 @@ final class Task implements EntityTask
 
     public function stop(): TaskStateInterface
     {
-        return $this->actionStop
+        return $this->actionCompletion
             ->execute($this)
             ->getState();
     }
