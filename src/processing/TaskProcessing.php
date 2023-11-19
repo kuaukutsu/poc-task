@@ -119,7 +119,7 @@ final class TaskProcessing
         if ($state->getFlag()->isWaiting()) {
             return;
         }
-        if ($state->getFlag()->isFinished()) {
+        if ($state->getFlag()->isError()) {
             $task->stop();
             return;
         }
