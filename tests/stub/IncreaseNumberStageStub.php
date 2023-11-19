@@ -9,24 +9,25 @@ use kuaukutsu\poc\task\state\TaskStateMessage;
 use kuaukutsu\poc\task\TaskStageBase;
 use kuaukutsu\poc\task\TaskStageContext;
 
-final class OneStageStub extends TaskStageBase
+final class IncreaseNumberStageStub extends TaskStageBase
 {
     public function __construct(
-        public readonly string $name,
-        private readonly string $description = 'test',
+        public readonly string $name = 'Increase number.',
+        public readonly int $number = 0,
     ) {
     }
 
     public function handle(TaskStageContext $context): TaskStateInterface
     {
+        // полезная работа
+        $number = $this->number + 1;
+
         return $this->success(
-            new TaskStateMessage($this->name . ' test', $this->description),
+            new TaskStateMessage($this->name, 'Увеличиваем число на 1'),
             $context,
             new DataResponse(
                 $this->name,
-                [
-                    'date' => date('c'),
-                ]
+                new NumberResponse($number, date('c'))
             ),
         );
     }

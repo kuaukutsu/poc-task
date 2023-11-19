@@ -6,11 +6,11 @@ namespace kuaukutsu\poc\task\tests\stub;
 
 use kuaukutsu\poc\task\TaskResponseInterface;
 
-final class DataResponse implements TaskResponseInterface
+final class NumberResponse implements TaskResponseInterface
 {
     public function __construct(
-        public readonly string $name,
-        public readonly NumberResponse $response,
+        public readonly int $number,
+        public readonly string $date,
     ) {
     }
 }

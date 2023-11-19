@@ -5,18 +5,19 @@ declare(strict_types=1);
 namespace kuaukutsu\poc\task\service\action;
 
 use kuaukutsu\poc\task\dto\TaskModel;
+use kuaukutsu\poc\task\state\response\TaskResponseContext;
+use kuaukutsu\poc\task\state\TaskStateError;
+use kuaukutsu\poc\task\state\TaskStateInterface;
+use kuaukutsu\poc\task\state\TaskStateMessage;
+use kuaukutsu\poc\task\state\TaskStatePaused;
+use kuaukutsu\poc\task\state\TaskStateSuccess;
 use kuaukutsu\poc\task\handler\StateFactory;
 use kuaukutsu\poc\task\handler\TaskFactory;
 use kuaukutsu\poc\task\service\StageCommand;
 use kuaukutsu\poc\task\service\StageQuery;
 use kuaukutsu\poc\task\service\TaskCommand;
-use kuaukutsu\poc\task\state\TaskResponseContext;
-use kuaukutsu\poc\task\state\TaskStateInterface;
-use kuaukutsu\poc\task\state\TaskStateMessage;
-use kuaukutsu\poc\task\state\TaskStatePaused;
-use kuaukutsu\poc\task\state\TaskStateSuccess;
-use kuaukutsu\poc\task\EntityUuid;
 use kuaukutsu\poc\task\EntityTask;
+use kuaukutsu\poc\task\EntityUuid;
 
 final class ActionCompletion implements TaskAction
 {
@@ -61,11 +62,19 @@ final class ActionCompletion implements TaskAction
         foreach ($this->stageQuery->findByTask($uuid) as $item) {
             $state = $this->stateFactory->create($item->state);
             if ($state->getFlag()->isFinished()) {
+                if ($state->getFlag()->isError()) {
+                    return new TaskStateError(
+                        uuid: $task->getUuid(),
+                        message: $state->getMessage(),
+                        flag: $task->getFlag(),
+                    );
+                }
+
                 $response = $state->getResponse();
                 if ($response !== null) {
                     $state->getFlag()->isSuccess()
-                        ? $context->pushSuccessResponse($item->uuid, $response)
-                        : $context->pushFailureResponse($item->uuid, $response);
+                        ? $context->pushSuccessResponse($response)
+                        : $context->pushFailureResponse($response);
                 }
 
                 continue;

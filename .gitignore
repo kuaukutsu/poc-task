@@ -35,3 +35,6 @@ phpunit.phar
 
 # coverage
 coverage.clover
+
+# local
+*.local.php

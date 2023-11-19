@@ -11,9 +11,9 @@ declare(strict_types=1);
 use DI\Container;
 use kuaukutsu\poc\task\TaskBuilder;
 use kuaukutsu\poc\task\EntityWrapper;
-use kuaukutsu\poc\task\tests\stub\OneStageStub;
-use kuaukutsu\poc\task\tests\stub\PromiseStageStub;
-use kuaukutsu\poc\task\tests\stub\TwoStageStub;
+use kuaukutsu\poc\task\tests\stub\IncreaseNumberStageStub;
+use kuaukutsu\poc\task\tests\stub\NumberHandlerStageStub;
+use kuaukutsu\poc\task\tests\stub\NumberSaveStageStub;
 
 use function kuaukutsu\poc\task\tools\argument;
 
@@ -32,21 +32,18 @@ while ($taskCount > 0) {
         $builder->create(
             'title',
             new EntityWrapper(
-                class: OneStageStub::class,
+                class: IncreaseNumberStageStub::class,
                 params: [
-                    'name' => 'one',
+                    'name' => 'Number initialization.',
                 ],
             ),
             new EntityWrapper(
-                class: PromiseStageStub::class,
-                params: [
-                    'name' => 'promise',
-                ],
+                class: NumberHandlerStageStub::class,
             ),
             new EntityWrapper(
-                class: TwoStageStub::class,
+                class: NumberSaveStageStub::class,
                 params: [
-                    'name' => 'two',
+                    'name' => 'All number save',
                 ],
             ),
         )
