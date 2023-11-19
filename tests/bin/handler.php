@@ -9,8 +9,8 @@
 declare(strict_types=1);
 
 use DI\Container;
-use kuaukutsu\poc\task\handler\StageHandler;
 use Ramsey\Uuid\Uuid;
+use kuaukutsu\poc\task\handler\StageHandler;
 
 use function kuaukutsu\poc\task\tools\argument;
 

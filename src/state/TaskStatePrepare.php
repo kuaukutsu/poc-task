@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace kuaukutsu\poc\task\state;
 
 use TypeError;
+use kuaukutsu\poc\task\state\response\ResponseWrapper;
 
 trait TaskStatePrepare
 {
@@ -34,6 +35,7 @@ trait TaskStatePrepare
                     TaskStateSkip::class,
                     TaskStateSuccess::class,
                     TaskStateWaiting::class,
+                    ResponseWrapper::class,
                 ],
             ]
         );

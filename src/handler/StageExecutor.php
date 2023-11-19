@@ -34,7 +34,6 @@ final class StageExecutor
                     uuid: $stage->taskUuid,
                     message: new TaskStateMessage($e->getMessage(), $e->getTraceAsString()),
                     flag: $stage->flag,
-                    response: $context->previous?->getResponse(),
                 )
             );
         }

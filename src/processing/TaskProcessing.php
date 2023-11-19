@@ -119,6 +119,10 @@ final class TaskProcessing
         if ($state->getFlag()->isWaiting()) {
             return;
         }
+        if ($state->getFlag()->isFinished()) {
+            $task->stop();
+            return;
+        }
 
         if ($this->processReady->pushStageNext($task->getUuid(), $process->stage) === false) {
             $task->stop();

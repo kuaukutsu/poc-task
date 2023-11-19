@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace kuaukutsu\poc\task\state;
 
 use kuaukutsu\poc\task\exception\UnsupportedException;
-use kuaukutsu\poc\task\tools\SerializerJson;
+use kuaukutsu\poc\task\state\response\ResponseWrapper;
 use kuaukutsu\poc\task\TaskResponseInterface;
 
 trait TaskStateSerialize
@@ -30,11 +30,8 @@ trait TaskStateSerialize
     {
         /** @var array<string, mixed> $attributes */
         $attributes = get_object_vars($this);
-        if (isset($attributes['response']) && is_object($attributes['response'])) {
-            $attributes['response'] = [
-                'O' => get_class($attributes['response']),
-                's' => (new SerializerJson())->serialize($attributes['response']),
-            ];
+        if (isset($attributes['response']) && $attributes['response'] instanceof TaskResponseInterface) {
+            $attributes['response'] = ResponseWrapper::serialize($attributes['response']);
         }
 
         return $attributes;
@@ -47,27 +44,12 @@ trait TaskStateSerialize
     {
         foreach ($data as $property => $value) {
             if (property_exists($this, $property)) {
-                if ($property === 'response' && is_array($value)) {
-                    $value = $this->prepareValueResponse($value);
+                if ($property === 'response' && $value instanceof ResponseWrapper) {
+                    $value = $value->deserialize();
                 }
 
                 $this->{$property} = $value;
             }
         }
-    }
-
-    private function prepareValueResponse(array $value): TaskResponseInterface | array
-    {
-        if (isset($value['O'], $value['s'])) {
-            /**
-             * @var TaskResponseInterface
-             */
-            return (new SerializerJson())->deserialize(
-                (string)$value['s'],
-                (string)$value['O'],
-            );
-        }
-
-        return $value;
     }
 }

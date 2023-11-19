@@ -18,7 +18,7 @@ final class EntityWrapper implements Serializable
      */
     public function __construct(
         public readonly string $class,
-        public readonly array $params,
+        public readonly array $params = [],
     ) {
     }
 
