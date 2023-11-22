@@ -7,6 +7,7 @@ namespace kuaukutsu\poc\task\tests\service;
 use kuaukutsu\poc\task\dto\TaskDto;
 use kuaukutsu\poc\task\dto\TaskModel;
 use kuaukutsu\poc\task\EntityUuid;
+use kuaukutsu\poc\task\exception\NotFoundException;
 use kuaukutsu\poc\task\service\TaskCommand;
 use RuntimeException;
 
@@ -87,7 +88,7 @@ final class TaskCommandStub implements TaskCommand
     {
         $storage = $this->getData();
         if (array_key_exists($uuid->getUuid(), $storage) === false) {
-            throw new RuntimeException(
+            throw new NotFoundException(
                 "[{$uuid->getUuid()}] Task not found."
             );
         }
