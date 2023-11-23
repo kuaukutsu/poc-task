@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\tests;
 
-use PHPUnit\Framework\Attributes\Depends;
 use Psr\Container\ContainerExceptionInterface;
+use PHPUnit\Framework\Attributes\Depends;
 use PHPUnit\Framework\TestCase;
 use kuaukutsu\poc\task\exception\NotFoundException;
 use kuaukutsu\poc\task\handler\StateFactory;
