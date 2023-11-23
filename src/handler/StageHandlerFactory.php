@@ -9,7 +9,7 @@ use DI\Container;
 use DI\DependencyException;
 use DI\NotFoundException;
 use kuaukutsu\poc\task\dto\StageDto;
-use kuaukutsu\poc\task\EntityStage;
+use kuaukutsu\poc\task\EntityHandler;
 use kuaukutsu\poc\task\EntityWrapper;
 use kuaukutsu\poc\task\exception\BuilderException;
 
@@ -22,7 +22,7 @@ final class StageHandlerFactory
     /**
      * @throws BuilderException
      */
-    public function create(StageDto $stage): EntityStage
+    public function create(StageDto $stage): EntityHandler
     {
         /**
          * @var EntityWrapper $taskStage
@@ -38,7 +38,7 @@ final class StageHandlerFactory
 
         try {
             /**
-             * @var EntityStage
+             * @var EntityHandler
              */
             return $this->container->make($taskStage->class, $taskStage->params);
         } catch (DependencyException | NotFoundException | TypeError $exception) {

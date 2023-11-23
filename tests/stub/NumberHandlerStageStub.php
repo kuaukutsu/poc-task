@@ -8,10 +8,10 @@ use kuaukutsu\poc\task\state\TaskStateInterface;
 use kuaukutsu\poc\task\state\TaskStateMessage;
 use kuaukutsu\poc\task\EntityWrapper;
 use kuaukutsu\poc\task\TaskBuilder;
-use kuaukutsu\poc\task\TaskStageBase;
+use kuaukutsu\poc\task\TaskHandlerBase;
 use kuaukutsu\poc\task\TaskStageContext;
 
-final class NumberHandlerStageStub extends TaskStageBase
+final class NumberHandlerStageStub extends TaskHandlerBase
 {
     public function __construct(private readonly TaskBuilder $builder)
     {

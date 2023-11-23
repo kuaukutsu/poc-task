@@ -4,14 +4,18 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\tests;
 
+use PHPUnit\Framework\Attributes\Depends;
 use Psr\Container\ContainerExceptionInterface;
 use PHPUnit\Framework\TestCase;
 use kuaukutsu\poc\task\exception\NotFoundException;
+use kuaukutsu\poc\task\handler\StateFactory;
+use kuaukutsu\poc\task\handler\TaskFactory;
 use kuaukutsu\poc\task\service\TaskQuery;
 use kuaukutsu\poc\task\service\TaskCommand;
 use kuaukutsu\poc\task\TaskBuilder;
 use kuaukutsu\poc\task\EntityTask;
 use kuaukutsu\poc\task\EntityUuid;
+use kuaukutsu\poc\task\tests\service\Storage;
 
 final class TaskServiceTest extends TestCase
 {
@@ -66,10 +70,47 @@ final class TaskServiceTest extends TestCase
         self::assertEmpty($collection);
     }
 
+    /**
+     * @throws ContainerExceptionInterface
+     */
+    #[Depends('testGetOne')]
+    public function testFactory(): void
+    {
+        $factory = self::get(TaskFactory::class);
+
+        $task = $this->query->getOne(
+            new EntityUuid($this->task->getUuid())
+        );
+
+        $entity = $factory->create($task);
+
+        self::assertEquals($this->task->getUuid(), $entity->getUuid());
+        self::assertTrue($entity->isReady());
+        self::assertFalse($entity->isFinished());
+    }
+
+    /**
+     * @throws ContainerExceptionInterface
+     */
+    #[Depends('testGetOne')]
+    public function testStateFactory(): void
+    {
+        $stateFactory = self::get(StateFactory::class);
+
+        $task = $this->query->getOne(
+            new EntityUuid($this->task->getUuid())
+        );
+
+        $state = $stateFactory->create($task->state);
+
+        self::assertTrue($state->getFlag()->isReady());
+        self::assertFalse($state->getFlag()->isFinished());
+    }
+
     public static function setUpBeforeClass(): void
     {
-        unlink(__DIR__ . '/service/data/task.json');
-        unlink(__DIR__ . '/service/data/stage.json');
+        unlink(Storage::task->value);
+        unlink(Storage::stage->value);
     }
 
     /**

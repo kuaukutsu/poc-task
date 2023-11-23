@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\service;
 
+use Generator;
 use kuaukutsu\poc\task\dto\StageCollection;
 use kuaukutsu\poc\task\dto\StageDto;
 use kuaukutsu\poc\task\exception\NotFoundException;
@@ -19,9 +20,9 @@ interface StageQuery
     public function findOne(EntityUuid $uuid): ?StageDto;
 
     /**
-     * @return iterable<StageDto>
+     * @return Generator<StageDto>
      */
-    public function findByTask(EntityUuid $taskUuid): iterable;
+    public function findByTask(EntityUuid $taskUuid): Generator;
 
     public function getOpenByTask(EntityUuid $taskUuid): StageCollection;
 

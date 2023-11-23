@@ -7,10 +7,10 @@ namespace kuaukutsu\poc\task\tests\stub;
 use kuaukutsu\poc\task\state\response\TaskResponseContext;
 use kuaukutsu\poc\task\state\TaskStateInterface;
 use kuaukutsu\poc\task\state\TaskStateMessage;
-use kuaukutsu\poc\task\TaskStageBase;
+use kuaukutsu\poc\task\TaskHandlerBase;
 use kuaukutsu\poc\task\TaskStageContext;
 
-final class NumberSaveStageStub extends TaskStageBase
+final class NumberSaveStageStub extends TaskHandlerBase
 {
     public function __construct(public readonly string $name)
     {

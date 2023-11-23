@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\tests\service;
 
+use Generator;
 use kuaukutsu\poc\task\dto\StageCollection;
 use kuaukutsu\poc\task\dto\StageDto;
 use kuaukutsu\poc\task\EntityUuid;
@@ -31,9 +32,9 @@ final class StageQueryStub implements StageQuery
     }
 
     /**
-     * @return iterable<StageDto>
+     * @return Generator<StageDto>
      */
-    public function findByTask(EntityUuid $taskUuid): iterable
+    public function findByTask(EntityUuid $taskUuid): Generator
     {
         foreach ($this->getData() as $item) {
             if ($item->taskUuid === $taskUuid->getUuid()) {
