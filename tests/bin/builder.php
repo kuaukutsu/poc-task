@@ -30,7 +30,7 @@ while ($taskCount > 0) {
 
     $builder->build(
         $builder->create(
-            'title',
+            'title' . $taskCount,
             new EntityWrapper(
                 class: IncreaseNumberStageStub::class,
                 params: [

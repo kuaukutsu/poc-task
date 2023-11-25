@@ -50,4 +50,15 @@ final class TaskQueryStub implements TaskQuery
 
         return $collection;
     }
+
+    public function existsChecksum(string $checksum): bool
+    {
+        foreach ($this->getData() as $item) {
+            if ($item->checksum === $checksum) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

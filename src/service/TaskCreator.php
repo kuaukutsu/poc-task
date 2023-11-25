@@ -24,6 +24,7 @@ final class TaskCreator
 {
     public function __construct(
         private readonly TaskFactory $factory,
+        private readonly TaskQuery $taskQuery,
         private readonly TaskCommand $taskCommand,
         private readonly StageCommand $stageCommand,
     ) {
@@ -31,15 +32,22 @@ final class TaskCreator
 
     /**
      * @throws BuilderException
+     * @throws LogicException
      */
     public function create(TaskDraft $taskDraft): EntityTask
     {
+        if ($this->taskQuery->existsChecksum($taskDraft->getChecksum())) {
+            throw new LogicException(
+                "[$taskDraft->title] Task exists."
+            );
+        }
+
         $model = TaskModel::hydrate(
             [
                 'title' => $taskDraft->title,
                 'flag' => (new TaskFlag())->setReady()->toValue(),
                 'state' => '',
-                'checksum' => $taskDraft->stages->getChecksum(),
+                'checksum' => $taskDraft->getChecksum(),
                 'created_at' => gmdate('c'),
                 'updated_at' => gmdate('c'),
             ]
@@ -56,9 +64,16 @@ final class TaskCreator
 
     /**
      * @throws BuilderException
+     * @throws LogicException
      */
     public function createFromContext(TaskDraft $taskDraft, TaskStageContext $context): EntityTask
     {
+        if ($this->taskQuery->existsChecksum($taskDraft->getChecksum())) {
+            throw new LogicException(
+                "[$taskDraft->title] Task exists."
+            );
+        }
+
         $promise = new TaskStateRelation(
             task: $context->task,
             stage: $context->stage,
@@ -69,7 +84,7 @@ final class TaskCreator
                 'title' => $taskDraft->title,
                 'flag' => $promise->getFlag()->toValue(),
                 'state' => serialize($promise),
-                'checksum' => $taskDraft->stages->getChecksum(),
+                'checksum' => $taskDraft->getChecksum(),
                 'created_at' => gmdate('c'),
                 'updated_at' => gmdate('c'),
             ]
@@ -86,11 +101,14 @@ final class TaskCreator
 
     /**
      * @throws Exception
+     * @throws LogicException
      */
     private function save(TaskModel $model, EntityWrapperCollection $stageCollection): TaskDto
     {
         if ($stageCollection->isEmpty()) {
-            throw new LogicException();
+            throw new LogicException(
+                "[$model->title] Stage must be declared."
+            );
         }
 
         $uuid = new EntityUuid();

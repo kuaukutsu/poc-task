@@ -29,6 +29,13 @@ final class TaskDraft
         return $this;
     }
 
+    public function getChecksum(): string
+    {
+        return md5(
+            $this->title . $this->stages->getChecksum()
+        );
+    }
+
     public function getState(): TaskStateInterface
     {
         return new TaskStateReady();
