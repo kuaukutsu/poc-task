@@ -13,7 +13,7 @@ final class ProcessFactory
     {
         $cmd = [
             'php',
-            'handler.php',
+            $options->handlerEndpoint,
             '--stage=' . $context->stage,
         ];
 

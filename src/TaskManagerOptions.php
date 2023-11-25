@@ -20,6 +20,7 @@ final class TaskManagerOptions
         private readonly int $taskQueueSize = 10,
         public readonly ?float $timeout = null,
         public readonly ?float $handlerTimeout = 300.,
+        public readonly string $handlerEndpoint = 'handler.php',
         public readonly array $interruptSignals = [SIGHUP, SIGINT, SIGTERM],
     ) {
     }

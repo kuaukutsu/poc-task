@@ -24,7 +24,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php-version }}
-          extensions: pcntl
+          extensions: pcntl, sync
           coverage: none
         env:
           fail-fast: true
