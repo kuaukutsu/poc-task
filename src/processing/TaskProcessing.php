@@ -10,6 +10,7 @@ use kuaukutsu\poc\task\handler\StateFactory;
 use kuaukutsu\poc\task\handler\TaskFactory;
 use kuaukutsu\poc\task\state\TaskStateRelation;
 use kuaukutsu\poc\task\service\TaskQuery;
+use kuaukutsu\poc\task\service\TaskExecutor;
 use kuaukutsu\poc\task\TaskManagerOptions;
 use kuaukutsu\poc\task\EntityTask;
 use kuaukutsu\poc\task\EntityUuid;
@@ -21,6 +22,7 @@ final class TaskProcessing
         private readonly TaskFactory $taskFactory,
         private readonly StateFactory $stateFactory,
         private readonly ProcessFactory $processFactory,
+        private readonly TaskExecutor $taskExecutor,
         private readonly TaskProcessReady $processReady,
         private readonly TaskProcessPromise $processPromise,
     ) {
@@ -101,12 +103,12 @@ final class TaskProcessing
         if ($this->processPromise->has($process->task)) {
             $context = $this->processPromise->dequeue($process->task, $process->stage);
             if ($this->processPromise->canCompleted($context)) {
-                $state = $task->stop();
+                $state = $this->taskExecutor->stop($task);
                 if (
                     $this->processPromise->completed($context, $state)
                     && $this->processReady->pushStageNext($context->task, $context->stage) === false
                 ) {
-                    $task->stop();
+                    $this->taskExecutor->stop($task);
                 }
             }
 
@@ -120,12 +122,12 @@ final class TaskProcessing
             return;
         }
         if ($state->getFlag()->isError()) {
-            $task->stop();
+            $this->taskExecutor->stop($task);
             return;
         }
 
         if ($this->processReady->pushStageNext($task->getUuid(), $process->stage) === false) {
-            $task->stop();
+            $this->taskExecutor->stop($task);
         }
     }
 
@@ -142,7 +144,7 @@ final class TaskProcessing
             );
 
             if ($task->isFinished() === false) {
-                $task->cancel();
+                $this->taskExecutor->cancel($task);
             }
         } catch (Throwable $exception) {
             throw new ProcessingException(
@@ -165,7 +167,7 @@ final class TaskProcessing
             );
 
             if ($task->isFinished() === false) {
-                $task->pause();
+                $this->taskExecutor->pause($task);
             }
         } catch (Throwable $exception) {
             throw new ProcessingException(
@@ -185,8 +187,8 @@ final class TaskProcessing
             try {
                 $task = $this->taskFactory->create($item);
                 $this->processReady->pushStageOnPause($task->getUuid())
-                    ? $task->run()
-                    : $task->stop();
+                    ? $this->taskExecutor->run($task)
+                    : $this->taskExecutor->stop($task);
             } catch (Throwable $exception) {
                 throw new ProcessingException(
                     "[$item->uuid] TaskProcessing error: " . $exception->getMessage(),
@@ -210,8 +212,8 @@ final class TaskProcessing
                     : $this->processReady->pushStageOnReady($task->getUuid());
 
                 $isRun
-                    ? $task->run()
-                    : $task->stop();
+                    ? $this->taskExecutor->run($task)
+                    : $this->taskExecutor->stop($task);
             } catch (Throwable $exception) {
                 throw new ProcessingException(
                     "[$item->uuid] TaskProcessing error: " . $exception->getMessage(),

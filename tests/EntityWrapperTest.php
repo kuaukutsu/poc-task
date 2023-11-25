@@ -38,6 +38,14 @@ final class EntityWrapperTest extends TestCase
             ],
         );
 
+        $wrapperSimilar = new EntityWrapper(
+            class: IncreaseNumberStageStub::class,
+            params: [
+                'name' => 'test',
+                'number' => 11,
+            ],
+        );
+
         $collection = new EntityWrapperCollection($wrapper);
         self::assertCount(1, $collection);
 
@@ -45,6 +53,9 @@ final class EntityWrapperTest extends TestCase
         self::assertEquals($collection->getChecksum(), $collection2->getChecksum());
 
         $collection3 = new EntityWrapperCollection(clone $wrapper);
-        self::assertNotEquals($collection->getChecksum(), $collection3->getChecksum());
+        self::assertEquals($collection->getChecksum(), $collection3->getChecksum());
+
+        $collection4 = new EntityWrapperCollection($wrapperSimilar);
+        self::assertNotEquals($collection->getChecksum(), $collection4->getChecksum());
     }
 }
