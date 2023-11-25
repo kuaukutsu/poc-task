@@ -7,7 +7,7 @@ namespace kuaukutsu\poc\task\tests;
 use kuaukutsu\poc\task\EntityTask;
 use kuaukutsu\poc\task\EntityWrapper;
 use kuaukutsu\poc\task\TaskBuilder;
-use kuaukutsu\poc\task\tests\stub\IncreaseNumberStageStub;
+use kuaukutsu\poc\task\tests\stub\TestStageStub;
 
 trait TaskFaker
 {
@@ -17,9 +17,9 @@ trait TaskFaker
             $builder->create(
                 'task test builder',
                 new EntityWrapper(
-                    class: IncreaseNumberStageStub::class,
+                    class: TestStageStub::class,
                     params: [
-                        'name' => 'Number initialization.',
+                        'name' => 'Test initialization.',
                     ],
                 ),
             )

@@ -28,8 +28,6 @@ interface EntityState
 
     public function isCanceled(): bool;
 
-    public function isCheck(): bool;
-
     public function isFinished(): bool;
 
     public function hasErrors(): bool;

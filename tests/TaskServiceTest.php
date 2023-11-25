@@ -11,7 +11,7 @@ use kuaukutsu\poc\task\exception\NotFoundException;
 use kuaukutsu\poc\task\handler\StateFactory;
 use kuaukutsu\poc\task\handler\TaskFactory;
 use kuaukutsu\poc\task\service\TaskQuery;
-use kuaukutsu\poc\task\service\TaskCommand;
+use kuaukutsu\poc\task\service\TaskDestroyer;
 use kuaukutsu\poc\task\TaskBuilder;
 use kuaukutsu\poc\task\EntityTask;
 use kuaukutsu\poc\task\EntityUuid;
@@ -26,7 +26,7 @@ final class TaskServiceTest extends TestCase
 
     private readonly TaskQuery $query;
 
-    private readonly TaskCommand $command;
+    private readonly TaskDestroyer $destroyer;
 
     /**
      * @throws ContainerExceptionInterface
@@ -36,7 +36,7 @@ final class TaskServiceTest extends TestCase
         parent::__construct($name);
 
         $this->query = self::get(TaskQuery::class);
-        $this->command = self::get(TaskCommand::class);
+        $this->destroyer = self::get(TaskDestroyer::class);
     }
 
     public function testGetOne(): void
@@ -125,7 +125,7 @@ final class TaskServiceTest extends TestCase
 
     protected function tearDown(): void
     {
-        $this->command->remove(
+        $this->destroyer->purge(
             new EntityUuid($this->task->getUuid())
         );
     }

@@ -12,9 +12,8 @@ use kuaukutsu\poc\task\exception\NotFoundException;
 use kuaukutsu\poc\task\handler\StageContextFactory;
 use kuaukutsu\poc\task\handler\StageHandlerFactory;
 use kuaukutsu\poc\task\handler\StateFactory;
-use kuaukutsu\poc\task\service\TaskCommand;
-use kuaukutsu\poc\task\service\StageCommand;
 use kuaukutsu\poc\task\service\StageQuery;
+use kuaukutsu\poc\task\service\TaskDestroyer;
 use kuaukutsu\poc\task\TaskBuilder;
 use kuaukutsu\poc\task\EntityTask;
 use kuaukutsu\poc\task\EntityUuid;
@@ -31,9 +30,7 @@ final class StageServiceTest extends TestCase
 
     private readonly StageQuery $query;
 
-    private readonly StageCommand $command;
-
-    private readonly TaskCommand $taskCommand;
+    private readonly TaskDestroyer $destroyer;
 
     /**
      * @throws ContainerExceptionInterface
@@ -43,8 +40,7 @@ final class StageServiceTest extends TestCase
         parent::__construct($name);
 
         $this->query = self::get(StageQuery::class);
-        $this->command = self::get(StageCommand::class);
-        $this->taskCommand = self::get(TaskCommand::class);
+        $this->destroyer = self::get(TaskDestroyer::class);
     }
 
     public function testGetOne(): void
@@ -205,9 +201,8 @@ final class StageServiceTest extends TestCase
 
     protected function tearDown(): void
     {
-        $uuid = new EntityUuid($this->task->getUuid());
-
-        $this->command->removeByTask($uuid);
-        $this->taskCommand->remove($uuid);
+        $this->destroyer->purge(
+            new EntityUuid($this->task->getUuid())
+        );
     }
 }
