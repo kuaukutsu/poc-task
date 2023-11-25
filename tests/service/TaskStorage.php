@@ -12,7 +12,7 @@ trait TaskStorage
 {
     private function storage(): string
     {
-        return __DIR__ . DIRECTORY_SEPARATOR . 'data/task.json';
+        return Storage::task->value;
     }
 
     /**

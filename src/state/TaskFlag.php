@@ -13,7 +13,6 @@ final class TaskFlag
     private const FLAG_PROMISED = 16;
     private const FLAG_PAUSED = 32;
     private const FLAG_SKIPED = 64;
-    private const FLAG_CHECK = 1024;
     private const FLAG_ERROR = 2048;
 
     public function __construct(private int $flag = 0)
@@ -137,32 +136,27 @@ final class TaskFlag
         return $this;
     }
 
-    public function isCheck(): bool
-    {
-        return ($this->flag & self::FLAG_CHECK) === self::FLAG_CHECK;
-    }
-
-    public function setCheck(): self
-    {
-        $this->flag |= self::FLAG_CHECK;
-        return $this;
-    }
-
-    public function unsetCheck(): self
-    {
-        if ($this->isCheck()) {
-            $this->flag ^= self::FLAG_CHECK;
-        }
-
-        return $this;
-    }
-
     public function isFinished(): bool
     {
         return $this->isSuccess()
             || $this->isError()
             || $this->isCanceled()
             || $this->isSkiped();
+    }
+
+    public function toString(): string
+    {
+        return match ($this->flag) {
+            self::FLAG_RUNNING => 'running',
+            self::FLAG_WAITING => 'waiting',
+            self::FLAG_SUCCESS => 'success',
+            self::FLAG_CANCELED => 'canceled',
+            self::FLAG_PROMISED => 'promised',
+            self::FLAG_PAUSED => 'paused',
+            self::FLAG_SKIPED => 'skiped',
+            self::FLAG_ERROR => 'error',
+            default => 'Ready',
+        };
     }
 
     public function toValue(): int

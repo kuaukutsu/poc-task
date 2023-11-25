@@ -58,11 +58,6 @@ trait TaskFlagCommand
         return $this->flag->isCanceled();
     }
 
-    final public function isCheck(): bool
-    {
-        return $this->flag->isCheck();
-    }
-
     final public function isFinished(): bool
     {
         return $this->flag->isFinished();

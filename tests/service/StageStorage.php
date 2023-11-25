@@ -12,7 +12,7 @@ trait StageStorage
 {
     private function storage(): string
     {
-        return __DIR__ . DIRECTORY_SEPARATOR . 'data/stage.json';
+        return Storage::stage->value;
     }
 
     /**

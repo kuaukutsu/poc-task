@@ -14,7 +14,11 @@ trait TaskStatePrepare
      */
     private function prepareState(string $state): TaskStateInterface
     {
-        if ($state === '') {
+        $emptyToken = [
+            's:0:"";',
+        ];
+
+        if ($state === '' || in_array($state, $emptyToken, true)) {
             return new TaskStateReady();
         }
 

@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\tests\service;
 
+use RuntimeException;
 use kuaukutsu\poc\task\dto\StageDto;
 use kuaukutsu\poc\task\dto\StageModel;
-use kuaukutsu\poc\task\EntityUuid;
+use kuaukutsu\poc\task\exception\NotFoundException;
 use kuaukutsu\poc\task\service\StageCommand;
-use RuntimeException;
+use kuaukutsu\poc\task\EntityUuid;
 
 final class StageCommandStub implements StageCommand
 {
@@ -95,7 +96,7 @@ final class StageCommandStub implements StageCommand
     {
         $storage = $this->getData();
         if (array_key_exists($uuid->getUuid(), $storage) === false) {
-            throw new RuntimeException(
+            throw new NotFoundException(
                 "[{$uuid->getUuid()}] Stage not found."
             );
         }

@@ -20,7 +20,7 @@ final class EntityWrapperCollection extends Collection
     {
         $string = '';
         foreach ($this as $item) {
-            $string .= serialize($item);
+            $string .= spl_object_hash($item);
         }
 
         return md5($string);

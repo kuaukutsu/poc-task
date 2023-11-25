@@ -14,7 +14,7 @@ final class EntityWrapper implements Serializable
 {
     /**
      * @param class-string<T> $class
-     * @param array<string, string|int|string[]|int[]|object> $params Конфигурация объекта.
+     * @param array<string, string|int|string[]|int[]|array|object> $params Конфигурация объекта.
      */
     public function __construct(
         public readonly string $class,
@@ -49,7 +49,7 @@ final class EntityWrapper implements Serializable
     /**
      * @param array{
      *     "class": class-string<T>,
-     *     "params": array<string, string|int|string[]|int[]|object>} $data
+     *     "params": array<string, string|int|string[]|int[]|array|object>} $data
      */
     public function __unserialize(array $data): void
     {

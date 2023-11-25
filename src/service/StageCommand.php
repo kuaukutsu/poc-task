@@ -7,6 +7,7 @@ namespace kuaukutsu\poc\task\service;
 use RuntimeException;
 use kuaukutsu\poc\task\dto\StageDto;
 use kuaukutsu\poc\task\dto\StageModel;
+use kuaukutsu\poc\task\exception\NotFoundException;
 use kuaukutsu\poc\task\EntityUuid;
 
 interface StageCommand
@@ -27,11 +28,13 @@ interface StageCommand
     public function replace(EntityUuid $uuid, StageDto $model): bool;
 
     /**
+     * @throws NotFoundException
      * @throws RuntimeException
      */
     public function removeByTask(EntityUuid $taskUuid): bool;
 
     /**
+     * @throws NotFoundException
      * @throws RuntimeException
      */
     public function remove(EntityUuid $uuid): bool;

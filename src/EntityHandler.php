@@ -7,7 +7,7 @@ namespace kuaukutsu\poc\task;
 use kuaukutsu\poc\task\state\TaskStateError;
 use kuaukutsu\poc\task\state\TaskStateInterface;
 
-interface EntityStage extends EntityState
+interface EntityHandler
 {
     public function handle(TaskStageContext $context): TaskStateInterface;
 
