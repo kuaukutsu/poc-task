@@ -68,7 +68,7 @@ final class TaskManager implements EventPublisherInterface
 
                 while (
                     $this->processing->hasTaskProcess()
-                    && count($this->processesActive) < $options->getTaskQueueSize()
+                    && count($this->processesActive) < $options->getQueueSize()
                 ) {
                     $context = $this->processing->getTaskProcess();
                     if (array_key_exists($context->stage, $this->processesActive) === false) {

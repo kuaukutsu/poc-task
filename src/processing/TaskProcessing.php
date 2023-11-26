@@ -46,12 +46,12 @@ final class TaskProcessing
         // Первым делом в очередь добавляем те что на Паузе
         if ($this->processReady->isEmpty()) {
             $this->loadingPaused(
-                $options->getTaskQueueSize(),
+                $options->getQueueSize(),
             );
         }
 
         // Если capacity позволяет, добавляем в очередь задачи из Ожидания
-        $capacity = $options->getTaskQueueSize() - $this->processReady->count();
+        $capacity = $options->getQueueSize() - $this->processReady->count();
         if ($capacity > 0) {
             $this->loadingReady($capacity);
         }

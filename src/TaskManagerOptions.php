@@ -17,7 +17,7 @@ final class TaskManagerOptions
         private readonly ?string $bindir = null,
         private readonly float $heartbeat = 30.,
         private readonly float $keeperInterval = 5.,
-        private readonly int $taskQueueSize = 10,
+        private readonly int $queueSize = 10,
         public readonly ?float $timeout = null,
         public readonly ?float $handlerTimeout = 300.,
         public readonly string $handlerEndpoint = 'handler.php',
@@ -44,8 +44,8 @@ final class TaskManagerOptions
     /**
      * @return positive-int
      */
-    public function getTaskQueueSize(): int
+    public function getQueueSize(): int
     {
-        return max(1, $this->taskQueueSize);
+        return max(1, $this->queueSize);
     }
 }
