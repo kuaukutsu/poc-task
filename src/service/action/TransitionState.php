@@ -7,12 +7,12 @@ namespace kuaukutsu\poc\task\service\action;
 use kuaukutsu\poc\task\exception\StateTransitionException;
 use kuaukutsu\poc\task\state\TaskFlag;
 
-trait TransitionStateTrait
+final class TransitionState
 {
     /**
      * @throws StateTransitionException Если переход не возможен.
      */
-    final protected function canAccessTransitionState(string $uuid, int $currentState, int $transitionState): void
+    public function canAccessTransitionState(string $uuid, int $currentState, int $transitionState): void
     {
         if ((new TaskFlag($currentState))->isFinished()) {
             throw new StateTransitionException($uuid, $currentState, $transitionState);
@@ -40,6 +40,9 @@ trait TransitionStateTrait
                 (new TaskFlag())->setSkiped()->toValue(),
                 (new TaskFlag())->setCanceled()->toValue(),
                 (new TaskFlag())->setError()->toValue(),
+                (new TaskFlag())->setPromised()->setPaused()->toValue(),
+                (new TaskFlag())->setPromised()->setCanceled()->toValue(),
+                (new TaskFlag())->setPromised()->setError()->toValue(),
             ],
             (new TaskFlag())->setRunning()->toValue() => [
                 (new TaskFlag())->setSuccess()->toValue(),
@@ -50,11 +53,9 @@ trait TransitionStateTrait
                 (new TaskFlag())->setRunning()->setCanceled()->toValue(),
                 (new TaskFlag())->setRunning()->setError()->toValue(),
             ],
-            (new TaskFlag())->setPaused()->toValue() => [
-                (new TaskFlag())->setRunning()->toValue(),
-                (new TaskFlag())->setSkiped()->toValue(),
+            (new TaskFlag())->setSkiped()->toValue() => [
                 (new TaskFlag())->setCanceled()->toValue(),
-                (new TaskFlag())->setError()->toValue(),
+                (new TaskFlag())->setSkiped()->setCanceled()->toValue(),
             ],
         ];
 

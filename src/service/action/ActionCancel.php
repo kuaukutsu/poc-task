@@ -19,13 +19,12 @@ use kuaukutsu\poc\task\EntityTask;
 
 final class ActionCancel implements TaskAction
 {
-    use TransitionStateTrait;
-
     public function __construct(
         private readonly StageQuery $stageQuery,
         private readonly StageCommand $stageCommand,
         private readonly TaskCommand $taskCommand,
         private readonly TaskFactory $factory,
+        private readonly TransitionState $transition,
     ) {
     }
 
@@ -36,6 +35,12 @@ final class ActionCancel implements TaskAction
             uuid: $task->getUuid(),
             message: new TaskStateMessage('Canceled'),
             flag: $task->getFlag(),
+        );
+
+        $this->transition->canAccessTransitionState(
+            $task->getUuid(),
+            $task->getFlag(),
+            $state->getFlag()->toValue(),
         );
 
         $model = $this->taskCommand->update(

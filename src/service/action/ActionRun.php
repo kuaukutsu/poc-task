@@ -15,11 +15,10 @@ use kuaukutsu\poc\task\EntityTask;
 
 final class ActionRun implements TaskAction
 {
-    use TransitionStateTrait;
-
     public function __construct(
         private readonly TaskCommand $command,
         private readonly TaskFactory $factory,
+        private readonly TransitionState $transition,
     ) {
     }
 
@@ -31,7 +30,7 @@ final class ActionRun implements TaskAction
             flag: $task->getFlag(),
         );
 
-        $this->canAccessTransitionState(
+        $this->transition->canAccessTransitionState(
             $task->getUuid(),
             $task->getFlag(),
             $state->getFlag()->toValue(),
