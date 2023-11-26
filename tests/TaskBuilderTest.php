@@ -112,13 +112,13 @@ final class TaskBuilderTest extends TestCase
 
         $tasks = [];
         $tasks[] = $this->builder->build($draft);
-        self::assertTrue($query->existsChecksum($draft->getChecksum()));
+        self::assertTrue($query->existsOpenByChecksum($draft->getChecksum()));
 
         $tasks[] = $this->builder->build($draftSimilar);
-        self::assertTrue($query->existsChecksum($draftSimilar->getChecksum()));
+        self::assertTrue($query->existsOpenByChecksum($draftSimilar->getChecksum()));
 
         $tasks[] = $this->builder->build($draftAnotherSimilar);
-        self::assertTrue($query->existsChecksum($draftAnotherSimilar->getChecksum()));
+        self::assertTrue($query->existsOpenByChecksum($draftAnotherSimilar->getChecksum()));
 
         $destroyer = self::get(TaskDestroyer::class);
         foreach ($tasks as $task) {

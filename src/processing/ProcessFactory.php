@@ -9,6 +9,12 @@ use kuaukutsu\poc\task\TaskManagerOptions;
 
 final class ProcessFactory
 {
+    /**
+     * @see https://tldp.org/LDP/abs/html/exitcodes.html
+     */
+    public const SUCCESS = 0;
+    public const ERROR = 1;
+
     public function create(TaskProcessContext $context, TaskManagerOptions $options): Process
     {
         $cmd = [

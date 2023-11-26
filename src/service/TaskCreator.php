@@ -36,7 +36,7 @@ final class TaskCreator
      */
     public function create(TaskDraft $taskDraft): EntityTask
     {
-        if ($this->taskQuery->existsChecksum($taskDraft->getChecksum())) {
+        if ($this->taskQuery->existsOpenByChecksum($taskDraft->getChecksum())) {
             throw new LogicException(
                 "[$taskDraft->title] Task exists."
             );
@@ -68,7 +68,7 @@ final class TaskCreator
      */
     public function createFromContext(TaskDraft $taskDraft, TaskStageContext $context): EntityTask
     {
-        if ($this->taskQuery->existsChecksum($taskDraft->getChecksum())) {
+        if ($this->taskQuery->existsOpenByChecksum($taskDraft->getChecksum())) {
             throw new LogicException(
                 "[$taskDraft->title] Task exists."
             );

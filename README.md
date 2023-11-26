@@ -1,21 +1,81 @@
 # Proof of Concept: Task (Задача, Задание)
 
-Простая структурная единица, которая позволяет разработчику:
-
-- сформировать **Задачу/Task**,
-- передать её на выполнение,
-- проверить статус по запуску,
-- и получить ответ по завершении.
-
-Так же позволяет декомпозировать многосоставные, сложные задачи, на подзадачи, без потери общей связи.
+Простая структурная единица, которая позволяет декомпозировать многосоставные, сложные задачи, на подзадачи, без потери
+общей связи.
+Для запуска задач и контроля за их выполнением используется менеджер процессов основанным на компоненте event-loop.
 
 ## Глоссарий
 
-- **Task** - контейнер, который содержит описание Задачи, и состояние.
-- **TaskStage** - этапы задачи, структурная единица, из которой строится задание. Хранит входные аргументы, и состояние.
-- **TaskState** - описывает состояние и Задачи, и Этапа. `getFlag()` для разработчика, `getMessage()` для frontend.
-- **TaskFlag** - описывает все возможные состояния в которых может быть Задача, или Этап.
+- **Task** - задача, содержит конфигурацию этапов, состояние обработки, и результат работы.
+- **TaskStage** - структурная единица задачи, описывает полезное действое в случае успешной, или не успешной работы.
+- **TaskManager** - менеджер процессов, контролирует запуск и работу задач.
 
+## Описание работы
+
+Общий процесс можно описать через три основные компоненты:
+
+- задача (**EntityTask**)
+- менеджер процессов (**TaskManager**/**pm**)
+- обработчик этапов (**EntityHandler**)
+
+Жизненный цикл задачи:
+
+- создание задачи (черновик)
+- сохранение задачи и постановка задачи в очередь на выполнение
+- запуск задачи
+- обработка этапов
+- сохранение результата
+
+### Создание задачи
+
+```php
+$builder = $container->get(TaskBuilder::class);
+
+/**
+ * Создание черновика задачи
+ * @var TaskDraft $draft
+ */
+$draft = $builder->create(
+    'Count Numbers',
+    new EntityWrapper(
+        class: IncreaseNumberStageStub::class,
+        params: [
+            'name' => 'Number initialization.',
+        ],
+    ),
+);
+
+/**
+ * Записываем задачу и ставим её в очередь на выполнение
+ * @var EntityTask $task
+ */
+$task = $builder->build($draft);
+```
+
+### Process Manager
+
+```php
+$manager = $container->get(TaskManager::class);
+$manager->run(
+    new TaskManagerOptions(
+        bindir: __DIR__,
+        heartbeat: 5.,
+        keeperInterval: 2.,
+        handlerEndpoint: 'handler.php',
+    )
+);
+```
+
+#### Обработчик - handlerEndpoint: 'handler.php'
+
+```php
+
+use function kuaukutsu\poc\task\tools\get_previous_uuid;
+use function kuaukutsu\poc\task\tools\get_stage_uuid;
+
+$handler = $container->get(StageHandler::class);
+$handler->handle(get_stage_uuid(), get_previous_uuid());
+```
 
 ## Пример
 
@@ -43,6 +103,20 @@ docker run --init -it --rm -v "$(pwd):/app" -w /app ghcr.io/kuaukutsu/php:8.1-cl
 ```
 
 ## Testing
+
+### Run
+
+**builder**
+
+```shell
+make test-builder
+```
+
+**runner**
+
+```shell
+make test-pm
+```
 
 ### Unit testing
 
