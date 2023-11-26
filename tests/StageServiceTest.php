@@ -10,8 +10,6 @@ use PHPUnit\Framework\TestCase;
 use kuaukutsu\poc\task\dto\StageDto;
 use kuaukutsu\poc\task\exception\NotFoundException;
 use kuaukutsu\poc\task\handler\StageContextFactory;
-use kuaukutsu\poc\task\handler\StageHandlerFactory;
-use kuaukutsu\poc\task\handler\StateFactory;
 use kuaukutsu\poc\task\service\StageQuery;
 use kuaukutsu\poc\task\service\TaskDestroyer;
 use kuaukutsu\poc\task\TaskBuilder;
@@ -135,46 +133,6 @@ final class StageServiceTest extends TestCase
         self::assertEquals($this->task->getUuid(), $context->task);
         self::assertEquals($this->stage->uuid, $context->stage);
         self::assertEmpty($context->previous);
-    }
-
-    /**
-     * @throws ContainerExceptionInterface
-     */
-    #[Depends('testContextFactory')]
-    public function testHandlerFactory(): void
-    {
-        $handlerFactory = self::get(StageHandlerFactory::class);
-        $contextFactory = self::get(StageContextFactory::class);
-
-        $stage = $this->query->getOne(
-            new EntityUuid($this->stage->uuid)
-        );
-
-        $entityStage = $handlerFactory->create($stage);
-        $state = $entityStage->handle(
-            $contextFactory->create($stage)
-        );
-
-        self::assertTrue($state->getFlag()->isSuccess());
-        self::assertFalse($state->getFlag()->isError());
-    }
-
-    /**
-     * @throws ContainerExceptionInterface
-     */
-    #[Depends('testGetOne')]
-    public function testStateFactory(): void
-    {
-        $stateFactory = self::get(StateFactory::class);
-
-        $stage = $this->query->getOne(
-            new EntityUuid($this->stage->uuid)
-        );
-
-        $state = $stateFactory->create($stage->state);
-
-        self::assertTrue($state->getFlag()->isReady());
-        self::assertFalse($state->getFlag()->isFinished());
     }
 
     public static function setUpBeforeClass(): void

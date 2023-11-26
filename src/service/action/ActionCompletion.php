@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace kuaukutsu\poc\task\service\action;
 
 use kuaukutsu\poc\task\dto\TaskModel;
-use kuaukutsu\poc\task\state\response\TaskResponseContext;
+use kuaukutsu\poc\task\state\response\ResponseContextWrapper;
 use kuaukutsu\poc\task\state\TaskStateError;
 use kuaukutsu\poc\task\state\TaskStateInterface;
 use kuaukutsu\poc\task\state\TaskStateMessage;
@@ -57,7 +57,7 @@ final class ActionCompletion implements TaskAction
 
     private function handleStagesState(EntityTask $task): ?TaskStateInterface
     {
-        $context = new TaskResponseContext();
+        $context = new ResponseContextWrapper();
         $uuid = new EntityUuid($task->getUuid());
         foreach ($this->stageQuery->findByTask($uuid) as $item) {
             $state = $this->stateFactory->create($item->state);

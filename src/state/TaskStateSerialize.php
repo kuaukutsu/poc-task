@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace kuaukutsu\poc\task\state;
 
 use kuaukutsu\poc\task\exception\UnsupportedException;
+use kuaukutsu\poc\task\state\response\ResponseSerializer;
 use kuaukutsu\poc\task\state\response\ResponseWrapper;
 use kuaukutsu\poc\task\TaskResponseInterface;
 
 trait TaskStateSerialize
 {
+    use ResponseSerializer;
+
     /**
      * @throws UnsupportedException
      */
@@ -31,7 +34,7 @@ trait TaskStateSerialize
         /** @var array<string, mixed> $attributes */
         $attributes = get_object_vars($this);
         if (isset($attributes['response']) && $attributes['response'] instanceof TaskResponseInterface) {
-            $attributes['response'] = ResponseWrapper::serialize($attributes['response']);
+            $attributes['response'] = $this->serializeResponse($attributes['response']);
         }
 
         return $attributes;
@@ -45,7 +48,7 @@ trait TaskStateSerialize
         foreach ($data as $property => $value) {
             if (property_exists($this, $property)) {
                 if ($property === 'response' && $value instanceof ResponseWrapper) {
-                    $value = $value->deserialize();
+                    $value = $this->deserializeResponse($value);
                 }
 
                 $this->{$property} = $value;

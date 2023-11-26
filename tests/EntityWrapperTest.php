@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\tests;
 
+use kuaukutsu\poc\task\tests\stub\TestWrapperDto;
+use kuaukutsu\poc\task\tests\stub\TestWrapperStageStub;
 use PHPUnit\Framework\TestCase;
 use kuaukutsu\poc\task\EntityWrapper;
 use kuaukutsu\poc\task\EntityWrapperCollection;
@@ -26,6 +28,33 @@ final class EntityWrapperTest extends TestCase
 
         $object = unserialize($serialize);
         self::assertInstanceOf(EntityWrapper::class, $object);
+    }
+
+    public function testObjectSerialize(): void
+    {
+        $test = TestWrapperDto::hydrate(
+            [
+                'name' => 'test wrapper',
+            ]
+        );
+
+        $wrapper = new EntityWrapper(
+            class: TestWrapperStageStub::class,
+            params: [
+                'dto' => $test,
+                'wrapper' => $test,
+            ],
+        );
+
+        $serialize = serialize($wrapper);
+        self::assertNotEmpty($serialize);
+
+        $object = unserialize($serialize);
+        self::assertInstanceOf(EntityWrapper::class, $object);
+
+        /** @var EntityWrapper $object */
+        self::assertInstanceOf(TestWrapperDto::class, $object->params['dto']);
+        self::assertInstanceOf(TestWrapperDto::class, $object->params['wrapper']);
     }
 
     public function testCollection(): void

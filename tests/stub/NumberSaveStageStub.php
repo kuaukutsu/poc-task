@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\tests\stub;
 
-use kuaukutsu\poc\task\state\response\TaskResponseContext;
+use kuaukutsu\poc\task\state\response\ResponseContextWrapper;
 use kuaukutsu\poc\task\state\TaskStateInterface;
 use kuaukutsu\poc\task\state\TaskStateMessage;
 use kuaukutsu\poc\task\TaskHandlerBase;
@@ -32,7 +32,7 @@ final class NumberSaveStageStub extends TaskHandlerBase
             );
         }
 
-        /** @var TaskResponseContext $responseContext */
+        /** @var ResponseContextWrapper $responseContext */
         $responseContext = $context->previous->getResponse();
 
         if ($responseContext->hasFailure()) {

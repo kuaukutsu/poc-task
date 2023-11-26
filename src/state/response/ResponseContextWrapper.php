@@ -7,7 +7,7 @@ namespace kuaukutsu\poc\task\state\response;
 use kuaukutsu\poc\task\TaskResponseInterface;
 use kuaukutsu\poc\task\tools\SerializerJson;
 
-final class TaskResponseContext implements TaskResponseInterface
+final class ResponseContextWrapper implements TaskResponseInterface
 {
     /**
      * @param TaskResponseInterface[] $success
