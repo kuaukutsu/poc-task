@@ -83,19 +83,7 @@ final class TaskProcessing
             return;
         }
 
-        try {
-            $task = $this->taskFactory->create(
-                $this->taskQuery->getOne(
-                    new EntityUuid($process->task)
-                )
-            );
-        } catch (Throwable $exception) {
-            throw new ProcessingException(
-                "[$process->task] TaskProcessing error: " . $exception->getMessage(),
-                $exception,
-            );
-        }
-
+        $task = $this->factory($process->task);
         if ($task->isFinished() || $task->isPromised()) {
             return;
         }
@@ -136,16 +124,13 @@ final class TaskProcessing
      */
     public function cancel(TaskProcess $process): void
     {
-        try {
-            $task = $this->taskFactory->create(
-                $this->taskQuery->getOne(
-                    new EntityUuid($process->task)
-                )
-            );
+        $task = $this->factory($process->task);
+        if ($task->isFinished()) {
+            return;
+        }
 
-            if ($task->isFinished() === false) {
-                $this->taskExecutor->cancel($task);
-            }
+        try {
+            $this->taskExecutor->cancel($task);
         } catch (Throwable $exception) {
             throw new ProcessingException(
                 "[$process->task] TaskProcessing error: " . $exception->getMessage(),
@@ -159,16 +144,13 @@ final class TaskProcessing
      */
     public function pause(TaskProcess $process): void
     {
-        try {
-            $task = $this->taskFactory->create(
-                $this->taskQuery->getOne(
-                    new EntityUuid($process->task)
-                )
-            );
+        $task = $this->factory($process->task);
+        if ($task->isFinished()) {
+            return;
+        }
 
-            if ($task->isFinished() === false) {
-                $this->taskExecutor->pause($task);
-            }
+        try {
+            $this->taskExecutor->pause($task);
         } catch (Throwable $exception) {
             throw new ProcessingException(
                 "[$process->task] TaskProcessing error: " . $exception->getMessage(),
@@ -235,5 +217,24 @@ final class TaskProcessing
         }
 
         return false;
+    }
+
+    /**
+     * @param non-empty-string $uuid
+     */
+    private function factory(string $uuid): EntityTask
+    {
+        try {
+            return $this->taskFactory->create(
+                $this->taskQuery->getOne(
+                    new EntityUuid($uuid)
+                )
+            );
+        } catch (Throwable $exception) {
+            throw new ProcessingException(
+                "[$uuid] TaskProcessing error: " . $exception->getMessage(),
+                $exception,
+            );
+        }
     }
 }

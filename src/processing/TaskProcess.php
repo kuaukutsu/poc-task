@@ -13,6 +13,12 @@ use Symfony\Component\Process\Process;
  */
 final class TaskProcess
 {
+    /**
+     * @see https://tldp.org/LDP/abs/html/exitcodes.html
+     */
+    public const SUCCESS = 0;
+    public const ERROR = 1;
+
     private ?string $output = null;
 
     /**

@@ -9,7 +9,7 @@ use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use kuaukutsu\poc\task\dto\StageDto;
 use kuaukutsu\poc\task\exception\BuilderException;
-use kuaukutsu\poc\task\processing\ProcessFactory;
+use kuaukutsu\poc\task\processing\TaskProcess;
 use kuaukutsu\poc\task\service\StageCommand;
 use kuaukutsu\poc\task\service\StageQuery;
 use kuaukutsu\poc\task\state\TaskStateInterface;
@@ -37,7 +37,7 @@ final class StageHandler
             $state = $this->execute($stage, $previous);
         } catch (Throwable $exception) {
             $this->stderr($exception->getMessage());
-            return ProcessFactory::ERROR;
+            return TaskProcess::ERROR;
         }
 
         $stage = StageDto::hydrate(
@@ -52,11 +52,11 @@ final class StageHandler
             $this->command->replace(new EntityUuid($uuid), $stage);
         } catch (Throwable $exception) {
             $this->stderr($exception->getMessage());
-            return ProcessFactory::ERROR;
+            return TaskProcess::ERROR;
         }
 
         $this->stdout($stage->state);
-        return ProcessFactory::SUCCESS;
+        return TaskProcess::SUCCESS;
     }
 
     /**
