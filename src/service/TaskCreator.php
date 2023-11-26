@@ -27,6 +27,7 @@ final class TaskCreator
         private readonly TaskQuery $taskQuery,
         private readonly TaskCommand $taskCommand,
         private readonly StageCommand $stageCommand,
+        private readonly TaskDestroyer $destroyer,
     ) {
     }
 
@@ -133,9 +134,7 @@ final class TaskCreator
                 );
             }
         } catch (Exception $exception) {
-            $this->stageCommand->removeByTask($uuid);
-            $this->taskCommand->remove($uuid);
-
+            $this->destroyer->purge($uuid);
             throw $exception;
         }
 

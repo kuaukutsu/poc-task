@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\service;
 
+use RuntimeException;
+use kuaukutsu\poc\task\exception\NotFoundException;
 use kuaukutsu\poc\task\EntityUuid;
 
 final class TaskDestroyer
@@ -14,9 +16,19 @@ final class TaskDestroyer
     ) {
     }
 
+    /**
+     * @throws RuntimeException
+     */
     public function purge(EntityUuid $uuid): void
     {
-        $this->stageCommand->removeByTask($uuid);
-        $this->taskCommand->remove($uuid);
+        try {
+            $this->stageCommand->removeByTask($uuid);
+        } catch (NotFoundException) {
+        }
+
+        try {
+            $this->taskCommand->remove($uuid);
+        } catch (NotFoundException) {
+        }
     }
 }
