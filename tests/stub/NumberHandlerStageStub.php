@@ -37,7 +37,7 @@ final class NumberHandlerStageStub extends TaskHandlerBase
         /** @var DataResponse $response */
         $response = $context->previous->getResponse();
 
-        $task = $this->builder->create('Nested Task');
+        $task = $this->builder->create('Nested Task: ' . $context->task);
         $task->addStage(
             new EntityWrapper(
                 class: IncreaseNumberStageStub::class,

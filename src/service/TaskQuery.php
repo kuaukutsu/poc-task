@@ -26,5 +26,5 @@ interface TaskQuery
      */
     public function getPaused(int $limit): TaskCollection;
 
-    public function existsChecksum(string $checksum): bool;
+    public function existsOpenByChecksum(string $checksum): bool;
 }

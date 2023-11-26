@@ -9,6 +9,7 @@ use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use kuaukutsu\poc\task\dto\StageDto;
 use kuaukutsu\poc\task\exception\BuilderException;
+use kuaukutsu\poc\task\processing\ProcessFactory;
 use kuaukutsu\poc\task\service\StageCommand;
 use kuaukutsu\poc\task\service\StageQuery;
 use kuaukutsu\poc\task\state\TaskStateInterface;
@@ -29,14 +30,14 @@ final class StageHandler
      * @param non-empty-string $uuid
      * @param non-empty-string|null $previous
      */
-    public function handle(string $uuid, ?string $previous = null): void
+    public function handle(string $uuid, ?string $previous = null): int
     {
         try {
             $stage = $this->query->getOne(new EntityUuid($uuid));
             $state = $this->execute($stage, $previous);
         } catch (Throwable $exception) {
             $this->stderr($exception->getMessage());
-            exit(1);
+            return ProcessFactory::ERROR;
         }
 
         $stage = StageDto::hydrate(
@@ -51,11 +52,11 @@ final class StageHandler
             $this->command->replace(new EntityUuid($uuid), $stage);
         } catch (Throwable $exception) {
             $this->stderr($exception->getMessage());
-            exit(1);
+            return ProcessFactory::ERROR;
         }
 
         $this->stdout($stage->state);
-        exit(0);
+        return ProcessFactory::SUCCESS;
     }
 
     /**
