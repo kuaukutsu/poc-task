@@ -7,7 +7,7 @@ namespace kuaukutsu\poc\task\tests;
 use Psr\Container\ContainerExceptionInterface;
 use PHPUnit\Framework\TestCase;
 use kuaukutsu\poc\task\handler\StateFactory;
-use kuaukutsu\poc\task\state\response\TaskResponseContext;
+use kuaukutsu\poc\task\state\response\ResponseContextWrapper;
 use kuaukutsu\poc\task\state\TaskStateMessage;
 use kuaukutsu\poc\task\state\TaskStateSuccess;
 use kuaukutsu\poc\task\TaskResponseInterface;
@@ -29,7 +29,7 @@ final class TaskResponseTest extends TestCase
             }
         };
 
-        $context = new TaskResponseContext();
+        $context = new ResponseContextWrapper();
         $context->pushSuccessResponse(
             $response('test')
         );
@@ -52,10 +52,10 @@ final class TaskResponseTest extends TestCase
         self::assertTrue($stateObject->getFlag()->isSuccess());
         self::assertTrue($stateObject->getFlag()->isFinished());
 
-        /** @var TaskResponseContext $response */
+        /** @var ResponseContextWrapper $response */
         $response = $stateObject->getResponse();
         self::assertNotEmpty($response);
-        self::assertInstanceOf(TaskResponseContext::class, $response);
+        self::assertInstanceOf(ResponseContextWrapper::class, $response);
         self::assertTrue($response->hasSuccess());
         self::assertFalse($response->hasFailure());
         self::assertCount(2, $response->getSuccess());

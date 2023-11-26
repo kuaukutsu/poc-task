@@ -24,6 +24,7 @@ trait TaskStatePrepare
 
         /**
          * @var TaskStateInterface
+         * @psalm-suppress InvalidArgument with additional array shape fields (max_depth)
          */
         return unserialize(
             $state,
@@ -41,6 +42,7 @@ trait TaskStatePrepare
                     TaskStateWaiting::class,
                     ResponseWrapper::class,
                 ],
+                'max_depth' => 8,
             ]
         );
     }
