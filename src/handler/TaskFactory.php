@@ -25,6 +25,7 @@ final class TaskFactory
                 uuid: $dto->uuid,
                 title: $dto->title,
                 state: $this->prepareState($dto->state),
+                options: $dto->options,
             );
         } catch (TypeError $exception) {
             throw new BuilderException(

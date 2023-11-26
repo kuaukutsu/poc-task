@@ -15,7 +15,7 @@ final class Task implements EntityTask
     /**
      * @param non-empty-string $uuid
      * @param non-empty-string $title
-     * @param array<string, mixed> $options
+     * @param array<string, scalar> $options
      */
     public function __construct(
         private readonly string $uuid,
