@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\processing;
 
+use kuaukutsu\poc\task\dto\TaskOptions;
+
 final class TaskProcessContext
 {
     /**
@@ -15,6 +17,7 @@ final class TaskProcessContext
     public function __construct(
         public readonly string $task,
         public readonly string $stage,
+        public readonly TaskOptions $options,
         public readonly ?string $previous = null,
         public array $storage = [],
     ) {

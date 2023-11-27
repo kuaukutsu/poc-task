@@ -27,6 +27,11 @@ final class TaskDto extends DtoBase
     public string $state;
 
     /**
+     * @var array<string, scalar>
+     */
+    public array $options = [];
+
+    /**
      * @var non-empty-string
      */
     public string $checksum;

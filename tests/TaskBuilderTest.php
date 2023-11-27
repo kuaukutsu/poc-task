@@ -36,6 +36,7 @@ final class TaskBuilderTest extends TestCase
 
         self::assertEquals('task test builder', $draft->title);
         self::assertCount(1, $draft->stages);
+        self::assertEmpty($draft->getOptions()->timeout);
 
         $draft->addStage(
             new EntityWrapper(
@@ -54,19 +55,22 @@ final class TaskBuilderTest extends TestCase
      */
     public function testCreate(): void
     {
-        $draft = $this->builder->create(
-            'task test builder',
-            new EntityWrapper(
-                class: IncreaseNumberStageStub::class,
-                params: [
-                    'name' => 'Number initialization.',
-                ],
-            ),
-        );
+        $draft = $this->builder
+            ->create(
+                'task test builder',
+                new EntityWrapper(
+                    class: IncreaseNumberStageStub::class,
+                    params: [
+                        'name' => 'Number initialization.',
+                    ],
+                ),
+            )
+            ->setTimeout(200);
 
         $task = $this->builder->build($draft);
         self::assertEquals($draft->title, $task->getTitle());
         self::assertEquals(new TaskStateReady(), $task->getState());
+        self::assertEquals(200, $draft->getOptions()->timeout);
 
         self::get(TaskDestroyer::class)->purge(
             new EntityUuid($task->getUuid())

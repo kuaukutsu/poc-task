@@ -18,6 +18,8 @@ final class TaskModel extends DtoBase
 
     public ?string $state = null;
 
+    public ?TaskOptions $options = null;
+
     public ?string $checksum = null;
 
     public ?string $created_at = null;

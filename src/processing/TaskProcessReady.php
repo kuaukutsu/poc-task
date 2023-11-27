@@ -13,6 +13,7 @@ use kuaukutsu\poc\task\state\TaskStateMessage;
 use kuaukutsu\poc\task\state\TaskStateRunning;
 use kuaukutsu\poc\task\service\StageQuery;
 use kuaukutsu\poc\task\service\StageCommand;
+use kuaukutsu\poc\task\EntityTask;
 use kuaukutsu\poc\task\EntityUuid;
 
 final class TaskProcessReady
@@ -50,45 +51,38 @@ final class TaskProcessReady
     }
 
     /**
-     * @param non-empty-string $taskUuid
      * @throws RuntimeException Ошибка выполнения комманды
      */
-    public function pushStageOnPause(string $taskUuid): bool
+    public function pushStageOnPause(EntityTask $task): bool
     {
-        $stage = $this->query->findPausedByTask(new EntityUuid($taskUuid));
+        $stage = $this->query->findPausedByTask(new EntityUuid($task->getUuid()));
         if ($stage === null) {
             return false;
         }
 
-        return $this->enqueue(
-            $this->processRun($stage->uuid)
-        );
+        return $this->enqueue($task, $this->processRun($stage->uuid));
     }
 
     /**
-     * @param non-empty-string $taskUuid
      * @throws RuntimeException Ошибка выполнения комманды
      */
-    public function pushStageOnReady(string $taskUuid): bool
+    public function pushStageOnReady(EntityTask $task): bool
     {
-        $stage = $this->query->findReadyByTask(new EntityUuid($taskUuid));
+        $stage = $this->query->findReadyByTask(new EntityUuid($task->getUuid()));
         if ($stage === null) {
             return false;
         }
 
-        return $this->enqueue(
-            $this->processRun($stage->uuid)
-        );
+        return $this->enqueue($task, $this->processRun($stage->uuid));
     }
 
     /**
-     * @param non-empty-string $taskUuid
      * @return array<string, true>
      * @throws RuntimeException Ошибка выполнения комманды
      */
-    public function pushStagePromise(string $taskUuid): array
+    public function pushStagePromise(EntityTask $task): array
     {
-        $collection = $this->query->getPromiseByTask(new EntityUuid($taskUuid));
+        $collection = $this->query->getPromiseByTask(new EntityUuid($task->getUuid()));
         if ($collection->isEmpty()) {
             return [];
         }
@@ -96,22 +90,19 @@ final class TaskProcessReady
         $index = [];
         foreach ($collection as $stage) {
             $index[$stage->uuid] = true;
-            $this->enqueue(
-                $this->processRun($stage->uuid)
-            );
+            $this->enqueue($task, $this->processRun($stage->uuid));
         }
 
         return $index;
     }
 
     /**
-     * @param non-empty-string $taskUuid
      * @param non-empty-string $previous
      * @throws RuntimeException Ошибка выполнения комманды
      */
-    public function pushStageNext(string $taskUuid, string $previous): bool
+    public function pushStageNext(EntityTask $task, string $previous): bool
     {
-        $uuid = new EntityUuid($taskUuid);
+        $uuid = new EntityUuid($task->getUuid());
         $stage = $this->query->findPausedByTask($uuid)
             ?? $this->query->findReadyByTask($uuid);
 
@@ -119,10 +110,7 @@ final class TaskProcessReady
             return false;
         }
 
-        return $this->enqueue(
-            $this->processRun($stage->uuid),
-            $previous,
-        );
+        return $this->enqueue($task, $this->processRun($stage->uuid), $previous);
     }
 
     public function terminate(): void
@@ -137,12 +125,13 @@ final class TaskProcessReady
     /**
      * @param non-empty-string|null $previous
      */
-    private function enqueue(StageDto $stage, ?string $previous = null): bool
+    private function enqueue(EntityTask $task, StageDto $stage, ?string $previous = null): bool
     {
         $this->queue->enqueue(
             new TaskProcessContext(
-                task: $stage->taskUuid,
+                task: $task->getUuid(),
                 stage: $stage->uuid,
+                options: $task->getOptions(),
                 previous: $previous,
             )
         );

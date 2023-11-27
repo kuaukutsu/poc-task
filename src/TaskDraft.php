@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task;
 
+use kuaukutsu\poc\task\dto\TaskOptions;
 use kuaukutsu\poc\task\state\TaskStateInterface;
 use kuaukutsu\poc\task\state\TaskStateReady;
 
 final class TaskDraft
 {
+    private ?float $timeout = null;
+
     /**
      * @param non-empty-string $title
      */
@@ -31,13 +34,26 @@ final class TaskDraft
 
     public function getChecksum(): string
     {
-        return md5(
-            $this->title . $this->stages->getChecksum()
-        );
+        return md5($this->title . $this->stages->getChecksum());
     }
 
     public function getState(): TaskStateInterface
     {
         return new TaskStateReady();
+    }
+
+    public function getOptions(): TaskOptions
+    {
+        return TaskOptions::hydrate(
+            [
+                'timeout' => $this->timeout,
+            ]
+        );
+    }
+
+    public function setTimeout(float $timeout): self
+    {
+        $this->timeout = $timeout;
+        return $this;
     }
 }
