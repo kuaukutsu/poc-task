@@ -14,6 +14,7 @@ use kuaukutsu\poc\task\state\TaskStateRelation;
 use kuaukutsu\poc\task\state\TaskStateSuccess;
 use kuaukutsu\poc\task\service\StageCommand;
 use kuaukutsu\poc\task\service\StageQuery;
+use kuaukutsu\poc\task\EntityTask;
 use kuaukutsu\poc\task\EntityUuid;
 
 final class TaskProcessPromise
@@ -46,19 +47,15 @@ final class TaskProcessPromise
     }
 
     /**
-     * @param non-empty-string $uuid
      * @param array<string, true> $index
      */
-    public function enqueue(string $uuid, array $index, TaskStateRelation $state): bool
+    public function enqueue(EntityTask $task, array $index, TaskStateRelation $state): bool
     {
-        if ($index === []) {
-            return false;
-        }
-
-        $this->queue[$uuid] = new TaskProcessContext(
+        $this->queue[$task->getUuid()] = new TaskProcessContext(
             $state->task,
             $state->stage,
-            $uuid,
+            $task->getOptions(),
+            $task->getUuid(),
             $index,
         );
 

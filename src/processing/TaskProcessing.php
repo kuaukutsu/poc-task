@@ -92,11 +92,11 @@ final class TaskProcessing
             $context = $this->processPromise->dequeue($process->task, $process->stage);
             if ($this->processPromise->canCompleted($context)) {
                 $state = $this->taskExecutor->stop($task);
-                if (
-                    $this->processPromise->completed($context, $state)
-                    && $this->processReady->pushStageNext($context->task, $context->stage) === false
-                ) {
-                    $this->taskExecutor->stop($task);
+                if ($this->processPromise->completed($context, $state)) {
+                    $parentTask = $this->factory($context->task);
+                    if ($this->processReady->pushStageNext($parentTask, $context->stage) === false) {
+                        $this->taskExecutor->stop($parentTask);
+                    }
                 }
             }
 
@@ -114,7 +114,7 @@ final class TaskProcessing
             return;
         }
 
-        if ($this->processReady->pushStageNext($task->getUuid(), $process->stage) === false) {
+        if ($this->processReady->pushStageNext($task, $process->stage) === false) {
             $this->taskExecutor->stop($task);
         }
     }
@@ -168,7 +168,7 @@ final class TaskProcessing
         foreach ($this->taskQuery->getPaused($limit) as $item) {
             try {
                 $task = $this->taskFactory->create($item);
-                $this->processReady->pushStageOnPause($task->getUuid())
+                $this->processReady->pushStageOnPause($task)
                     ? $this->taskExecutor->run($task)
                     : $this->taskExecutor->stop($task);
             } catch (Throwable $exception) {
@@ -191,7 +191,7 @@ final class TaskProcessing
                 $task = $this->taskFactory->create($item);
                 $isRun = $task->isPromised()
                     ? $this->enqueuePromise($task)
-                    : $this->processReady->pushStageOnReady($task->getUuid());
+                    : $this->processReady->pushStageOnReady($task);
 
                 $isRun
                     ? $this->taskExecutor->run($task)
@@ -209,11 +209,12 @@ final class TaskProcessing
     {
         $state = $task->getState();
         if ($state instanceof TaskStateRelation) {
-            return $this->processPromise->enqueue(
-                $task->getUuid(),
-                $this->processReady->pushStagePromise($task->getUuid()),
-                $state,
-            );
+            $index = $this->processReady->pushStagePromise($task);
+            if ($index === []) {
+                return false;
+            }
+
+            return $this->processPromise->enqueue($task, $index, $state);
         }
 
         return false;
