@@ -7,28 +7,35 @@ namespace kuaukutsu\poc\task\service;
 use kuaukutsu\poc\task\dto\TaskView;
 use kuaukutsu\poc\task\exception\NotFoundException;
 use kuaukutsu\poc\task\state\TaskFlag;
+use kuaukutsu\poc\task\state\TaskStatePrepare;
 use kuaukutsu\poc\task\EntityUuid;
 
 final class TaskViewer
 {
-    public function __construct(private readonly TaskQuery $query)
-    {
+    use TaskStatePrepare;
+
+    public function __construct(
+        private readonly TaskQuery $taskQuery,
+        private readonly StageQuery $stageQuery,
+    ) {
     }
 
     /**
-     * @param non-empty-string $uuid
+     * @param non-empty-string $taskUuid
      * @throws NotFoundException
      */
-    public function get(string $uuid): TaskView
+    public function get(string $taskUuid): TaskView
     {
-        $task = $this->query->getOne(
-            new EntityUuid($uuid)
-        );
+        $uuid = new EntityUuid($taskUuid);
+        $task = $this->taskQuery->getOne($uuid);
+        $state = $this->prepareState($task->state);
 
         return new TaskView(
             uuid: $task->uuid,
             title: $task->title,
-            state: $this->prepareState($task->flag),
+            state: $this->prepareFlag($task->flag),
+            message: $state->getMessage()->message,
+            metrics: $this->stageQuery->getMetricsByTask($uuid),
             createdAt: $task->createdAt,
             updatedAt: $task->updatedAt,
         );
@@ -37,7 +44,7 @@ final class TaskViewer
     /**
      * @return non-empty-string
      */
-    private function prepareState(int $flag): string
+    private function prepareFlag(int $flag): string
     {
         return (new TaskFlag($flag))->toString();
     }

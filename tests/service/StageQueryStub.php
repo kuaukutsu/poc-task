@@ -7,10 +7,11 @@ namespace kuaukutsu\poc\task\tests\service;
 use Generator;
 use kuaukutsu\poc\task\dto\StageCollection;
 use kuaukutsu\poc\task\dto\StageModel;
-use kuaukutsu\poc\task\EntityUuid;
+use kuaukutsu\poc\task\dto\TaskMetrics;
 use kuaukutsu\poc\task\exception\NotFoundException;
-use kuaukutsu\poc\task\service\StageQuery;
 use kuaukutsu\poc\task\state\TaskFlag;
+use kuaukutsu\poc\task\service\StageQuery;
+use kuaukutsu\poc\task\EntityUuid;
 
 final class StageQueryStub implements StageQuery
 {
@@ -71,6 +72,11 @@ final class StageQueryStub implements StageQuery
         }
 
         return $collection;
+    }
+
+    public function getMetricsByTask(EntityUuid $taskUuid): TaskMetrics
+    {
+        return new TaskMetrics();
     }
 
     public function findReadyByTask(EntityUuid $taskUuid): ?StageModel

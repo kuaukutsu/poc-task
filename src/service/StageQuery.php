@@ -7,6 +7,7 @@ namespace kuaukutsu\poc\task\service;
 use Generator;
 use kuaukutsu\poc\task\dto\StageCollection;
 use kuaukutsu\poc\task\dto\StageModel;
+use kuaukutsu\poc\task\dto\TaskMetrics;
 use kuaukutsu\poc\task\exception\NotFoundException;
 use kuaukutsu\poc\task\EntityUuid;
 
@@ -27,6 +28,8 @@ interface StageQuery
     public function getOpenByTask(EntityUuid $taskUuid): StageCollection;
 
     public function getPromiseByTask(EntityUuid $taskUuid): StageCollection;
+
+    public function getMetricsByTask(EntityUuid $taskUuid): TaskMetrics;
 
     public function findReadyByTask(EntityUuid $taskUuid): ?StageModel;
 

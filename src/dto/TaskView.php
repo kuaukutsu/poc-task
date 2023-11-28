@@ -11,17 +11,12 @@ use kuaukutsu\poc\task\EntityArrable;
  */
 final class TaskView implements EntityArrable
 {
-    /**
-     * @param non-empty-string $uuid
-     * @param non-empty-string $title
-     * @param non-empty-string $state
-     * @param non-empty-string $createdAt
-     * @param non-empty-string $updatedAt
-     */
     public function __construct(
         public readonly string $uuid,
         public readonly string $title,
         public readonly string $state,
+        public readonly string $message,
+        public readonly TaskMetrics $metrics,
         public readonly string $createdAt,
         public readonly string $updatedAt,
     ) {
@@ -29,9 +24,10 @@ final class TaskView implements EntityArrable
 
     public function toArray(): array
     {
-        /**
-         * @var array<string, scalar|array>
-         */
-        return get_object_vars($this);
+        /** @var array<string, string|array> $attributes */
+        $attributes = get_object_vars($this);
+        $attributes['metrics'] = $this->metrics->toArray();
+
+        return $attributes;
     }
 }
