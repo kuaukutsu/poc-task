@@ -9,18 +9,19 @@ use kuaukutsu\poc\task\EntityArrable;
 /**
  * @readonly
  */
-final class TaskOptions implements EntityArrable
+final class TaskUpdate implements EntityArrable
 {
     public function __construct(
-        public ?float $timeout = null,
+        public readonly int $flag,
+        public readonly string $state,
     ) {
     }
 
     public function toArray(): array
     {
-        /**
-         * @var array<string, scalar|null>
-         */
-        return get_object_vars($this);
+        return [
+            'flag' => $this->flag,
+            'state' => $this->state,
+        ];
     }
 }

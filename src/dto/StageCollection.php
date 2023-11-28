@@ -7,12 +7,12 @@ namespace kuaukutsu\poc\task\dto;
 use kuaukutsu\ds\collection\Collection;
 
 /**
- * @extends Collection<StageDto>
+ * @extends Collection<StageModel>
  */
 final class StageCollection extends Collection
 {
     public function getType(): string
     {
-        return StageDto::class;
+        return StageModel::class;
     }
 }

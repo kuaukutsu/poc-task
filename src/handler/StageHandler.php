@@ -7,13 +7,15 @@ namespace kuaukutsu\poc\task\handler;
 use Throwable;
 use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Component\Console\Output\ConsoleOutputInterface;
-use kuaukutsu\poc\task\dto\StageDto;
+use kuaukutsu\poc\task\dto\StageModel;
 use kuaukutsu\poc\task\exception\BuilderException;
 use kuaukutsu\poc\task\processing\TaskProcess;
 use kuaukutsu\poc\task\service\StageCommand;
 use kuaukutsu\poc\task\service\StageQuery;
 use kuaukutsu\poc\task\state\TaskStateInterface;
 use kuaukutsu\poc\task\EntityUuid;
+
+use function kuaukutsu\poc\task\tools\entity_deserialize;
 
 final class StageHandler
 {
@@ -40,7 +42,8 @@ final class StageHandler
             return TaskProcess::ERROR;
         }
 
-        $stage = StageDto::hydrate(
+        $stage = entity_deserialize(
+            StageModel::class,
             [
                 ...$stage->toArray(),
                 'flag' => $state->getFlag()->toValue(),
@@ -63,7 +66,7 @@ final class StageHandler
      * @param non-empty-string|null $previous
      * @throws BuilderException
      */
-    private function execute(StageDto $stage, ?string $previous): TaskStateInterface
+    private function execute(StageModel $stage, ?string $previous): TaskStateInterface
     {
         $previousState = null;
         if ($previous !== null) {

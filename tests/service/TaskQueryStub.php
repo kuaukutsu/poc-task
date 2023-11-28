@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace kuaukutsu\poc\task\tests\service;
 
 use kuaukutsu\poc\task\dto\TaskCollection;
-use kuaukutsu\poc\task\dto\TaskDto;
+use kuaukutsu\poc\task\dto\TaskModel;
 use kuaukutsu\poc\task\EntityUuid;
 use kuaukutsu\poc\task\exception\NotFoundException;
 use kuaukutsu\poc\task\service\TaskQuery;
@@ -15,7 +15,7 @@ final class TaskQueryStub implements TaskQuery
 {
     use TaskStorage;
 
-    public function getOne(EntityUuid $uuid): TaskDto
+    public function getOne(EntityUuid $uuid): TaskModel
     {
         $storage = $this->getData();
         if (array_key_exists($uuid->getUuid(), $storage) === false) {

@@ -7,12 +7,12 @@ namespace kuaukutsu\poc\task\dto;
 use kuaukutsu\ds\collection\Collection;
 
 /**
- * @extends Collection<TaskDto>
+ * @extends Collection<TaskModel>
  */
 final class TaskCollection extends Collection
 {
     public function getType(): string
     {
-        return TaskDto::class;
+        return TaskModel::class;
     }
 }

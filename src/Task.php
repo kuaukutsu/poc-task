@@ -8,6 +8,8 @@ use kuaukutsu\poc\task\dto\TaskOptions;
 use kuaukutsu\poc\task\state\TaskFlagCommand;
 use kuaukutsu\poc\task\state\TaskStateInterface;
 
+use function kuaukutsu\poc\task\tools\entity_deserialize;
+
 final class Task implements EntityTask
 {
     use TaskFlagCommand;
@@ -43,6 +45,6 @@ final class Task implements EntityTask
 
     public function getOptions(): TaskOptions
     {
-        return TaskOptions::hydrate($this->options);
+        return entity_deserialize(TaskOptions::class, $this->options);
     }
 }

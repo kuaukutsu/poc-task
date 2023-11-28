@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace kuaukutsu\poc\task\processing;
 
 use RuntimeException;
-use kuaukutsu\poc\task\dto\StageDto;
 use kuaukutsu\poc\task\dto\StageModel;
+use kuaukutsu\poc\task\dto\StageUpdate;
 use kuaukutsu\poc\task\exception\ProcessingException;
 use kuaukutsu\poc\task\state\TaskStateError;
 use kuaukutsu\poc\task\state\TaskStateInterface;
@@ -98,7 +98,7 @@ final class TaskProcessPromise
     /**
      * @throws RuntimeException Ошибка выполнения комманды
      */
-    private function stageError(StageDto $stage, TaskStateInterface $statePrevious): void
+    private function stageError(StageModel $stage, TaskStateInterface $statePrevious): void
     {
         $state = new TaskStateError(
             uuid: $stage->uuid,
@@ -109,19 +109,17 @@ final class TaskProcessPromise
 
         $this->command->update(
             new EntityUuid($stage->uuid),
-            StageModel::hydrate(
-                [
-                    'flag' => $state->getFlag()->toValue(),
-                    'state' => serialize($state),
-                ]
-            ),
+            new StageUpdate(
+                flag: $state->getFlag()->toValue(),
+                state: serialize($state),
+            )
         );
     }
 
     /**
      * @throws RuntimeException Ошибка выполнения комманды
      */
-    private function stageSuccess(StageDto $stage, TaskStateInterface $statePrevious): void
+    private function stageSuccess(StageModel $stage, TaskStateInterface $statePrevious): void
     {
         $state = new TaskStateSuccess(
             uuid: $stage->uuid,
@@ -131,12 +129,10 @@ final class TaskProcessPromise
 
         $this->command->update(
             new EntityUuid($stage->uuid),
-            StageModel::hydrate(
-                [
-                    'flag' => $state->getFlag()->toValue(),
-                    'state' => serialize($state),
-                ]
-            ),
+            new StageUpdate(
+                flag: $state->getFlag()->toValue(),
+                state: serialize($state),
+            )
         );
     }
 }

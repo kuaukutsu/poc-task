@@ -6,8 +6,8 @@ namespace kuaukutsu\poc\task\processing;
 
 use RuntimeException;
 use SplQueue;
-use kuaukutsu\poc\task\dto\StageDto;
 use kuaukutsu\poc\task\dto\StageModel;
+use kuaukutsu\poc\task\dto\StageUpdate;
 use kuaukutsu\poc\task\state\TaskStateReady;
 use kuaukutsu\poc\task\state\TaskStateMessage;
 use kuaukutsu\poc\task\state\TaskStateRunning;
@@ -125,7 +125,7 @@ final class TaskProcessReady
     /**
      * @param non-empty-string|null $previous
      */
-    private function enqueue(EntityTask $task, StageDto $stage, ?string $previous = null): bool
+    private function enqueue(EntityTask $task, StageModel $stage, ?string $previous = null): bool
     {
         $this->queue->enqueue(
             new TaskProcessContext(
@@ -143,7 +143,7 @@ final class TaskProcessReady
      * @param non-empty-string $uuid
      * @throws RuntimeException Ошибка выполнения комманды
      */
-    private function processRun(string $uuid): StageDto
+    private function processRun(string $uuid): StageModel
     {
         $state = new TaskStateRunning(
             uuid: $uuid,
@@ -152,12 +152,10 @@ final class TaskProcessReady
 
         return $this->command->update(
             new EntityUuid($uuid),
-            StageModel::hydrate(
-                [
-                    'flag' => $state->getFlag()->toValue(),
-                    'state' => serialize($state),
-                ]
-            ),
+            new StageUpdate(
+                flag: $state->getFlag()->toValue(),
+                state: serialize($state),
+            )
         );
     }
 
@@ -168,12 +166,10 @@ final class TaskProcessReady
         try {
             $this->command->update(
                 new EntityUuid($context->stage),
-                StageModel::hydrate(
-                    [
-                        'flag' => $state->getFlag()->toValue(),
-                        'state' => serialize($state),
-                    ]
-                ),
+                new StageUpdate(
+                    flag: $state->getFlag()->toValue(),
+                    state: serialize($state),
+                )
             );
         } catch (RuntimeException) {
             return;

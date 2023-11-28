@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\tests\service;
 
-use kuaukutsu\poc\task\dto\TaskDto;
-use RuntimeException;
 use Throwable;
+use RuntimeException;
+use kuaukutsu\poc\task\dto\TaskModel;
+
+use function kuaukutsu\poc\task\tools\entity_deserialize;
 
 trait TaskStorage
 {
@@ -16,7 +18,7 @@ trait TaskStorage
     }
 
     /**
-     * @return array<string, TaskDto>
+     * @return array<string, TaskModel>
      * @throws RuntimeException
      */
     private function getData(): array
@@ -34,7 +36,7 @@ trait TaskStorage
 
         $list = [];
         foreach ($items as $item) {
-            $dto = TaskDto::hydrate($item);
+            $dto = entity_deserialize(TaskModel::class, $item);
             $list[$dto->uuid] = $dto;
         }
 

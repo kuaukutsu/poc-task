@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\service\action;
 
-use kuaukutsu\poc\task\dto\TaskModel;
+use kuaukutsu\poc\task\dto\TaskUpdate;
 use kuaukutsu\poc\task\handler\TaskFactory;
 use kuaukutsu\poc\task\service\TaskCommand;
 use kuaukutsu\poc\task\state\TaskStateInterface;
@@ -38,11 +38,9 @@ final class ActionResume implements TaskAction
 
         $model = $this->command->update(
             new EntityUuid($task->getUuid()),
-            TaskModel::hydrate(
-                [
-                    'flag' => $state->getFlag()->toValue(),
-                    'state' => serialize($state),
-                ]
+            new TaskUpdate(
+                flag: $state->getFlag()->toValue(),
+                state: serialize($state),
             ),
         );
 

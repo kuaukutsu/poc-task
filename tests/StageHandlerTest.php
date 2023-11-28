@@ -6,7 +6,7 @@ namespace kuaukutsu\poc\task\tests;
 
 use Psr\Container\ContainerExceptionInterface;
 use PHPUnit\Framework\TestCase;
-use kuaukutsu\poc\task\dto\StageDto;
+use kuaukutsu\poc\task\dto\StageModel;
 use kuaukutsu\poc\task\state\TaskStateReady;
 use kuaukutsu\poc\task\handler\StageContextFactory;
 use kuaukutsu\poc\task\handler\StageHandlerFactory;
@@ -16,6 +16,8 @@ use kuaukutsu\poc\task\EntityWrapper;
 use kuaukutsu\poc\task\tests\stub\TestWrapperDto;
 use kuaukutsu\poc\task\tests\stub\TestWrapperStageStub;
 use kuaukutsu\poc\task\tests\stub\TestStageStub;
+
+use function kuaukutsu\poc\task\tools\entity_deserialize;
 
 final class StageHandlerTest extends TestCase
 {
@@ -66,7 +68,7 @@ final class StageHandlerTest extends TestCase
         self::assertFalse($state->getFlag()->isFinished());
     }
 
-    private function generateStage(): StageDto
+    private function generateStage(): StageModel
     {
         $uuid = new EntityUuid();
         $task = new EntityUuid();
@@ -78,7 +80,8 @@ final class StageHandlerTest extends TestCase
             ]
         );
 
-        return StageDto::hydrate(
+        return entity_deserialize(
+            StageModel::class,
             [
                 'uuid' => $uuid->getUuid(),
                 'taskUuid' => $task->getUuid(),
@@ -92,7 +95,7 @@ final class StageHandlerTest extends TestCase
         );
     }
 
-    private function generateExtendStage(): StageDto
+    private function generateExtendStage(): StageModel
     {
         $uuid = new EntityUuid();
         $task = new EntityUuid();
@@ -112,7 +115,8 @@ final class StageHandlerTest extends TestCase
             ],
         );
 
-        return StageDto::hydrate(
+        return entity_deserialize(
+            StageModel::class,
             [
                 'uuid' => $uuid->getUuid(),
                 'taskUuid' => $task->getUuid(),

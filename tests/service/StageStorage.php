@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\tests\service;
 
-use kuaukutsu\poc\task\dto\StageDto;
+use kuaukutsu\poc\task\dto\StageModel;
 use RuntimeException;
 use Throwable;
+
+use function kuaukutsu\poc\task\tools\entity_deserialize;
 
 trait StageStorage
 {
@@ -16,7 +18,7 @@ trait StageStorage
     }
 
     /**
-     * @return array<string, StageDto>
+     * @return array<string, StageModel>
      * @throws RuntimeException
      */
     private function getData(): array
@@ -34,7 +36,7 @@ trait StageStorage
 
         $list = [];
         foreach ($items as $item) {
-            $dto = StageDto::hydrate($item);
+            $dto = entity_deserialize(StageModel::class, $item);
             $list[$dto->uuid] = $dto;
         }
 

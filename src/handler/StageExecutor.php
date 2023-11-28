@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace kuaukutsu\poc\task\handler;
 
 use Throwable;
-use kuaukutsu\poc\task\dto\StageDto;
+use kuaukutsu\poc\task\dto\StageModel;
 use kuaukutsu\poc\task\exception\BuilderException;
 use kuaukutsu\poc\task\state\TaskStateError;
 use kuaukutsu\poc\task\state\TaskStateInterface;
@@ -21,7 +21,7 @@ final class StageExecutor
     /**
      * @throws BuilderException
      */
-    public function execute(StageDto $stage, TaskStageContext $context): TaskStateInterface
+    public function execute(StageModel $stage, TaskStageContext $context): TaskStateInterface
     {
         $handler = $this->handlerFactory->create($stage);
 
