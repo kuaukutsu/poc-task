@@ -7,7 +7,7 @@ namespace kuaukutsu\poc\task\processing;
 use RuntimeException;
 use SplQueue;
 use kuaukutsu\poc\task\dto\StageModel;
-use kuaukutsu\poc\task\dto\StageState;
+use kuaukutsu\poc\task\dto\StageModelState;
 use kuaukutsu\poc\task\state\TaskStateReady;
 use kuaukutsu\poc\task\state\TaskStateMessage;
 use kuaukutsu\poc\task\state\TaskStateRunning;
@@ -152,7 +152,7 @@ final class TaskProcessReady
 
         return $this->command->state(
             new EntityUuid($uuid),
-            new StageState($state),
+            new StageModelState($state),
         );
     }
 
@@ -163,7 +163,7 @@ final class TaskProcessReady
         try {
             $this->command->state(
                 new EntityUuid($context->stage),
-                new StageState($state),
+                new StageModelState($state),
             );
         } catch (RuntimeException) {
             return;

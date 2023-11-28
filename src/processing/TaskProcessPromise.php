@@ -6,7 +6,7 @@ namespace kuaukutsu\poc\task\processing;
 
 use RuntimeException;
 use kuaukutsu\poc\task\dto\StageModel;
-use kuaukutsu\poc\task\dto\StageState;
+use kuaukutsu\poc\task\dto\StageModelState;
 use kuaukutsu\poc\task\exception\ProcessingException;
 use kuaukutsu\poc\task\state\TaskStateError;
 use kuaukutsu\poc\task\state\TaskStateInterface;
@@ -109,7 +109,7 @@ final class TaskProcessPromise
 
         $this->command->state(
             new EntityUuid($stage->uuid),
-            new StageState($state),
+            new StageModelState($state),
         );
     }
 
@@ -126,7 +126,7 @@ final class TaskProcessPromise
 
         $this->command->state(
             new EntityUuid($stage->uuid),
-            new StageState($state),
+            new StageModelState($state),
         );
     }
 }

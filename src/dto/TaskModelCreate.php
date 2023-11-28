@@ -9,7 +9,7 @@ use kuaukutsu\poc\task\EntityArrable;
 /**
  * @readonly
  */
-final class TaskCreate implements EntityArrable
+final class TaskModelCreate implements EntityArrable
 {
     /**
      * @param non-empty-string $title

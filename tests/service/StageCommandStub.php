@@ -6,8 +6,8 @@ namespace kuaukutsu\poc\task\tests\service;
 
 use RuntimeException;
 use kuaukutsu\poc\task\dto\StageModel;
-use kuaukutsu\poc\task\dto\StageCreate;
-use kuaukutsu\poc\task\dto\StageState;
+use kuaukutsu\poc\task\dto\StageModelCreate;
+use kuaukutsu\poc\task\dto\StageModelState;
 use kuaukutsu\poc\task\exception\NotFoundException;
 use kuaukutsu\poc\task\service\StageCommand;
 use kuaukutsu\poc\task\EntityUuid;
@@ -22,7 +22,7 @@ final class StageCommandStub implements StageCommand
     {
     }
 
-    public function create(EntityUuid $uuid, StageCreate $model): StageModel
+    public function create(EntityUuid $uuid, StageModelCreate $model): StageModel
     {
         $dto = entity_hydrator(
             StageModel::class,
@@ -45,7 +45,7 @@ final class StageCommandStub implements StageCommand
         return $dto;
     }
 
-    public function state(EntityUuid $uuid, StageState $model): StageModel
+    public function state(EntityUuid $uuid, StageModelState $model): StageModel
     {
         $this->mutex->lock(3);
         $storage = $this->getData();

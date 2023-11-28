@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace kuaukutsu\poc\task\service;
 
 use Exception;
-use kuaukutsu\poc\task\dto\StageCreate;
+use kuaukutsu\poc\task\dto\StageModelCreate;
 use LogicException;
 use Throwable;
-use kuaukutsu\poc\task\dto\TaskCreate;
+use kuaukutsu\poc\task\dto\TaskModelCreate;
 use kuaukutsu\poc\task\dto\TaskModel;
 use kuaukutsu\poc\task\exception\BuilderException;
 use kuaukutsu\poc\task\state\TaskStateReady;
@@ -44,7 +44,7 @@ final class TaskCreator
         }
 
         $state = new TaskStateReady();
-        $model = new TaskCreate(
+        $model = new TaskModelCreate(
             title: $taskDraft->title,
             flag: $state->getFlag()->toValue(),
             state: serialize($state),
@@ -78,7 +78,7 @@ final class TaskCreator
             stage: $context->stage,
         );
 
-        $model = new TaskCreate(
+        $model = new TaskModelCreate(
             title: $taskDraft->title,
             flag: $promise->getFlag()->toValue(),
             state: serialize($promise),
@@ -99,7 +99,7 @@ final class TaskCreator
      * @throws Exception
      * @throws LogicException
      */
-    private function save(TaskCreate $model, EntityWrapperCollection $stageCollection): TaskModel
+    private function save(TaskModelCreate $model, EntityWrapperCollection $stageCollection): TaskModel
     {
         if ($stageCollection->isEmpty()) {
             throw new LogicException(
@@ -115,7 +115,7 @@ final class TaskCreator
             foreach ($stageCollection as $stage) {
                 $this->stageCommand->create(
                     new EntityUuid(),
-                    new StageCreate(
+                    new StageModelCreate(
                         taskUuid: $task->uuid,
                         flag: $model->flag,
                         state: serialize($task->state),

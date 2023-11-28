@@ -10,7 +10,7 @@ use kuaukutsu\poc\task\state\TaskStateInterface;
 /**
  * @readonly
  */
-final class TaskState implements EntityArrable
+final class TaskModelState implements EntityArrable
 {
     private readonly int $flag;
 

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\service\action;
 
-use kuaukutsu\poc\task\dto\TaskState;
+use kuaukutsu\poc\task\dto\TaskModelState;
 use kuaukutsu\poc\task\handler\TaskFactory;
 use kuaukutsu\poc\task\service\TaskCommand;
 use kuaukutsu\poc\task\state\TaskStateInterface;
@@ -38,7 +38,7 @@ final class ActionRun implements TaskAction
 
         $model = $this->command->state(
             new EntityUuid($task->getUuid()),
-            new TaskState($state),
+            new TaskModelState($state),
         );
 
         return $this->factory->create($model);

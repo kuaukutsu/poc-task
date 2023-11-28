@@ -8,7 +8,7 @@ use Throwable;
 use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use kuaukutsu\poc\task\dto\StageModel;
-use kuaukutsu\poc\task\dto\StageState;
+use kuaukutsu\poc\task\dto\StageModelState;
 use kuaukutsu\poc\task\exception\BuilderException;
 use kuaukutsu\poc\task\processing\TaskProcess;
 use kuaukutsu\poc\task\service\StageCommand;
@@ -44,7 +44,7 @@ final class StageHandler
         try {
             $stage = $this->command->state(
                 new EntityUuid($uuid),
-                new StageState($state),
+                new StageModelState($state),
             );
         } catch (Throwable $exception) {
             $this->stderr($exception->getMessage());

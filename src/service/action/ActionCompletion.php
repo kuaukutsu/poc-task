@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\service\action;
 
-use kuaukutsu\poc\task\dto\TaskState;
+use kuaukutsu\poc\task\dto\TaskModelState;
 use kuaukutsu\poc\task\state\response\ResponseContextWrapper;
 use kuaukutsu\poc\task\state\TaskStateError;
 use kuaukutsu\poc\task\state\TaskStateInterface;
@@ -44,7 +44,7 @@ final class ActionCompletion implements TaskAction
 
         $model = $this->taskCommand->state(
             new EntityUuid($task->getUuid()),
-            new TaskState($state),
+            new TaskModelState($state),
         );
 
         return $this->factory->create($model);

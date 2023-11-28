@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace kuaukutsu\poc\task\service\action;
 
 use Throwable;
-use kuaukutsu\poc\task\dto\StageState;
-use kuaukutsu\poc\task\dto\TaskState;
+use kuaukutsu\poc\task\dto\StageModelState;
+use kuaukutsu\poc\task\dto\TaskModelState;
 use kuaukutsu\poc\task\handler\TaskFactory;
 use kuaukutsu\poc\task\service\StageCommand;
 use kuaukutsu\poc\task\service\StageQuery;
@@ -45,7 +45,7 @@ final class ActionCancel implements TaskAction
 
         $model = $this->taskCommand->state(
             new EntityUuid($task->getUuid()),
-            new TaskState($state),
+            new TaskModelState($state),
         );
 
         $this->stageCancel($uuid);
@@ -66,7 +66,7 @@ final class ActionCancel implements TaskAction
             try {
                 $this->stageCommand->state(
                     new EntityUuid($stage->uuid),
-                    new StageState($state),
+                    new StageModelState($state),
                 );
             } catch (Throwable) {
             }

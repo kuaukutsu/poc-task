@@ -6,8 +6,8 @@ namespace kuaukutsu\poc\task\tests\service;
 
 use RuntimeException;
 use kuaukutsu\poc\task\dto\TaskModel;
-use kuaukutsu\poc\task\dto\TaskCreate;
-use kuaukutsu\poc\task\dto\TaskState;
+use kuaukutsu\poc\task\dto\TaskModelCreate;
+use kuaukutsu\poc\task\dto\TaskModelState;
 use kuaukutsu\poc\task\exception\NotFoundException;
 use kuaukutsu\poc\task\service\TaskCommand;
 use kuaukutsu\poc\task\EntityUuid;
@@ -25,7 +25,7 @@ final class TaskCommandStub implements TaskCommand
     /**
      * @throws RuntimeException
      */
-    public function create(EntityUuid $uuid, TaskCreate $model): TaskModel
+    public function create(EntityUuid $uuid, TaskModelCreate $model): TaskModel
     {
         $dto = entity_hydrator(
             TaskModel::class,
@@ -48,7 +48,7 @@ final class TaskCommandStub implements TaskCommand
         return $dto;
     }
 
-    public function state(EntityUuid $uuid, TaskState $model): TaskModel
+    public function state(EntityUuid $uuid, TaskModelState $model): TaskModel
     {
         $this->mutex->lock(3);
         $storage = $this->getData();
