@@ -7,7 +7,7 @@ namespace kuaukutsu\poc\task\service;
 use RuntimeException;
 use kuaukutsu\poc\task\dto\StageModel;
 use kuaukutsu\poc\task\dto\StageCreate;
-use kuaukutsu\poc\task\dto\StageUpdate;
+use kuaukutsu\poc\task\dto\StageState;
 use kuaukutsu\poc\task\exception\NotFoundException;
 use kuaukutsu\poc\task\EntityUuid;
 
@@ -21,12 +21,7 @@ interface StageCommand
     /**
      * @throws RuntimeException
      */
-    public function update(EntityUuid $uuid, StageUpdate $model): StageModel;
-
-    /**
-     * @throws RuntimeException
-     */
-    public function replace(EntityUuid $uuid, StageModel $model): bool;
+    public function state(EntityUuid $uuid, StageState $model): StageModel;
 
     /**
      * @throws NotFoundException

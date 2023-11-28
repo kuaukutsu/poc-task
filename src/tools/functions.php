@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\tools;
 
-use kuaukutsu\poc\task\EntityArrable;
 use ReflectionClass;
 use ReflectionException;
 use RuntimeException;
 use TypeError;
+use kuaukutsu\poc\task\EntityArrable;
 
 if (function_exists('kuaukutsu\poc\task\tools\argument') === false) {
     function argument(string $name, string | int | null $default = null): string | int | null
@@ -59,7 +59,7 @@ if (function_exists('kuaukutsu\poc\task\tools\get_previous_uuid') === false) {
     }
 }
 
-if (function_exists('kuaukutsu\poc\task\tools\entity_deserialize') === false) {
+if (function_exists('kuaukutsu\poc\task\tools\entity_hydrator') === false) {
     /**
      * @template T
      * @param class-string<T> $className
@@ -67,7 +67,7 @@ if (function_exists('kuaukutsu\poc\task\tools\entity_deserialize') === false) {
      * @return T
      * @throws TypeError
      */
-    function entity_deserialize(string $className, array $data)
+    function entity_hydrator(string $className, array $data)
     {
         $toCamelCase = static function (string $variableName): string {
             $upper = static fn(

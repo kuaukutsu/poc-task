@@ -7,12 +7,12 @@ namespace kuaukutsu\poc\task\tests\service;
 use RuntimeException;
 use kuaukutsu\poc\task\dto\StageModel;
 use kuaukutsu\poc\task\dto\StageCreate;
-use kuaukutsu\poc\task\dto\StageUpdate;
+use kuaukutsu\poc\task\dto\StageState;
 use kuaukutsu\poc\task\exception\NotFoundException;
 use kuaukutsu\poc\task\service\StageCommand;
 use kuaukutsu\poc\task\EntityUuid;
 
-use function kuaukutsu\poc\task\tools\entity_deserialize;
+use function kuaukutsu\poc\task\tools\entity_hydrator;
 
 final class StageCommandStub implements StageCommand
 {
@@ -24,7 +24,7 @@ final class StageCommandStub implements StageCommand
 
     public function create(EntityUuid $uuid, StageCreate $model): StageModel
     {
-        $dto = entity_deserialize(
+        $dto = entity_hydrator(
             StageModel::class,
             [
                 ...$model->toArray(),
@@ -45,7 +45,7 @@ final class StageCommandStub implements StageCommand
         return $dto;
     }
 
-    public function update(EntityUuid $uuid, StageUpdate $model): StageModel
+    public function state(EntityUuid $uuid, StageState $model): StageModel
     {
         $this->mutex->lock(3);
         $storage = $this->getData();
@@ -55,7 +55,7 @@ final class StageCommandStub implements StageCommand
             );
         }
 
-        $dto = entity_deserialize(
+        $dto = entity_hydrator(
             StageModel::class,
             [
                 ...$storage[$uuid->getUuid()]->toArray(),
@@ -71,20 +71,6 @@ final class StageCommandStub implements StageCommand
 
         $this->mutex->unlock();
         return $dto;
-    }
-
-    public function replace(EntityUuid $uuid, StageModel $model): bool
-    {
-        $this->mutex->lock(3);
-        $storage = $this->getData();
-        $storage[$uuid->getUuid()] = $model;
-
-        $this->save(
-            array_values($storage)
-        );
-
-        $this->mutex->unlock();
-        return true;
     }
 
     public function removeByTask(EntityUuid $taskUuid): bool

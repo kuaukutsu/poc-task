@@ -7,7 +7,7 @@ namespace kuaukutsu\poc\task\service;
 use RuntimeException;
 use kuaukutsu\poc\task\dto\TaskModel;
 use kuaukutsu\poc\task\dto\TaskCreate;
-use kuaukutsu\poc\task\dto\TaskUpdate;
+use kuaukutsu\poc\task\dto\TaskState;
 use kuaukutsu\poc\task\exception\NotFoundException;
 use kuaukutsu\poc\task\EntityUuid;
 
@@ -22,13 +22,7 @@ interface TaskCommand
      * @throws NotFoundException
      * @throws RuntimeException
      */
-    public function update(EntityUuid $uuid, TaskUpdate $model): TaskModel;
-
-    /**
-     * @throws NotFoundException
-     * @throws RuntimeException
-     */
-    public function replace(EntityUuid $uuid, TaskModel $model): bool;
+    public function state(EntityUuid $uuid, TaskState $model): TaskModel;
 
     /**
      * @throws NotFoundException

@@ -8,7 +8,7 @@ use Throwable;
 use RuntimeException;
 use kuaukutsu\poc\task\dto\TaskModel;
 
-use function kuaukutsu\poc\task\tools\entity_deserialize;
+use function kuaukutsu\poc\task\tools\entity_hydrator;
 
 trait TaskStorage
 {
@@ -36,7 +36,7 @@ trait TaskStorage
 
         $list = [];
         foreach ($items as $item) {
-            $dto = entity_deserialize(TaskModel::class, $item);
+            $dto = entity_hydrator(TaskModel::class, $item);
             $list[$dto->uuid] = $dto;
         }
 

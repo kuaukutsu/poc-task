@@ -16,7 +16,7 @@ use kuaukutsu\poc\task\EntityUuid;
 use kuaukutsu\poc\task\tests\stub\TestResponse;
 use kuaukutsu\poc\task\tests\stub\TestStageStub;
 
-use function kuaukutsu\poc\task\tools\entity_deserialize;
+use function kuaukutsu\poc\task\tools\entity_hydrator;
 
 final class StageExecutorTest extends TestCase
 {
@@ -41,7 +41,7 @@ final class StageExecutorTest extends TestCase
             ]
         );
 
-        $stage = entity_deserialize(
+        $stage = entity_hydrator(
             StageModel::class,
             [
                 'uuid' => $uuid->getUuid(),

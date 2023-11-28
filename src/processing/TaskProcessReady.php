@@ -7,7 +7,7 @@ namespace kuaukutsu\poc\task\processing;
 use RuntimeException;
 use SplQueue;
 use kuaukutsu\poc\task\dto\StageModel;
-use kuaukutsu\poc\task\dto\StageUpdate;
+use kuaukutsu\poc\task\dto\StageState;
 use kuaukutsu\poc\task\state\TaskStateReady;
 use kuaukutsu\poc\task\state\TaskStateMessage;
 use kuaukutsu\poc\task\state\TaskStateRunning;
@@ -150,12 +150,9 @@ final class TaskProcessReady
             message: new TaskStateMessage('Runned'),
         );
 
-        return $this->command->update(
+        return $this->command->state(
             new EntityUuid($uuid),
-            new StageUpdate(
-                flag: $state->getFlag()->toValue(),
-                state: serialize($state),
-            )
+            new StageState($state),
         );
     }
 
@@ -164,12 +161,9 @@ final class TaskProcessReady
         $state = new TaskStateReady();
 
         try {
-            $this->command->update(
+            $this->command->state(
                 new EntityUuid($context->stage),
-                new StageUpdate(
-                    flag: $state->getFlag()->toValue(),
-                    state: serialize($state),
-                )
+                new StageState($state),
             );
         } catch (RuntimeException) {
             return;

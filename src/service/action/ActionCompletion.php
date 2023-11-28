@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\service\action;
 
-use kuaukutsu\poc\task\dto\TaskUpdate;
+use kuaukutsu\poc\task\dto\TaskState;
 use kuaukutsu\poc\task\state\response\ResponseContextWrapper;
 use kuaukutsu\poc\task\state\TaskStateError;
 use kuaukutsu\poc\task\state\TaskStateInterface;
@@ -42,12 +42,9 @@ final class ActionCompletion implements TaskAction
             return $this->actionCancel->execute($task);
         }
 
-        $model = $this->taskCommand->update(
+        $model = $this->taskCommand->state(
             new EntityUuid($task->getUuid()),
-            new TaskUpdate(
-                flag: $state->getFlag()->toValue(),
-                state: serialize($state),
-            ),
+            new TaskState($state),
         );
 
         return $this->factory->create($model);

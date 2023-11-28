@@ -17,7 +17,7 @@ use kuaukutsu\poc\task\tests\stub\TestWrapperDto;
 use kuaukutsu\poc\task\tests\stub\TestWrapperStageStub;
 use kuaukutsu\poc\task\tests\stub\TestStageStub;
 
-use function kuaukutsu\poc\task\tools\entity_deserialize;
+use function kuaukutsu\poc\task\tools\entity_hydrator;
 
 final class StageHandlerTest extends TestCase
 {
@@ -80,7 +80,7 @@ final class StageHandlerTest extends TestCase
             ]
         );
 
-        return entity_deserialize(
+        return entity_hydrator(
             StageModel::class,
             [
                 'uuid' => $uuid->getUuid(),
@@ -115,7 +115,7 @@ final class StageHandlerTest extends TestCase
             ],
         );
 
-        return entity_deserialize(
+        return entity_hydrator(
             StageModel::class,
             [
                 'uuid' => $uuid->getUuid(),

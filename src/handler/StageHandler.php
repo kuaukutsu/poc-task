@@ -8,14 +8,13 @@ use Throwable;
 use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use kuaukutsu\poc\task\dto\StageModel;
+use kuaukutsu\poc\task\dto\StageState;
 use kuaukutsu\poc\task\exception\BuilderException;
 use kuaukutsu\poc\task\processing\TaskProcess;
 use kuaukutsu\poc\task\service\StageCommand;
 use kuaukutsu\poc\task\service\StageQuery;
 use kuaukutsu\poc\task\state\TaskStateInterface;
 use kuaukutsu\poc\task\EntityUuid;
-
-use function kuaukutsu\poc\task\tools\entity_deserialize;
 
 final class StageHandler
 {
@@ -42,17 +41,11 @@ final class StageHandler
             return TaskProcess::ERROR;
         }
 
-        $stage = entity_deserialize(
-            StageModel::class,
-            [
-                ...$stage->toArray(),
-                'flag' => $state->getFlag()->toValue(),
-                'state' => serialize($state),
-            ]
-        );
-
         try {
-            $this->command->replace(new EntityUuid($uuid), $stage);
+            $stage = $this->command->state(
+                new EntityUuid($uuid),
+                new StageState($state),
+            );
         } catch (Throwable $exception) {
             $this->stderr($exception->getMessage());
             return TaskProcess::ERROR;

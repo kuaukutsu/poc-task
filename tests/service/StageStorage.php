@@ -8,7 +8,7 @@ use kuaukutsu\poc\task\dto\StageModel;
 use RuntimeException;
 use Throwable;
 
-use function kuaukutsu\poc\task\tools\entity_deserialize;
+use function kuaukutsu\poc\task\tools\entity_hydrator;
 
 trait StageStorage
 {
@@ -36,7 +36,7 @@ trait StageStorage
 
         $list = [];
         foreach ($items as $item) {
-            $dto = entity_deserialize(StageModel::class, $item);
+            $dto = entity_hydrator(StageModel::class, $item);
             $list[$dto->uuid] = $dto;
         }
 

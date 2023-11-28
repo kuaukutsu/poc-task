@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\service\action;
 
-use kuaukutsu\poc\task\dto\TaskUpdate;
+use kuaukutsu\poc\task\dto\TaskState;
 use kuaukutsu\poc\task\handler\TaskFactory;
 use kuaukutsu\poc\task\service\TaskCommand;
 use kuaukutsu\poc\task\state\TaskStateInterface;
@@ -36,12 +36,9 @@ final class ActionRun implements TaskAction
             $state->getFlag()->toValue(),
         );
 
-        $model = $this->command->update(
+        $model = $this->command->state(
             new EntityUuid($task->getUuid()),
-            new TaskUpdate(
-                flag: $state->getFlag()->toValue(),
-                state: serialize($state),
-            ),
+            new TaskState($state),
         );
 
         return $this->factory->create($model);

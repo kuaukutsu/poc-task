@@ -6,7 +6,7 @@ namespace kuaukutsu\poc\task\processing;
 
 use RuntimeException;
 use kuaukutsu\poc\task\dto\StageModel;
-use kuaukutsu\poc\task\dto\StageUpdate;
+use kuaukutsu\poc\task\dto\StageState;
 use kuaukutsu\poc\task\exception\ProcessingException;
 use kuaukutsu\poc\task\state\TaskStateError;
 use kuaukutsu\poc\task\state\TaskStateInterface;
@@ -107,12 +107,9 @@ final class TaskProcessPromise
             response: $statePrevious->getResponse(),
         );
 
-        $this->command->update(
+        $this->command->state(
             new EntityUuid($stage->uuid),
-            new StageUpdate(
-                flag: $state->getFlag()->toValue(),
-                state: serialize($state),
-            )
+            new StageState($state),
         );
     }
 
@@ -127,12 +124,9 @@ final class TaskProcessPromise
             response: $statePrevious->getResponse(),
         );
 
-        $this->command->update(
+        $this->command->state(
             new EntityUuid($stage->uuid),
-            new StageUpdate(
-                flag: $state->getFlag()->toValue(),
-                state: serialize($state),
-            )
+            new StageState($state),
         );
     }
 }
