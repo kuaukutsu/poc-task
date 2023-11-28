@@ -8,6 +8,8 @@ use kuaukutsu\poc\task\dto\TaskOptions;
 use kuaukutsu\poc\task\state\TaskFlagCommand;
 use kuaukutsu\poc\task\state\TaskStateInterface;
 
+use function kuaukutsu\poc\task\tools\entity_hydrator;
+
 final class Task implements EntityTask
 {
     use TaskFlagCommand;
@@ -15,7 +17,7 @@ final class Task implements EntityTask
     /**
      * @param non-empty-string $uuid
      * @param non-empty-string $title
-     * @param array<string, scalar> $options
+     * @param array<string, scalar|null> $options
      */
     public function __construct(
         private readonly string $uuid,
@@ -43,6 +45,6 @@ final class Task implements EntityTask
 
     public function getOptions(): TaskOptions
     {
-        return TaskOptions::hydrate($this->options);
+        return entity_hydrator(TaskOptions::class, $this->options);
     }
 }

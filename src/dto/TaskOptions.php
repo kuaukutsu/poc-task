@@ -4,13 +4,23 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\dto;
 
-use kuaukutsu\ds\dto\DtoBase;
+use kuaukutsu\poc\task\EntityArrable;
 
 /**
- * @psalm-immutable
- * @psalm-suppress MissingConstructor
+ * @readonly
  */
-final class TaskOptions extends DtoBase
+final class TaskOptions implements EntityArrable
 {
-    public ?float $timeout = null;
+    public function __construct(
+        public ?float $timeout = null,
+    ) {
+    }
+
+    public function toArray(): array
+    {
+        /**
+         * @var array<string, scalar|null>
+         */
+        return get_object_vars($this);
+    }
 }

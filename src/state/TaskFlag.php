@@ -144,6 +144,9 @@ final class TaskFlag
             || $this->isSkiped();
     }
 
+    /**
+     * @return non-empty-string
+     */
     public function toString(): string
     {
         return match ($this->flag) {

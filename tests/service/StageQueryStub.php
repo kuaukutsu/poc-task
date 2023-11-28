@@ -6,7 +6,7 @@ namespace kuaukutsu\poc\task\tests\service;
 
 use Generator;
 use kuaukutsu\poc\task\dto\StageCollection;
-use kuaukutsu\poc\task\dto\StageDto;
+use kuaukutsu\poc\task\dto\StageModel;
 use kuaukutsu\poc\task\EntityUuid;
 use kuaukutsu\poc\task\exception\NotFoundException;
 use kuaukutsu\poc\task\service\StageQuery;
@@ -16,7 +16,7 @@ final class StageQueryStub implements StageQuery
 {
     use StageStorage;
 
-    public function getOne(EntityUuid $uuid): StageDto
+    public function getOne(EntityUuid $uuid): StageModel
     {
         $storage = $this->getData();
         if (array_key_exists($uuid->getUuid(), $storage) === false) {
@@ -26,13 +26,13 @@ final class StageQueryStub implements StageQuery
         return $storage[$uuid->getUuid()];
     }
 
-    public function findOne(EntityUuid $uuid): ?StageDto
+    public function findOne(EntityUuid $uuid): ?StageModel
     {
         return $this->getData()[$uuid->getUuid()] ?? null;
     }
 
     /**
-     * @return Generator<StageDto>
+     * @return Generator<StageModel>
      */
     public function findByTask(EntityUuid $taskUuid): Generator
     {
@@ -73,7 +73,7 @@ final class StageQueryStub implements StageQuery
         return $collection;
     }
 
-    public function findReadyByTask(EntityUuid $taskUuid): ?StageDto
+    public function findReadyByTask(EntityUuid $taskUuid): ?StageModel
     {
         foreach ($this->getData() as $item) {
             if ($item->taskUuid === $taskUuid->getUuid()) {
@@ -87,7 +87,7 @@ final class StageQueryStub implements StageQuery
         return null;
     }
 
-    public function findPausedByTask(EntityUuid $taskUuid): ?StageDto
+    public function findPausedByTask(EntityUuid $taskUuid): ?StageModel
     {
         foreach ($this->getData() as $item) {
             if ($item->taskUuid === $taskUuid->getUuid()) {

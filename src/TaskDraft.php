@@ -32,6 +32,9 @@ final class TaskDraft
         return $this;
     }
 
+    /**
+     * @return non-empty-string
+     */
     public function getChecksum(): string
     {
         return md5($this->title . $this->stages->getChecksum());
@@ -44,10 +47,8 @@ final class TaskDraft
 
     public function getOptions(): TaskOptions
     {
-        return TaskOptions::hydrate(
-            [
-                'timeout' => $this->timeout,
-            ]
+        return new TaskOptions(
+            timeout: $this->timeout,
         );
     }
 

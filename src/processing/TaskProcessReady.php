@@ -6,8 +6,8 @@ namespace kuaukutsu\poc\task\processing;
 
 use RuntimeException;
 use SplQueue;
-use kuaukutsu\poc\task\dto\StageDto;
 use kuaukutsu\poc\task\dto\StageModel;
+use kuaukutsu\poc\task\dto\StageModelState;
 use kuaukutsu\poc\task\state\TaskStateReady;
 use kuaukutsu\poc\task\state\TaskStateMessage;
 use kuaukutsu\poc\task\state\TaskStateRunning;
@@ -125,7 +125,7 @@ final class TaskProcessReady
     /**
      * @param non-empty-string|null $previous
      */
-    private function enqueue(EntityTask $task, StageDto $stage, ?string $previous = null): bool
+    private function enqueue(EntityTask $task, StageModel $stage, ?string $previous = null): bool
     {
         $this->queue->enqueue(
             new TaskProcessContext(
@@ -143,21 +143,16 @@ final class TaskProcessReady
      * @param non-empty-string $uuid
      * @throws RuntimeException Ошибка выполнения комманды
      */
-    private function processRun(string $uuid): StageDto
+    private function processRun(string $uuid): StageModel
     {
         $state = new TaskStateRunning(
             uuid: $uuid,
             message: new TaskStateMessage('Runned'),
         );
 
-        return $this->command->update(
+        return $this->command->state(
             new EntityUuid($uuid),
-            StageModel::hydrate(
-                [
-                    'flag' => $state->getFlag()->toValue(),
-                    'state' => serialize($state),
-                ]
-            ),
+            new StageModelState($state),
         );
     }
 
@@ -166,14 +161,9 @@ final class TaskProcessReady
         $state = new TaskStateReady();
 
         try {
-            $this->command->update(
+            $this->command->state(
                 new EntityUuid($context->stage),
-                StageModel::hydrate(
-                    [
-                        'flag' => $state->getFlag()->toValue(),
-                        'state' => serialize($state),
-                    ]
-                ),
+                new StageModelState($state),
             );
         } catch (RuntimeException) {
             return;

@@ -7,7 +7,8 @@ namespace kuaukutsu\poc\task\handler;
 use Throwable;
 use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Component\Console\Output\ConsoleOutputInterface;
-use kuaukutsu\poc\task\dto\StageDto;
+use kuaukutsu\poc\task\dto\StageModel;
+use kuaukutsu\poc\task\dto\StageModelState;
 use kuaukutsu\poc\task\exception\BuilderException;
 use kuaukutsu\poc\task\processing\TaskProcess;
 use kuaukutsu\poc\task\service\StageCommand;
@@ -40,16 +41,11 @@ final class StageHandler
             return TaskProcess::ERROR;
         }
 
-        $stage = StageDto::hydrate(
-            [
-                ...$stage->toArray(),
-                'flag' => $state->getFlag()->toValue(),
-                'state' => serialize($state),
-            ]
-        );
-
         try {
-            $this->command->replace(new EntityUuid($uuid), $stage);
+            $stage = $this->command->state(
+                new EntityUuid($uuid),
+                new StageModelState($state),
+            );
         } catch (Throwable $exception) {
             $this->stderr($exception->getMessage());
             return TaskProcess::ERROR;
@@ -63,7 +59,7 @@ final class StageHandler
      * @param non-empty-string|null $previous
      * @throws BuilderException
      */
-    private function execute(StageDto $stage, ?string $previous): TaskStateInterface
+    private function execute(StageModel $stage, ?string $previous): TaskStateInterface
     {
         $previousState = null;
         if ($previous !== null) {

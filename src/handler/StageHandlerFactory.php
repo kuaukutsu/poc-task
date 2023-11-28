@@ -7,7 +7,7 @@ namespace kuaukutsu\poc\task\handler;
 use TypeError;
 use DI\FactoryInterface;
 use Psr\Container\ContainerExceptionInterface;
-use kuaukutsu\poc\task\dto\StageDto;
+use kuaukutsu\poc\task\dto\StageModel;
 use kuaukutsu\poc\task\EntityHandler;
 use kuaukutsu\poc\task\EntityWrapper;
 use kuaukutsu\poc\task\exception\BuilderException;
@@ -21,7 +21,7 @@ final class StageHandlerFactory
     /**
      * @throws BuilderException
      */
-    public function create(StageDto $stage): EntityHandler
+    public function create(StageModel $stage): EntityHandler
     {
         /**
          * @var EntityWrapper $taskStage

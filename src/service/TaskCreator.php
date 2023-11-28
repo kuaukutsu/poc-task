@@ -5,15 +5,15 @@ declare(strict_types=1);
 namespace kuaukutsu\poc\task\service;
 
 use Exception;
+use kuaukutsu\poc\task\dto\StageModelCreate;
 use LogicException;
 use Throwable;
-use kuaukutsu\poc\task\dto\StageModel;
-use kuaukutsu\poc\task\dto\TaskDto;
+use kuaukutsu\poc\task\dto\TaskModelCreate;
 use kuaukutsu\poc\task\dto\TaskModel;
 use kuaukutsu\poc\task\exception\BuilderException;
-use kuaukutsu\poc\task\handler\TaskFactory;
-use kuaukutsu\poc\task\state\TaskFlag;
+use kuaukutsu\poc\task\state\TaskStateReady;
 use kuaukutsu\poc\task\state\TaskStateRelation;
+use kuaukutsu\poc\task\handler\TaskFactory;
 use kuaukutsu\poc\task\EntityWrapperCollection;
 use kuaukutsu\poc\task\EntityUuid;
 use kuaukutsu\poc\task\EntityTask;
@@ -43,16 +43,13 @@ final class TaskCreator
             );
         }
 
-        $model = TaskModel::hydrate(
-            [
-                'title' => $taskDraft->title,
-                'flag' => (new TaskFlag())->setReady()->toValue(),
-                'state' => '',
-                'options' => $taskDraft->getOptions(),
-                'checksum' => $taskDraft->getChecksum(),
-                'created_at' => gmdate('c'),
-                'updated_at' => gmdate('c'),
-            ]
+        $state = new TaskStateReady();
+        $model = new TaskModelCreate(
+            title: $taskDraft->title,
+            flag: $state->getFlag()->toValue(),
+            state: serialize($state),
+            options: $taskDraft->getOptions(),
+            checksum: $taskDraft->getChecksum(),
         );
 
         try {
@@ -81,16 +78,12 @@ final class TaskCreator
             stage: $context->stage,
         );
 
-        $model = TaskModel::hydrate(
-            [
-                'title' => $taskDraft->title,
-                'flag' => $promise->getFlag()->toValue(),
-                'state' => serialize($promise),
-                'options' => $taskDraft->getOptions(),
-                'checksum' => $taskDraft->getChecksum(),
-                'created_at' => gmdate('c'),
-                'updated_at' => gmdate('c'),
-            ]
+        $model = new TaskModelCreate(
+            title: $taskDraft->title,
+            flag: $promise->getFlag()->toValue(),
+            state: serialize($promise),
+            options: $taskDraft->getOptions(),
+            checksum: $taskDraft->getChecksum(),
         );
 
         try {
@@ -106,7 +99,7 @@ final class TaskCreator
      * @throws Exception
      * @throws LogicException
      */
-    private function save(TaskModel $model, EntityWrapperCollection $stageCollection): TaskDto
+    private function save(TaskModelCreate $model, EntityWrapperCollection $stageCollection): TaskModel
     {
         if ($stageCollection->isEmpty()) {
             throw new LogicException(
@@ -122,17 +115,13 @@ final class TaskCreator
             foreach ($stageCollection as $stage) {
                 $this->stageCommand->create(
                     new EntityUuid(),
-                    StageModel::hydrate(
-                        [
-                            'task_uuid' => $task->uuid,
-                            'flag' => $model->flag,
-                            'handler' => serialize($stage),
-                            'state' => serialize($task->state),
-                            'order' => ++$order,
-                            'created_at' => gmdate('c'),
-                            'updated_at' => gmdate('c'),
-                        ]
-                    ),
+                    new StageModelCreate(
+                        taskUuid: $task->uuid,
+                        flag: $model->flag,
+                        state: serialize($task->state),
+                        handler: serialize($stage),
+                        order: ++$order,
+                    )
                 );
             }
         } catch (Exception $exception) {

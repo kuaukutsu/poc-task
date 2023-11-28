@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\tests\service;
 
-use kuaukutsu\poc\task\dto\TaskDto;
+use RuntimeException;
 use kuaukutsu\poc\task\dto\TaskModel;
-use kuaukutsu\poc\task\EntityUuid;
+use kuaukutsu\poc\task\dto\TaskModelCreate;
+use kuaukutsu\poc\task\dto\TaskModelState;
 use kuaukutsu\poc\task\exception\NotFoundException;
 use kuaukutsu\poc\task\service\TaskCommand;
-use RuntimeException;
+use kuaukutsu\poc\task\EntityUuid;
+
+use function kuaukutsu\poc\task\tools\entity_hydrator;
 
 final class TaskCommandStub implements TaskCommand
 {
@@ -22,20 +25,21 @@ final class TaskCommandStub implements TaskCommand
     /**
      * @throws RuntimeException
      */
-    public function create(EntityUuid $uuid, TaskModel $model): TaskDto
+    public function create(EntityUuid $uuid, TaskModelCreate $model): TaskModel
     {
-        $dto = TaskDto::hydrate(
+        $dto = entity_hydrator(
+            TaskModel::class,
             [
-                ...$model->toArrayRecursive(),
+                ...$model->toArray(),
                 'uuid' => $uuid->getUuid(),
-                'createdAt' => gmdate('c'),
-                'updatedAt' => gmdate('c'),
+                'created_at' => gmdate('c'),
+                'updated_at' => gmdate('c'),
             ]
         );
 
         $this->mutex->lock(3);
         $storage = $this->getData();
-        $storage[] = $dto->toArrayRecursive();
+        $storage[] = $dto->toArray();
         $this->save(
             array_values($storage)
         );
@@ -44,7 +48,7 @@ final class TaskCommandStub implements TaskCommand
         return $dto;
     }
 
-    public function update(EntityUuid $uuid, TaskModel $model): TaskDto
+    public function state(EntityUuid $uuid, TaskModelState $model): TaskModel
     {
         $this->mutex->lock(3);
         $storage = $this->getData();
@@ -54,11 +58,12 @@ final class TaskCommandStub implements TaskCommand
             );
         }
 
-        $dto = TaskDto::hydrate(
+        $dto = entity_hydrator(
+            TaskModel::class,
             [
-                ...$storage[$uuid->getUuid()]->toArrayRecursive(),
-                ...$model->toArrayRecursive(),
-                'updatedAt' => gmdate('c'),
+                ...$storage[$uuid->getUuid()]->toArray(),
+                ...$model->toArray(),
+                'updated_at' => gmdate('c'),
             ]
         );
 
@@ -69,19 +74,6 @@ final class TaskCommandStub implements TaskCommand
 
         $this->mutex->unlock();
         return $dto;
-    }
-
-    public function replace(EntityUuid $uuid, TaskDto $model): bool
-    {
-        $this->mutex->lock(3);
-        $storage = $this->getData();
-        $storage[$uuid->getUuid()] = $model;
-        $isSave = $this->save(
-            array_values($storage)
-        );
-
-        $this->mutex->unlock();
-        return $isSave;
     }
 
     public function remove(EntityUuid $uuid): bool

@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace kuaukutsu\poc\task\tests\service;
 
 use RuntimeException;
-use kuaukutsu\poc\task\dto\StageDto;
 use kuaukutsu\poc\task\dto\StageModel;
+use kuaukutsu\poc\task\dto\StageModelCreate;
+use kuaukutsu\poc\task\dto\StageModelState;
 use kuaukutsu\poc\task\exception\NotFoundException;
 use kuaukutsu\poc\task\service\StageCommand;
 use kuaukutsu\poc\task\EntityUuid;
+
+use function kuaukutsu\poc\task\tools\entity_hydrator;
 
 final class StageCommandStub implements StageCommand
 {
@@ -19,11 +22,12 @@ final class StageCommandStub implements StageCommand
     {
     }
 
-    public function create(EntityUuid $uuid, StageModel $model): StageDto
+    public function create(EntityUuid $uuid, StageModelCreate $model): StageModel
     {
-        $dto = StageDto::hydrate(
+        $dto = entity_hydrator(
+            StageModel::class,
             [
-                ...$model->toArrayRecursive(),
+                ...$model->toArray(),
                 'uuid' => $uuid->getUuid(),
                 'createdAt' => gmdate('c'),
                 'updatedAt' => gmdate('c'),
@@ -32,7 +36,7 @@ final class StageCommandStub implements StageCommand
 
         $this->mutex->lock(3);
         $storage = $this->getData();
-        $storage[] = $dto->toArrayRecursive();
+        $storage[] = $dto->toArray();
         $this->save(
             array_values($storage)
         );
@@ -41,7 +45,7 @@ final class StageCommandStub implements StageCommand
         return $dto;
     }
 
-    public function update(EntityUuid $uuid, StageModel $model): StageDto
+    public function state(EntityUuid $uuid, StageModelState $model): StageModel
     {
         $this->mutex->lock(3);
         $storage = $this->getData();
@@ -51,10 +55,11 @@ final class StageCommandStub implements StageCommand
             );
         }
 
-        $dto = StageDto::hydrate(
+        $dto = entity_hydrator(
+            StageModel::class,
             [
-                ...$storage[$uuid->getUuid()]->toArrayRecursive(),
-                ...$model->toArrayRecursive(),
+                ...$storage[$uuid->getUuid()]->toArray(),
+                ...$model->toArray(),
                 'updatedAt' => gmdate('c'),
             ]
         );
@@ -68,25 +73,11 @@ final class StageCommandStub implements StageCommand
         return $dto;
     }
 
-    public function replace(EntityUuid $uuid, StageDto $model): bool
-    {
-        $this->mutex->lock(3);
-        $storage = $this->getData();
-        $storage[$uuid->getUuid()] = $model;
-
-        $this->save(
-            array_values($storage)
-        );
-
-        $this->mutex->unlock();
-        return true;
-    }
-
     public function removeByTask(EntityUuid $taskUuid): bool
     {
         $storage = array_filter(
             $this->getData(),
-            static fn(StageDto $stage): bool => $stage->taskUuid !== $taskUuid->getUuid()
+            static fn(StageModel $stage): bool => $stage->taskUuid !== $taskUuid->getUuid()
         );
 
         return $this->save($storage);

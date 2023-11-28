@@ -6,7 +6,7 @@ namespace kuaukutsu\poc\task\tests;
 
 use Psr\Container\ContainerExceptionInterface;
 use PHPUnit\Framework\TestCase;
-use kuaukutsu\poc\task\dto\StageDto;
+use kuaukutsu\poc\task\dto\StageModel;
 use kuaukutsu\poc\task\state\TaskStateMessage;
 use kuaukutsu\poc\task\state\TaskStateRunning;
 use kuaukutsu\poc\task\handler\StageContextFactory;
@@ -15,6 +15,8 @@ use kuaukutsu\poc\task\EntityWrapper;
 use kuaukutsu\poc\task\EntityUuid;
 use kuaukutsu\poc\task\tests\stub\TestResponse;
 use kuaukutsu\poc\task\tests\stub\TestStageStub;
+
+use function kuaukutsu\poc\task\tools\entity_hydrator;
 
 final class StageExecutorTest extends TestCase
 {
@@ -39,7 +41,8 @@ final class StageExecutorTest extends TestCase
             ]
         );
 
-        $stage = StageDto::hydrate(
+        $stage = entity_hydrator(
+            StageModel::class,
             [
                 'uuid' => $uuid->getUuid(),
                 'taskUuid' => $task->getUuid(),

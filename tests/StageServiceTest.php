@@ -7,7 +7,7 @@ namespace kuaukutsu\poc\task\tests;
 use Psr\Container\ContainerExceptionInterface;
 use PHPUnit\Framework\Attributes\Depends;
 use PHPUnit\Framework\TestCase;
-use kuaukutsu\poc\task\dto\StageDto;
+use kuaukutsu\poc\task\dto\StageModel;
 use kuaukutsu\poc\task\exception\NotFoundException;
 use kuaukutsu\poc\task\handler\StageContextFactory;
 use kuaukutsu\poc\task\service\StageQuery;
@@ -24,7 +24,7 @@ final class StageServiceTest extends TestCase
 
     private readonly EntityTask $task;
 
-    private readonly StageDto $stage;
+    private readonly StageModel $stage;
 
     private readonly StageQuery $query;
 

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace kuaukutsu\poc\task\service\action;
 
 use Throwable;
-use kuaukutsu\poc\task\dto\StageDto;
-use kuaukutsu\poc\task\dto\TaskModel;
+use kuaukutsu\poc\task\dto\StageModelState;
+use kuaukutsu\poc\task\dto\TaskModelState;
 use kuaukutsu\poc\task\handler\TaskFactory;
 use kuaukutsu\poc\task\service\StageCommand;
 use kuaukutsu\poc\task\service\StageQuery;
@@ -43,14 +43,9 @@ final class ActionPause implements TaskAction
             $state->getFlag()->toValue(),
         );
 
-        $model = $this->taskCommand->update(
+        $model = $this->taskCommand->state(
             $uuid,
-            TaskModel::hydrate(
-                [
-                    'flag' => $state->getFlag()->toValue(),
-                    'state' => serialize($state),
-                ]
-            ),
+            new TaskModelState($state),
         );
 
         $this->stagePause($uuid);
@@ -69,15 +64,9 @@ final class ActionPause implements TaskAction
             );
 
             try {
-                $this->stageCommand->replace(
+                $this->stageCommand->state(
                     new EntityUuid($stage->uuid),
-                    StageDto::hydrate(
-                        [
-                            ...$stage->toArray(),
-                            'flag' => $state->getFlag()->toValue(),
-                            'state' => serialize($state),
-                        ]
-                    )
+                    new StageModelState($state),
                 );
             } catch (Throwable) {
             }

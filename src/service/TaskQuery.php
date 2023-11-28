@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace kuaukutsu\poc\task\service;
 
 use kuaukutsu\poc\task\dto\TaskCollection;
-use kuaukutsu\poc\task\dto\TaskDto;
+use kuaukutsu\poc\task\dto\TaskModel;
 use kuaukutsu\poc\task\exception\NotFoundException;
 use kuaukutsu\poc\task\EntityUuid;
 
@@ -14,7 +14,7 @@ interface TaskQuery
     /**
      * @throws NotFoundException
      */
-    public function getOne(EntityUuid $uuid): TaskDto;
+    public function getOne(EntityUuid $uuid): TaskModel;
 
     /**
      * @param positive-int $limit
