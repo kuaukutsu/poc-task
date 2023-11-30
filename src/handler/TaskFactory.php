@@ -28,10 +28,7 @@ final class TaskFactory
                 options: $dto->options,
             );
         } catch (TypeError $exception) {
-            throw new BuilderException(
-                "[$dto->uuid] TaskFactory error: " . $exception->getMessage(),
-                $exception,
-            );
+            throw new BuilderException("[$dto->uuid] TaskFactory failure.", $exception);
         }
     }
 }
