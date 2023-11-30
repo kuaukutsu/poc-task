@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\handler;
 
+use InvalidArgumentException;
 use TypeError;
 use DI\FactoryInterface;
 use Psr\Container\ContainerExceptionInterface;
@@ -35,16 +36,22 @@ final class StageHandlerFactory
             ]
         );
 
+        if (!$taskStage instanceof EntityWrapper) {
+            throw new BuilderException(
+                "[$stage->taskUuid] TaskStage handler failure.",
+                new InvalidArgumentException(
+                    "[$stage->uuid] handler must implement EntityWrapper."
+                ),
+            );
+        }
+
         try {
             /**
              * @var EntityHandler
              */
             return $this->container->make($taskStage->class, $taskStage->params);
         } catch (ContainerExceptionInterface | TypeError $exception) {
-            throw new BuilderException(
-                "[$stage->uuid] TaskStageHandler factory error: " . $exception->getMessage(),
-                $exception,
-            );
+            throw new BuilderException("[$stage->uuid] TaskStageHandler factory failure.", $exception);
         }
     }
 }

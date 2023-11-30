@@ -124,6 +124,13 @@ final class TaskProcessing
                 $exception,
             );
         }
+
+        if ($this->processPromise->has($process->task)) {
+            $context = $this->processPromise->dequeue($process->task, $process->stage);
+            $this->taskExecutor->cancel(
+                $this->factory($context->task)
+            );
+        }
     }
 
     /**

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\event;
 
+use Throwable;
+
 trait PublisherEvent
 {
     /**
@@ -33,7 +35,10 @@ trait PublisherEvent
     {
         if (array_key_exists($name->value, $this->eventHandlers)) {
             foreach ($this->eventHandlers[$name->value] as $subscriberCallback) {
-                $subscriberCallback($name, $event);
+                try {
+                    $subscriberCallback($name, $event);
+                } catch (Throwable) {
+                }
             }
         }
     }
