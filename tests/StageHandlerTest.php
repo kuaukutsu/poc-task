@@ -7,6 +7,7 @@ namespace kuaukutsu\poc\task\tests;
 use Psr\Container\ContainerExceptionInterface;
 use PHPUnit\Framework\TestCase;
 use kuaukutsu\poc\task\dto\StageModel;
+use kuaukutsu\poc\task\exception\BuilderException;
 use kuaukutsu\poc\task\state\TaskStateReady;
 use kuaukutsu\poc\task\handler\StageContextFactory;
 use kuaukutsu\poc\task\handler\StageHandlerFactory;
@@ -15,6 +16,7 @@ use kuaukutsu\poc\task\EntityUuid;
 use kuaukutsu\poc\task\EntityWrapper;
 use kuaukutsu\poc\task\tests\stub\TestWrapperDto;
 use kuaukutsu\poc\task\tests\stub\TestWrapperStageStub;
+use kuaukutsu\poc\task\tests\stub\TestResponse;
 use kuaukutsu\poc\task\tests\stub\TestStageStub;
 
 use function kuaukutsu\poc\task\tools\entity_hydrator;
@@ -66,6 +68,25 @@ final class StageHandlerTest extends TestCase
 
         self::assertTrue($state->getFlag()->isReady());
         self::assertFalse($state->getFlag()->isFinished());
+    }
+
+    /**
+     * @throws ContainerExceptionInterface
+     */
+    public function testExceptionFactory(): void
+    {
+        $stage = $this->generateStage();
+        $stage = entity_hydrator(
+            StageModel::class,
+            [
+                ...$stage->toArray(),
+                'handler' => serialize(new TestResponse('test', date('c'))),
+            ]
+        );
+
+        $this->expectException(BuilderException::class);
+
+        self::get(StageHandlerFactory::class)->create($stage);
     }
 
     private function generateStage(): StageModel
