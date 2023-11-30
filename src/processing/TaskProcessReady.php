@@ -145,25 +145,23 @@ final class TaskProcessReady
      */
     private function processRun(string $uuid): StageModel
     {
-        $state = new TaskStateRunning(
-            uuid: $uuid,
-            message: new TaskStateMessage('Runned'),
-        );
-
         return $this->command->state(
             new EntityUuid($uuid),
-            new StageModelState($state),
+            new StageModelState(
+                new TaskStateRunning(
+                    uuid: $uuid,
+                    message: new TaskStateMessage('Process is running'),
+                )
+            ),
         );
     }
 
     private function processTerminate(TaskProcessContext $context): void
     {
-        $state = new TaskStateReady();
-
         try {
             $this->command->state(
                 new EntityUuid($context->stage),
-                new StageModelState($state),
+                new StageModelState(new TaskStateReady()),
             );
         } catch (RuntimeException) {
             return;

@@ -19,6 +19,8 @@ use kuaukutsu\poc\task\event\StageEvent;
 use kuaukutsu\poc\task\event\StageTimeoutEvent;
 use kuaukutsu\poc\task\exception\ProcessingException;
 use kuaukutsu\poc\task\processing\TaskProcess;
+use kuaukutsu\poc\task\processing\TaskProcessContext;
+use kuaukutsu\poc\task\processing\TaskProcessFactory;
 use kuaukutsu\poc\task\processing\TaskProcessing;
 
 final class TaskManager implements EventPublisherInterface
@@ -40,8 +42,10 @@ final class TaskManager implements EventPublisherInterface
      */
     private ?string $keeperId = null;
 
-    public function __construct(private readonly TaskProcessing $processing)
-    {
+    public function __construct(
+        private readonly TaskProcessing $processing,
+        private readonly TaskProcessFactory $processFactory,
+    ) {
     }
 
     /**
@@ -70,12 +74,10 @@ final class TaskManager implements EventPublisherInterface
                     $this->processing->hasTaskProcess()
                     && count($this->processesActive) < $options->getQueueSize()
                 ) {
-                    $context = $this->processing->getTaskProcess();
-                    if (array_key_exists($context->stage, $this->processesActive) === false) {
-                        $this->processPush(
-                            $this->processing->start($context, $options),
-                        );
-                    }
+                    $this->processRun(
+                        $this->processing->getTaskProcess(),
+                        $options,
+                    );
                 }
             }
         );
@@ -211,6 +213,16 @@ final class TaskManager implements EventPublisherInterface
         $this->processing->terminate();
 
         exit($signal);
+    }
+
+    private function processRun(TaskProcessContext $context, TaskManagerOptions $options): void
+    {
+        if (array_key_exists($context->stage, $this->processesActive) === false) {
+            $process = $this->processFactory->create($context, $options);
+            $process->start();
+
+            $this->processPush($process);
+        }
     }
 
     private function processPush(TaskProcess $process): void

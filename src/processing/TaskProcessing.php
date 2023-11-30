@@ -21,7 +21,6 @@ final class TaskProcessing
         private readonly TaskQuery $taskQuery,
         private readonly TaskFactory $taskFactory,
         private readonly StateFactory $stateFactory,
-        private readonly ProcessFactory $processFactory,
         private readonly TaskExecutor $taskExecutor,
         private readonly TaskProcessReady $processReady,
         private readonly TaskProcessPromise $processPromise,
@@ -60,18 +59,6 @@ final class TaskProcessing
     public function terminate(): void
     {
         $this->processReady->terminate();
-    }
-
-    public function start(TaskProcessContext $context, TaskManagerOptions $options): TaskProcess
-    {
-        $process = $this->processFactory->create($context, $options);
-        $process->start();
-
-        return new TaskProcess(
-            task: $context->task,
-            stage: $context->stage,
-            process: $process,
-        );
     }
 
     /**

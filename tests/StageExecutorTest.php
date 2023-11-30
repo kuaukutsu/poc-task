@@ -31,7 +31,7 @@ final class StageExecutorTest extends TestCase
         $task = new EntityUuid();
         $state = new TaskStateRunning(
             uuid: $uuid->getUuid(),
-            message: new TaskStateMessage('Running'),
+            message: new TaskStateMessage('Runned'),
         );
 
         $wrapper = new EntityWrapper(
