@@ -163,7 +163,7 @@ final class TaskFlag
             self::FLAG_PAUSED => 'paused',
             self::FLAG_SKIPED => 'skiped',
             self::FLAG_ERROR => 'error',
-            default => 'Ready',
+            default => 'ready',
         };
     }
 
