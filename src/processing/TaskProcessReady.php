@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\processing;
 
-use kuaukutsu\poc\task\state\TaskStateReady;
 use RuntimeException;
 use SplQueue;
 use kuaukutsu\poc\task\dto\StageModel;
 use kuaukutsu\poc\task\dto\StageModelState;
 use kuaukutsu\poc\task\state\TaskStateMessage;
+use kuaukutsu\poc\task\state\TaskStateReady;
 use kuaukutsu\poc\task\state\TaskStateRunning;
 use kuaukutsu\poc\task\service\StageQuery;
 use kuaukutsu\poc\task\service\StageCommand;
