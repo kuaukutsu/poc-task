@@ -25,6 +25,12 @@ interface TaskCommand
     public function state(EntityUuid $uuid, TaskModelState $model): TaskModel;
 
     /**
+     * @param non-empty-string[] $indexUuid
+     * @throws RuntimeException
+     */
+    public function terminate(array $indexUuid, TaskModelState $model): bool;
+
+    /**
      * @throws NotFoundException
      * @throws RuntimeException
      */

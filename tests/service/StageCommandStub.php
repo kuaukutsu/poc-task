@@ -9,6 +9,7 @@ use kuaukutsu\poc\task\dto\StageModel;
 use kuaukutsu\poc\task\dto\StageModelCreate;
 use kuaukutsu\poc\task\dto\StageModelState;
 use kuaukutsu\poc\task\exception\NotFoundException;
+use kuaukutsu\poc\task\state\TaskFlag;
 use kuaukutsu\poc\task\service\StageCommand;
 use kuaukutsu\poc\task\EntityUuid;
 
@@ -71,6 +72,21 @@ final class StageCommandStub implements StageCommand
 
         $this->mutex->unlock();
         return $dto;
+    }
+
+    public function terminateByTask(array $indexUuid, StageModelState $model): bool
+    {
+        foreach ($this->getData() as $item) {
+            $flag = new TaskFlag($item->flag);
+            if ($flag->isRunning() && in_array($item->taskUuid, $indexUuid, true)) {
+                $this->state(
+                    new EntityUuid($item->uuid),
+                    $model
+                );
+            }
+        }
+
+        return true;
     }
 
     public function removeByTask(EntityUuid $taskUuid): bool
