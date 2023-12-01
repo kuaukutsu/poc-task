@@ -34,6 +34,7 @@ trait TaskStatePrepare
                     TaskStateError::class,
                     TaskStateMessage::class,
                     TaskStatePaused::class,
+                    TaskStateTerminate::class,
                     TaskStateRelation::class,
                     TaskStateReady::class,
                     TaskStateRunning::class,
