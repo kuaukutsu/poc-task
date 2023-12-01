@@ -24,6 +24,12 @@ interface StageCommand
     public function state(EntityUuid $uuid, StageModelState $model): StageModel;
 
     /**
+     * @param non-empty-string[] $indexUuid
+     * @throws RuntimeException
+     */
+    public function terminateByTask(array $indexUuid, StageModelState $model): bool;
+
+    /**
      * @throws NotFoundException
      * @throws RuntimeException
      */

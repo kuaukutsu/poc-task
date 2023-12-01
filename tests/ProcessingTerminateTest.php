@@ -4,20 +4,20 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\tests;
 
-use Psr\Container\ContainerExceptionInterface;
 use PHPUnit\Framework\TestCase;
-use kuaukutsu\poc\task\EntityUuid;
-use kuaukutsu\poc\task\processing\TaskProcessing;
+use Psr\Container\ContainerExceptionInterface;
 use kuaukutsu\poc\task\state\TaskFlag;
-use kuaukutsu\poc\task\service\TaskQuery;
-use kuaukutsu\poc\task\service\TaskDestroyer;
+use kuaukutsu\poc\task\processing\TaskProcessing;
 use kuaukutsu\poc\task\service\StageQuery;
+use kuaukutsu\poc\task\service\TaskDestroyer;
+use kuaukutsu\poc\task\service\TaskQuery;
 use kuaukutsu\poc\task\EntityTask;
+use kuaukutsu\poc\task\EntityUuid;
 use kuaukutsu\poc\task\TaskManagerOptions;
 use kuaukutsu\poc\task\TaskBuilder;
 use kuaukutsu\poc\task\tests\service\Storage;
 
-final class ProcessingTest extends TestCase
+final class ProcessingTerminateTest extends TestCase
 {
     use Container;
     use TaskFaker;
@@ -53,13 +53,10 @@ final class ProcessingTest extends TestCase
         );
     }
 
-    public function testLoadTaskProcess(): void
+    public function testTerminate(): void
     {
         $flag = new TaskFlag();
         $uuid = new EntityUuid($this->task->getUuid());
-
-        $task = $this->taskQuery->getOne($uuid);
-        self::assertEquals($flag->unset()->setReady()->toValue(), $task->flag);
 
         self::assertFalse($this->processing->hasTaskProcess());
         $this->processing->loadTaskProcess($this->options);
@@ -68,28 +65,15 @@ final class ProcessingTest extends TestCase
         $task = $this->taskQuery->getOne($uuid);
         self::assertEquals($flag->unset()->setRunning()->toValue(), $task->flag);
 
-        $num = 0;
-        foreach ($this->stageQuery->findByTask($uuid) as $stage) {
-            $num++;
-            if ($num === 1) {
-                self::assertEquals($flag->unset()->setRunning()->toValue(), $stage->flag);
-                continue;
-            }
+        $this->processing->terminate(SIGTERM);
+        self::assertFalse($this->processing->hasTaskProcess());
 
+        $task = $this->taskQuery->getOne($uuid);
+        self::assertEquals($flag->unset()->setPaused()->toValue(), $task->flag);
+
+        foreach ($this->stageQuery->findByTask($uuid) as $stage) {
             self::assertEquals($flag->unset()->setReady()->toValue(), $stage->flag);
         }
-
-        $taskProcess = $this->processing->getTaskProcess();
-        self::assertFalse($this->processing->hasTaskProcess());
-        self::assertEquals($this->task->getUuid(), $taskProcess->task);
-
-        $stage = $this->stageQuery->getOne(
-            new EntityUuid($taskProcess->stage)
-        );
-        self::assertEquals($flag->unset()->setRunning()->toValue(), $stage->flag);
-
-        $this->processing->loadTaskProcess($this->options);
-        self::assertFalse($this->processing->hasTaskProcess());
     }
 
     public static function setUpBeforeClass(): void

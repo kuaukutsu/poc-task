@@ -56,9 +56,12 @@ final class TaskProcessing
         }
     }
 
-    public function terminate(): void
+    public function terminate(int $signal): void
     {
-        $this->processReady->terminate();
+        $this->taskExecutor->terminate(
+            $this->processReady->terminate(),
+            $signal,
+        );
     }
 
     /**
@@ -208,7 +211,7 @@ final class TaskProcessing
                 return false;
             }
 
-            return $this->processPromise->enqueue($task, $index, $state);
+            return $this->processPromise->enqueue($task, $state, $index);
         }
 
         return false;

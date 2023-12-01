@@ -47,9 +47,9 @@ final class TaskProcessPromise
     }
 
     /**
-     * @param array<string, true> $index
+     * @param non-empty-array<string, true> $index
      */
-    public function enqueue(EntityTask $task, array $index, TaskStateRelation $state): bool
+    public function enqueue(EntityTask $task, TaskStateRelation $state, array $index): bool
     {
         $this->queue[$task->getUuid()] = new TaskProcessContext(
             $state->task,

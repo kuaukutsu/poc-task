@@ -144,6 +144,11 @@ final class TaskFlag
             || $this->isSkiped();
     }
 
+    public function unset(): self
+    {
+        return new self();
+    }
+
     /**
      * @return non-empty-string
      */

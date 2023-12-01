@@ -76,6 +76,18 @@ final class TaskCommandStub implements TaskCommand
         return $dto;
     }
 
+    public function terminate(array $indexUuid, TaskModelState $model): bool
+    {
+        foreach ($indexUuid as $uuid) {
+            $this->state(
+                new EntityUuid($uuid),
+                $model
+            );
+        }
+
+        return true;
+    }
+
     public function remove(EntityUuid $uuid): bool
     {
         $storage = $this->getData();

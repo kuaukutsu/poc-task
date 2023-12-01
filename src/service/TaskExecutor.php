@@ -9,6 +9,7 @@ use kuaukutsu\poc\task\service\action\ActionCompletion;
 use kuaukutsu\poc\task\service\action\ActionPause;
 use kuaukutsu\poc\task\service\action\ActionResume;
 use kuaukutsu\poc\task\service\action\ActionRun;
+use kuaukutsu\poc\task\service\action\ActionTerminate;
 use kuaukutsu\poc\task\state\TaskStateInterface;
 use kuaukutsu\poc\task\EntityTask;
 
@@ -20,6 +21,7 @@ final class TaskExecutor
         private readonly ActionPause $actionPause,
         private readonly ActionResume $actionResume,
         private readonly ActionRun $actionRun,
+        private readonly ActionTerminate $actionTerminate,
     ) {
     }
 
@@ -59,5 +61,17 @@ final class TaskExecutor
         return $this->actionPause
             ->execute($task)
             ->getState();
+    }
+
+    /**
+     * @param non-empty-string[] $indexTaskUuid
+     */
+    public function terminate(array $indexTaskUuid, int $signal): void
+    {
+        if ($indexTaskUuid === []) {
+            return;
+        }
+
+        $this->actionTerminate->execute($indexTaskUuid, $signal);
     }
 }

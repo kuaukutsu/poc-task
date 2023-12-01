@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\processing;
 
+use kuaukutsu\poc\task\state\TaskStateReady;
 use RuntimeException;
 use SplQueue;
 use kuaukutsu\poc\task\dto\StageModel;
 use kuaukutsu\poc\task\dto\StageModelState;
-use kuaukutsu\poc\task\state\TaskStateReady;
 use kuaukutsu\poc\task\state\TaskStateMessage;
 use kuaukutsu\poc\task\state\TaskStateRunning;
 use kuaukutsu\poc\task\service\StageQuery;
@@ -113,13 +113,20 @@ final class TaskProcessReady
         return $this->enqueue($task, $this->processRun($stage->uuid), $previous);
     }
 
-    public function terminate(): void
+    /**
+     * @return non-empty-string[] Task UUID
+     */
+    public function terminate(): array
     {
+        $index = [];
         while ($this->has()) {
-            $this->processTerminate(
-                $this->dequeue()
-            );
+            $index[$this->dequeue()->task] = true;
         }
+
+        $index = array_keys($index);
+        $this->processTerminate($index);
+
+        return $index;
     }
 
     /**
@@ -156,15 +163,20 @@ final class TaskProcessReady
         );
     }
 
-    private function processTerminate(TaskProcessContext $context): void
+    /**
+     * @param non-empty-string[] $indexTaskUuid
+     * @throws RuntimeException Ошибка выполнения комманды
+     */
+    private function processTerminate(array $indexTaskUuid): void
     {
         try {
-            $this->command->state(
-                new EntityUuid($context->stage),
-                new StageModelState(new TaskStateReady()),
+            $this->command->terminateByTask(
+                $indexTaskUuid,
+                new StageModelState(
+                    new TaskStateReady()
+                )
             );
         } catch (RuntimeException) {
-            return;
         }
     }
 }
