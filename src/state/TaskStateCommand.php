@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace kuaukutsu\poc\task\state;
 
 use kuaukutsu\poc\task\EntityTask;
+use kuaukutsu\poc\task\exception\NotFoundException;
 use kuaukutsu\poc\task\TaskResponseInterface;
 use kuaukutsu\poc\task\TaskStageContext;
 
@@ -67,5 +68,17 @@ trait TaskStateCommand
                 "Waiting [{$task->getUuid()}] {$task->getTitle()}."
             ),
         );
+    }
+
+    /**
+     * @throws NotFoundException
+     */
+    final protected function preparePrevious(TaskStageContext $context): TaskStateInterface
+    {
+        if ($context->previous === null) {
+            throw new NotFoundException("[$context->stage] previous not found.");
+        }
+
+        return $context->previous;
     }
 }

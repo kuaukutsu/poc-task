@@ -23,10 +23,10 @@ use kuaukutsu\poc\task\TaskDraft;
 final class TaskCreator
 {
     public function __construct(
-        private readonly TaskFactory $factory,
         private readonly TaskQuery $taskQuery,
         private readonly TaskCommand $taskCommand,
         private readonly StageCommand $stageCommand,
+        private readonly TaskFactory $factory,
         private readonly TaskDestroyer $destroyer,
     ) {
     }
