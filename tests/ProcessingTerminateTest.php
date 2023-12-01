@@ -74,6 +74,9 @@ final class ProcessingTerminateTest extends TestCase
         foreach ($this->stageQuery->findByTask($uuid) as $stage) {
             self::assertEquals($flag->unset()->setReady()->toValue(), $stage->flag);
         }
+
+        $this->processing->loadTaskProcess($this->options);
+        self::assertTrue($this->processing->hasTaskProcess());
     }
 
     public static function setUpBeforeClass(): void
