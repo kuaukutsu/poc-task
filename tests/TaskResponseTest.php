@@ -11,7 +11,6 @@ use kuaukutsu\poc\task\state\response\ResponseContextWrapper;
 use kuaukutsu\poc\task\state\TaskStateMessage;
 use kuaukutsu\poc\task\state\TaskStateSuccess;
 use kuaukutsu\poc\task\TaskResponseInterface;
-use kuaukutsu\poc\task\EntityUuid;
 
 final class TaskResponseTest extends TestCase
 {
