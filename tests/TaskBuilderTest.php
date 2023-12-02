@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\tests;
 
-use kuaukutsu\poc\task\state\TaskStateMessage;
-use kuaukutsu\poc\task\state\TaskStateSkip;
 use LogicException;
 use Psr\Container\ContainerExceptionInterface;
 use PHPUnit\Framework\TestCase;
 use kuaukutsu\poc\task\state\TaskStateReady;
+use kuaukutsu\poc\task\state\TaskStateMessage;
+use kuaukutsu\poc\task\state\TaskStateSkip;
 use kuaukutsu\poc\task\service\TaskQuery;
 use kuaukutsu\poc\task\service\TaskDestroyer;
 use kuaukutsu\poc\task\EntityUuid;
