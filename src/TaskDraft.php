@@ -5,42 +5,39 @@ declare(strict_types=1);
 namespace kuaukutsu\poc\task;
 
 use kuaukutsu\poc\task\dto\TaskOptions;
+use kuaukutsu\poc\task\state\TaskFlagCommand;
 use kuaukutsu\poc\task\state\TaskStateInterface;
 use kuaukutsu\poc\task\state\TaskStateReady;
 
-final class TaskDraft
+final class TaskDraft implements EntityTask
 {
+    use TaskFlagCommand;
+
     private ?float $timeout = null;
 
     private TaskStateInterface $state;
+
+    private readonly EntityUuid $uuid;
 
     /**
      * @param non-empty-string $title
      */
     public function __construct(
-        public readonly string $title,
-        public readonly EntityWrapperCollection $stages = new EntityWrapperCollection(),
+        private readonly string $title,
+        private readonly EntityWrapperCollection $stages = new EntityWrapperCollection(),
     ) {
-        $this->state = new TaskStateReady();
+        $this->uuid = new EntityUuid();
+        $this->setState(new TaskStateReady());
     }
 
-    public function addStage(EntityWrapper ...$stages): self
+    public function getUuid(): string
     {
-        foreach ($stages as $stage) {
-            if ($this->stages->contains($stage) === false) {
-                $this->stages->attach($stage);
-            }
-        }
-
-        return $this;
+        return $this->uuid->getUuid();
     }
 
-    /**
-     * @return non-empty-string
-     */
-    public function getChecksum(): string
+    public function getTitle(): string
     {
-        return md5($this->title . $this->stages->getChecksum());
+        return $this->title;
     }
 
     public function getState(): TaskStateInterface
@@ -55,9 +52,34 @@ final class TaskDraft
         );
     }
 
+    /**
+     * @return non-empty-string
+     */
+    public function getChecksum(): string
+    {
+        return md5($this->title . $this->stages->getChecksum());
+    }
+
+    public function getStages(): EntityWrapperCollection
+    {
+        return $this->stages;
+    }
+
+    public function addStage(EntityWrapper ...$stages): self
+    {
+        foreach ($stages as $stage) {
+            if ($this->stages->contains($stage) === false) {
+                $this->stages->attach($stage);
+            }
+        }
+
+        return $this;
+    }
+
     public function setState(TaskStateInterface $state): self
     {
         $this->state = $state;
+        $this->flag = $state->getFlag();
         return $this;
     }
 

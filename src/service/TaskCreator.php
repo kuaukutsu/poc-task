@@ -6,14 +6,12 @@ namespace kuaukutsu\poc\task\service;
 
 use Exception;
 use LogicException;
-use Throwable;
 use kuaukutsu\poc\task\dto\StageModelCreate;
 use kuaukutsu\poc\task\dto\TaskModelCreate;
 use kuaukutsu\poc\task\dto\TaskModel;
 use kuaukutsu\poc\task\exception\BuilderException;
 use kuaukutsu\poc\task\state\TaskStateRelation;
 use kuaukutsu\poc\task\handler\TaskFactory;
-use kuaukutsu\poc\task\EntityWrapperCollection;
 use kuaukutsu\poc\task\EntityUuid;
 use kuaukutsu\poc\task\EntityTask;
 use kuaukutsu\poc\task\TaskStageContext;
@@ -34,89 +32,59 @@ final class TaskCreator
      * @throws BuilderException
      * @throws LogicException
      */
-    public function create(TaskDraft $taskDraft): EntityTask
+    public function create(TaskDraft $draft): EntityTask
     {
-        if ($this->taskQuery->existsOpenByChecksum($taskDraft->getChecksum())) {
-            throw new LogicException(
-                "[$taskDraft->title] Task exists."
-            );
-        }
+        $this->validateDraft($draft);
 
-        $state = $taskDraft->getState();
-        $model = new TaskModelCreate(
-            title: $taskDraft->title,
-            flag: $state->getFlag()->toValue(),
-            state: serialize($state),
-            options: $taskDraft->getOptions(),
-            checksum: $taskDraft->getChecksum(),
+        return $this->factory->create(
+            $this->save($draft)
         );
-
-        try {
-            return $this->factory->create(
-                $this->save($model, $taskDraft->stages)
-            );
-        } catch (Throwable $exception) {
-            throw new BuilderException("[$taskDraft->title] TaskBuilder failed.", $exception);
-        }
     }
 
     /**
      * @throws BuilderException
      * @throws LogicException
      */
-    public function createFromContext(TaskDraft $taskDraft, TaskStageContext $context): EntityTask
+    public function createFromContext(TaskDraft $draft, TaskStageContext $context): EntityTask
     {
-        if ($this->taskQuery->existsOpenByChecksum($taskDraft->getChecksum())) {
-            throw new LogicException(
-                "[$taskDraft->title] Task exists."
-            );
-        }
+        $this->validateDraft($draft);
 
-        $promise = new TaskStateRelation(
-            task: $context->task,
-            stage: $context->stage,
+        $draft->setState(
+            new TaskStateRelation(
+                task: $context->task,
+                stage: $context->stage,
+            )
         );
 
-        $model = new TaskModelCreate(
-            title: $taskDraft->title,
-            flag: $promise->getFlag()->toValue(),
-            state: serialize($promise),
-            options: $taskDraft->getOptions(),
-            checksum: $taskDraft->getChecksum(),
+        return $this->factory->create(
+            $this->save($draft)
         );
-
-        try {
-            return $this->factory->create(
-                $this->save($model, $taskDraft->stages)
-            );
-        } catch (Throwable $exception) {
-            throw new BuilderException("[$taskDraft->title] TaskBuilder failed.", $exception);
-        }
     }
 
     /**
-     * @throws Exception
-     * @throws LogicException
+     * @throws BuilderException
      */
-    private function save(TaskModelCreate $model, EntityWrapperCollection $stageCollection): TaskModel
+    private function save(TaskDraft $draft): TaskModel
     {
-        if ($stageCollection->isEmpty()) {
-            throw new LogicException(
-                "[$model->title] Stage must be declared."
-            );
-        }
-
-        $uuid = new EntityUuid();
-        $task = $this->taskCommand->create($uuid, $model);
+        $task = $this->taskCommand->create(
+            new EntityUuid($draft->getUuid()),
+            new TaskModelCreate(
+                title: $draft->getTitle(),
+                flag: $draft->getFlag(),
+                state: serialize($draft->getState()),
+                options: $draft->getOptions(),
+                checksum: $draft->getChecksum(),
+            )
+        );
 
         try {
             $order = 0;
-            foreach ($stageCollection as $stage) {
+            foreach ($draft->getStages() as $stage) {
                 $this->stageCommand->create(
                     new EntityUuid(),
                     new StageModelCreate(
                         taskUuid: $task->uuid,
-                        flag: $model->flag,
+                        flag: $task->flag,
                         state: serialize($task->state),
                         handler: serialize($stage),
                         order: ++$order,
@@ -124,10 +92,31 @@ final class TaskCreator
                 );
             }
         } catch (Exception $exception) {
-            $this->destroyer->purge($uuid);
-            throw $exception;
+            $this->destroyer->purge(
+                new EntityUuid($task->uuid)
+            );
+
+            throw new BuilderException("[{$draft->getTitle()}] TaskBuilder failed.", $exception);
         }
 
         return $task;
+    }
+
+    /**
+     * @throws LogicException
+     */
+    private function validateDraft(TaskDraft $draft): void
+    {
+        if ($this->taskQuery->existsOpenByChecksum($draft->getChecksum())) {
+            throw new LogicException(
+                "[{$draft->getTitle()}] Task exists."
+            );
+        }
+
+        if ($draft->getStages()->isEmpty()) {
+            throw new LogicException(
+                "[{$draft->getTitle()}] Stage must be declared."
+            );
+        }
     }
 }

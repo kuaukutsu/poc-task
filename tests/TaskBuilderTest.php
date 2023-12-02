@@ -13,6 +13,7 @@ use kuaukutsu\poc\task\state\TaskStateSkip;
 use kuaukutsu\poc\task\service\TaskQuery;
 use kuaukutsu\poc\task\service\TaskDestroyer;
 use kuaukutsu\poc\task\EntityUuid;
+use kuaukutsu\poc\task\EntityTask;
 use kuaukutsu\poc\task\EntityWrapper;
 use kuaukutsu\poc\task\TaskBuilder;
 use kuaukutsu\poc\task\tests\stub\IncreaseNumberStageStub;
@@ -36,8 +37,9 @@ final class TaskBuilderTest extends TestCase
             ),
         );
 
-        self::assertEquals('task test builder', $draft->title);
-        self::assertCount(1, $draft->stages);
+        self::assertInstanceOf(EntityTask::class, $draft);
+        self::assertEquals('task test builder', $draft->getTitle());
+        self::assertCount(1, $draft->getStages());
         self::assertEmpty($draft->getOptions()->timeout);
 
         $draft->addStage(
@@ -49,7 +51,7 @@ final class TaskBuilderTest extends TestCase
             )
         );
 
-        self::assertCount(2, $draft->stages);
+        self::assertCount(2, $draft->getStages());
     }
 
     /**
@@ -70,7 +72,7 @@ final class TaskBuilderTest extends TestCase
             ->setTimeout(200);
 
         $task = $this->builder->build($draft);
-        self::assertEquals($draft->title, $task->getTitle());
+        self::assertEquals($draft->getTitle(), $task->getTitle());
         self::assertEquals(new TaskStateReady(), $task->getState());
         self::assertEquals(200, $draft->getOptions()->timeout);
 
