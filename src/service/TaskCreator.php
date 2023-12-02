@@ -10,6 +10,7 @@ use kuaukutsu\poc\task\dto\StageModelCreate;
 use kuaukutsu\poc\task\dto\TaskModelCreate;
 use kuaukutsu\poc\task\dto\TaskModel;
 use kuaukutsu\poc\task\exception\BuilderException;
+use kuaukutsu\poc\task\state\TaskStateReady;
 use kuaukutsu\poc\task\state\TaskStateRelation;
 use kuaukutsu\poc\task\handler\TaskFactory;
 use kuaukutsu\poc\task\EntityUuid;
@@ -77,6 +78,8 @@ final class TaskCreator
             )
         );
 
+        $stageState = new TaskStateReady();
+
         try {
             $order = 0;
             foreach ($draft->getStages() as $stage) {
@@ -84,8 +87,8 @@ final class TaskCreator
                     new EntityUuid(),
                     new StageModelCreate(
                         taskUuid: $task->uuid,
-                        flag: $task->flag,
-                        state: serialize($task->state),
+                        flag: $stageState->getFlag()->toValue(),
+                        state: serialize($stageState),
                         handler: serialize($stage),
                         order: ++$order,
                     )

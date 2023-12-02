@@ -53,10 +53,6 @@ final class TransitionState
                 (new TaskFlag())->setRunning()->setCanceled()->toValue(),
                 (new TaskFlag())->setRunning()->setError()->toValue(),
             ],
-            (new TaskFlag())->setSkiped()->toValue() => [
-                (new TaskFlag())->setCanceled()->toValue(),
-                (new TaskFlag())->setSkiped()->setCanceled()->toValue(),
-            ],
         ];
 
         return $map[$state] ?? [];

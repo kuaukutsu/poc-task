@@ -59,13 +59,13 @@ final class StageQueryStub implements StageQuery
         return $collection;
     }
 
-    public function getPromiseByTask(EntityUuid $taskUuid): StageCollection
+    public function getReadyByTask(EntityUuid $taskUuid): StageCollection
     {
         $collection = new StageCollection();
         foreach ($this->getData() as $item) {
             if ($item->taskUuid === $taskUuid->getUuid()) {
                 $flag = new TaskFlag($item->flag);
-                if ($flag->isPromised()) {
+                if ($flag->isReady() || $flag->isPaused()) {
                     $collection->attach($item);
                 }
             }

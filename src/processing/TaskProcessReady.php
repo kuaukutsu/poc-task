@@ -82,7 +82,7 @@ final class TaskProcessReady
      */
     public function pushStagePromise(EntityTask $task): array
     {
-        $collection = $this->query->getPromiseByTask(new EntityUuid($task->getUuid()));
+        $collection = $this->query->getReadyByTask(new EntityUuid($task->getUuid()));
         if ($collection->isEmpty()) {
             return [];
         }
