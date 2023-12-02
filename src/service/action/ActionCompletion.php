@@ -52,18 +52,18 @@ final class ActionCompletion implements TaskAction
 
     private function handleStagesState(EntityTask $task): ?TaskStateInterface
     {
-        $context = new ResponseContextWrapper();
         $uuid = new EntityUuid($task->getUuid());
+        $context = new ResponseContextWrapper();
         foreach ($this->stageQuery->findByTask($uuid) as $item) {
             $state = $this->stateFactory->create($item->state);
-            if ($state->getFlag()->isFinished()) {
-                if ($state->getFlag()->isError()) {
-                    return new TaskStateError(
-                        message: $state->getMessage(),
-                        flag: $task->getFlag(),
-                    );
-                }
+            if ($state->getFlag()->isError()) {
+                return new TaskStateError(
+                    message: $state->getMessage(),
+                    flag: $task->getFlag(),
+                );
+            }
 
+            if ($state->getFlag()->isFinished()) {
                 $response = $state->getResponse();
                 if ($response !== null) {
                     $state->getFlag()->isSuccess()

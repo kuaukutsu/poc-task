@@ -7,6 +7,7 @@ namespace kuaukutsu\poc\task\service;
 use kuaukutsu\poc\task\service\action\ActionCancel;
 use kuaukutsu\poc\task\service\action\ActionCompletion;
 use kuaukutsu\poc\task\service\action\ActionPause;
+use kuaukutsu\poc\task\service\action\ActionReady;
 use kuaukutsu\poc\task\service\action\ActionResume;
 use kuaukutsu\poc\task\service\action\ActionRun;
 use kuaukutsu\poc\task\service\action\ActionTerminate;
@@ -19,6 +20,7 @@ final class TaskExecutor
         private readonly ActionCancel $actionCancel,
         private readonly ActionCompletion $actionCompletion,
         private readonly ActionPause $actionPause,
+        private readonly ActionReady $actionReady,
         private readonly ActionResume $actionResume,
         private readonly ActionRun $actionRun,
         private readonly ActionTerminate $actionTerminate,
@@ -35,6 +37,12 @@ final class TaskExecutor
 
         if ($task->isPaused()) {
             return $this->actionResume
+                ->execute($task)
+                ->getState();
+        }
+
+        if ($task->isSkiped()) {
+            return $this->actionReady
                 ->execute($task)
                 ->getState();
         }

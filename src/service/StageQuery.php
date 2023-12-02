@@ -27,7 +27,7 @@ interface StageQuery
 
     public function getOpenByTask(EntityUuid $taskUuid): StageCollection;
 
-    public function getPromiseByTask(EntityUuid $taskUuid): StageCollection;
+    public function getReadyByTask(EntityUuid $taskUuid): StageCollection;
 
     public function getMetricsByTask(EntityUuid $taskUuid): TaskMetrics;
 
