@@ -5,14 +5,13 @@ declare(strict_types=1);
 namespace kuaukutsu\poc\task\state;
 
 use kuaukutsu\poc\task\exception\UnsupportedException;
-use kuaukutsu\poc\task\state\response\ResponseSerializer;
+use kuaukutsu\poc\task\state\response\ResponseContextWrapper;
 use kuaukutsu\poc\task\state\response\ResponseWrapper;
 use kuaukutsu\poc\task\TaskResponseInterface;
+use kuaukutsu\poc\task\tools\SerializerJson;
 
 trait TaskStateSerialize
 {
-    use ResponseSerializer;
-
     /**
      * @throws UnsupportedException
      */
@@ -54,5 +53,39 @@ trait TaskStateSerialize
                 $this->{$property} = $value;
             }
         }
+    }
+
+    private function serializeResponse(TaskResponseInterface $response): ResponseWrapper
+    {
+        if ($response instanceof ResponseContextWrapper) {
+            return new ResponseWrapper(
+                $response::class,
+                (new SerializerJson())->serialize(
+                    $response->serialize()
+                ),
+            );
+        }
+
+        return new ResponseWrapper(
+            $response::class,
+            (new SerializerJson())->serialize($response),
+        );
+    }
+
+    private function deserializeResponse(ResponseWrapper $wrapper): TaskResponseInterface
+    {
+        /**
+         * @var TaskResponseInterface $response
+         */
+        $response = (new SerializerJson())->deserialize(
+            $wrapper->serializeData,
+            $wrapper->class,
+        );
+
+        if ($response instanceof ResponseContextWrapper) {
+            return $response->deserialize();
+        }
+
+        return $response;
     }
 }

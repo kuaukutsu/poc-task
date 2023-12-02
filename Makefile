@@ -21,10 +21,13 @@ psalm:
 		ghcr.io/kuaukutsu/php:${PHP_VERSION}-cli \
 		./vendor/bin/psalm
 
+infection:
+	docker-compose -f ./docker-compose.yml run --rm -u ${USER} -w /src \
+		cli ./vendor/bin/roave-infection-static-analysis-plugin --psalm-config psalm.xml
+
 phpunit:
-	docker run --init -it --rm -u ${USER} -v "$$(pwd):/app" -w /app \
-		ghcr.io/kuaukutsu/php:${PHP_VERSION}-cli \
-		./vendor/bin/phpunit
+	docker-compose -f ./docker-compose.yml run --rm -u ${USER} -w /src \
+		cli ./vendor/bin/phpunit
 
 phpcs:
 	docker run --init -it --rm -u ${USER} -v "$$(pwd):/app" -w /app \
@@ -45,12 +48,15 @@ app-cli-build:
 	USER=${USER} docker-compose -f ./docker-compose.yml build cli
 
 cli:
-	docker-compose -f ./docker-compose.yml run --rm -u ${USER} -w /src cli sh
+	docker-compose -f ./docker-compose.yml run --rm -u ${USER} -w /src \
+		cli sh
 
 test-builder:
-	docker-compose -f ./docker-compose.yml run --rm -u ${USER} -w /src/tests -e XDEBUG_MODE=off cli \
-		php ./bin/builder.php --task=2
+	docker-compose -f ./docker-compose.yml run --rm -u ${USER} -w /src/tests \
+		-e XDEBUG_MODE=off \
+		cli php ./bin/builder.php --task=2
 
 test-pm:
-	docker-compose -f ./docker-compose.yml run --rm -u ${USER} -w /src/tests -e XDEBUG_MODE=off cli \
-		php ./bin/pm.php
+	docker-compose -f ./docker-compose.yml run --rm -u ${USER} -w /src/tests \
+		-e XDEBUG_MODE=off \
+		cli php ./bin/pm.php

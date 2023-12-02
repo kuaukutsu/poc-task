@@ -21,14 +21,12 @@ final class NumberSaveStageStub extends TaskHandlerBase
         if ($context->previous === null) {
             return $this->error(
                 new TaskStateMessage('NumberSave failure.', 'Previous is empty.'),
-                $context,
             );
         }
 
         if ($context->previous->getFlag()->isError()) {
             return $this->error(
                 $context->previous->getMessage(),
-                $context,
             );
         }
 
@@ -41,7 +39,6 @@ final class NumberSaveStageStub extends TaskHandlerBase
                     $this->name . ' error.',
                     $context->previous->getMessage()->message,
                 ),
-                $context,
                 $responseContext
             );
         }
@@ -57,7 +54,6 @@ final class NumberSaveStageStub extends TaskHandlerBase
                 $this->name . ' success.',
                 $context->previous->getMessage()->message,
             ),
-            $context,
             new NumberResponse($number, date('c'))
         );
     }

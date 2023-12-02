@@ -25,9 +25,7 @@ final class ActionResume implements TaskAction
     public function execute(EntityTask $task, ?TaskStateInterface $state = null): EntityTask
     {
         $state ??= new TaskStateRunning(
-            uuid: $task->getUuid(),
             message: new TaskStateMessage('Resume'),
-            flag: $task->copyFlag()->unsetPaused()->toValue(),
         );
 
         $this->transition->canAccessTransitionState(

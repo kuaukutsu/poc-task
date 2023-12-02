@@ -32,7 +32,6 @@ final class ActionPause implements TaskAction
     {
         $uuid = new EntityUuid($task->getUuid());
         $state ??= new TaskStatePaused(
-            uuid: $task->getUuid(),
             message: new TaskStateMessage('Paused'),
             flag: $task->getFlag(),
         );
@@ -58,7 +57,6 @@ final class ActionPause implements TaskAction
         $stageCollection = $this->stageQuery->getOpenByTask($uuid);
         foreach ($stageCollection as $stage) {
             $state = new TaskStatePaused(
-                uuid: $stage->uuid,
                 message: new TaskStateMessage('Paused'),
                 flag: $stage->flag,
             );

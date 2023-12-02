@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\tests;
 
+use kuaukutsu\poc\task\state\TaskStateMessage;
+use kuaukutsu\poc\task\state\TaskStateSkip;
 use LogicException;
 use Psr\Container\ContainerExceptionInterface;
 use PHPUnit\Framework\TestCase;
@@ -71,6 +73,35 @@ final class TaskBuilderTest extends TestCase
         self::assertEquals($draft->title, $task->getTitle());
         self::assertEquals(new TaskStateReady(), $task->getState());
         self::assertEquals(200, $draft->getOptions()->timeout);
+
+        self::get(TaskDestroyer::class)->purge(
+            new EntityUuid($task->getUuid())
+        );
+    }
+
+    /**
+     * @throws ContainerExceptionInterface
+     */
+    public function testCreateWithState(): void
+    {
+        $draft = $this->builder
+            ->create(
+                'task state builder',
+                new EntityWrapper(
+                    class: IncreaseNumberStageStub::class,
+                    params: [
+                        'name' => 'Number initialization.',
+                    ],
+                ),
+            )
+            ->setState(
+                new TaskStateSkip(
+                    new TaskStateMessage('skip')
+                )
+            );
+
+        $task = $this->builder->build($draft);
+        self::assertInstanceOf(TaskStateSkip::class, $task->getState());
 
         self::get(TaskDestroyer::class)->purge(
             new EntityUuid($task->getUuid())

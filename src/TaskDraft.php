@@ -12,6 +12,8 @@ final class TaskDraft
 {
     private ?float $timeout = null;
 
+    private TaskStateInterface $state;
+
     /**
      * @param non-empty-string $title
      */
@@ -19,6 +21,7 @@ final class TaskDraft
         public readonly string $title,
         public readonly EntityWrapperCollection $stages = new EntityWrapperCollection(),
     ) {
+        $this->state = new TaskStateReady();
     }
 
     public function addStage(EntityWrapper ...$stages): self
@@ -42,7 +45,7 @@ final class TaskDraft
 
     public function getState(): TaskStateInterface
     {
-        return new TaskStateReady();
+        return $this->state;
     }
 
     public function getOptions(): TaskOptions
@@ -50,6 +53,12 @@ final class TaskDraft
         return new TaskOptions(
             timeout: $this->timeout,
         );
+    }
+
+    public function setState(TaskStateInterface $state): self
+    {
+        $this->state = $state;
+        return $this;
     }
 
     public function setTimeout(float $timeout): self

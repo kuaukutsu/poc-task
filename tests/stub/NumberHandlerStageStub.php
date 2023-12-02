@@ -22,14 +22,12 @@ final class NumberHandlerStageStub extends TaskHandlerBase
         if ($context->previous === null) {
             return $this->error(
                 new TaskStateMessage('NumberHandler failure.', 'Previous is empty.'),
-                $context,
             );
         }
 
         if ($context->previous->getFlag()->isError()) {
             return $this->error(
                 $context->previous->getMessage(),
-                $context,
                 $context->previous->getResponse(),
             );
         }

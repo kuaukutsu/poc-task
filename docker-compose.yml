@@ -3,14 +3,8 @@ version: '3.9'
 x-services-volume:
   &services-volume
   - type: bind
-    source: ./src
-    target: /src/src
-  - type: bind
-    source: ./tests
-    target: /src/tests
-  - type: bind
-    source: ./vendor
-    target: /src/vendor
+    source: ./
+    target: /src
 
 x-default-logging:
   &default-logging

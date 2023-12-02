@@ -5,13 +5,12 @@ declare(strict_types=1);
 namespace kuaukutsu\poc\task\service;
 
 use Exception;
-use kuaukutsu\poc\task\dto\StageModelCreate;
 use LogicException;
 use Throwable;
+use kuaukutsu\poc\task\dto\StageModelCreate;
 use kuaukutsu\poc\task\dto\TaskModelCreate;
 use kuaukutsu\poc\task\dto\TaskModel;
 use kuaukutsu\poc\task\exception\BuilderException;
-use kuaukutsu\poc\task\state\TaskStateReady;
 use kuaukutsu\poc\task\state\TaskStateRelation;
 use kuaukutsu\poc\task\handler\TaskFactory;
 use kuaukutsu\poc\task\EntityWrapperCollection;
@@ -43,7 +42,7 @@ final class TaskCreator
             );
         }
 
-        $state = new TaskStateReady();
+        $state = $taskDraft->getState();
         $model = new TaskModelCreate(
             title: $taskDraft->title,
             flag: $state->getFlag()->toValue(),

@@ -156,7 +156,6 @@ final class TaskProcessReady
             new EntityUuid($uuid),
             new StageModelState(
                 new TaskStateRunning(
-                    uuid: $uuid,
                     message: new TaskStateMessage('Process is running'),
                 )
             ),

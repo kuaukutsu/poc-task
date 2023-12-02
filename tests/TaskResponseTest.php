@@ -22,7 +22,6 @@ final class TaskResponseTest extends TestCase
      */
     public function testSerialize(): void
     {
-        $uuid = new EntityUuid();
         $response = static fn(string $name): object => new class ($name) implements TaskResponseInterface {
             public function __construct(public readonly string $name)
             {
@@ -38,7 +37,6 @@ final class TaskResponseTest extends TestCase
         );
 
         $state = new TaskStateSuccess(
-            uuid: $uuid->getUuid(),
             message: new TaskStateMessage('test'),
             response: $context,
         );
@@ -48,7 +46,6 @@ final class TaskResponseTest extends TestCase
 
         /** @var TaskStateSuccess $stateObject */
         $stateObject = self::get(StateFactory::class)->create($stateSerialize);
-        self::assertEquals($uuid->getUuid(), $stateObject->uuid);
         self::assertTrue($stateObject->getFlag()->isSuccess());
         self::assertTrue($stateObject->getFlag()->isFinished());
 
