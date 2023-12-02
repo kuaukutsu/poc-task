@@ -101,7 +101,6 @@ final class TaskProcessPromise
     private function stageError(StageModel $stage, TaskStateInterface $statePrevious): void
     {
         $state = new TaskStateError(
-            uuid: $stage->uuid,
             message: $statePrevious->getMessage(),
             flag: $stage->flag,
             response: $statePrevious->getResponse(),
@@ -119,7 +118,6 @@ final class TaskProcessPromise
     private function stageSuccess(StageModel $stage, TaskStateInterface $statePrevious): void
     {
         $state = new TaskStateSuccess(
-            uuid: $stage->uuid,
             message: $statePrevious->getMessage(),
             response: $statePrevious->getResponse(),
         );

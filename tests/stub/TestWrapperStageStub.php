@@ -21,7 +21,6 @@ final class TestWrapperStageStub extends TaskHandlerBase
     {
         return $this->success(
             new TaskStateMessage($this->dto->name, 'Test example'),
-            $context,
             new TestResponse($this->wrapper->getName(), date('c'))
         );
     }

@@ -32,7 +32,6 @@ final class ActionCancel implements TaskAction
     {
         $uuid = new EntityUuid($task->getUuid());
         $state ??= new TaskStateCanceled(
-            uuid: $task->getUuid(),
             message: new TaskStateMessage('Canceled'),
             flag: $task->getFlag(),
         );
@@ -58,7 +57,6 @@ final class ActionCancel implements TaskAction
         $stageCollection = $this->stageQuery->getOpenByTask($uuid);
         foreach ($stageCollection as $stage) {
             $state = new TaskStateCanceled(
-                uuid: $stage->uuid,
                 message: new TaskStateMessage('Canceled'),
                 flag: $stage->flag,
             );

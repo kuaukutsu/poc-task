@@ -59,7 +59,6 @@ final class ActionCompletion implements TaskAction
             if ($state->getFlag()->isFinished()) {
                 if ($state->getFlag()->isError()) {
                     return new TaskStateError(
-                        uuid: $task->getUuid(),
                         message: $state->getMessage(),
                         flag: $task->getFlag(),
                     );
@@ -77,7 +76,6 @@ final class ActionCompletion implements TaskAction
 
             if ($state->getFlag()->isPaused()) {
                 return new TaskStatePaused(
-                    uuid: $task->getUuid(),
                     message: $state->getMessage(),
                     flag: $task->getFlag(),
                 );
@@ -93,7 +91,6 @@ final class ActionCompletion implements TaskAction
         $this->stageCommand->removeByTask($uuid);
 
         return new TaskStateSuccess(
-            uuid: $task->getUuid(),
             message: new TaskStateMessage('TaskCompletion'),
             response: $context,
         );

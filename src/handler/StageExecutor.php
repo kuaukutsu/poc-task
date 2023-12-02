@@ -31,7 +31,6 @@ final class StageExecutor
             return $handler->handleError(
                 $context,
                 new TaskStateError(
-                    uuid: $stage->taskUuid,
                     message: new TaskStateMessage($e->getMessage(), $e->getTraceAsString()),
                     flag: $stage->flag,
                 )

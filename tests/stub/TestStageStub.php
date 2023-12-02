@@ -20,7 +20,6 @@ final class TestStageStub extends TaskHandlerBase
     {
         return $this->success(
             new TaskStateMessage($this->name, 'Test example'),
-            $context,
             new TestResponse($this->name, date('c'))
         );
     }

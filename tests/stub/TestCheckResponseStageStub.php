@@ -23,7 +23,6 @@ final class TestCheckResponseStageStub extends TaskHandlerBase
 
         return $this->success(
             $previous->getMessage(),
-            $context,
             new TestResponse($this->name, date('c'))
         );
     }
@@ -31,7 +30,6 @@ final class TestCheckResponseStageStub extends TaskHandlerBase
     public function handleError(TaskStageContext $context, TaskStateError $state): TaskStateError
     {
         return new TaskStateError(
-            $state->uuid,
             new TaskStateMessage(
                 $state->getMessage()->message,
                 $context->task,

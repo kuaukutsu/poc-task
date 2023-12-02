@@ -25,9 +25,7 @@ final class ActionRun implements TaskAction
     public function execute(EntityTask $task, ?TaskStateInterface $state = null): EntityTask
     {
         $state ??= new TaskStateRunning(
-            uuid: $task->getUuid(),
             message: new TaskStateMessage('Runned'),
-            flag: $task->getFlag(),
         );
 
         $this->transition->canAccessTransitionState(

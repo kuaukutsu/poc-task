@@ -10,11 +10,7 @@ final class TaskStateCanceled implements TaskStateInterface
 {
     use TaskStateSerialize;
 
-    /**
-     * @param non-empty-string $uuid Context::UUID
-     */
     public function __construct(
-        public readonly string $uuid,
         private readonly TaskStateMessage $message,
         private readonly int $flag = 0,
     ) {
