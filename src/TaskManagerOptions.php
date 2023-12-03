@@ -10,7 +10,6 @@ final class TaskManagerOptions
      * @param float $heartbeat in Seconds
      * @param float $keeperInterval in Seconds
      * @param float|null $timeout Event Loop Timeout in Second
-     * @param float|null $handlerTimeout StageHandler Timeout in Second
      * @param int[] $interruptSignals A POSIX signal
      */
     public function __construct(
@@ -19,8 +18,7 @@ final class TaskManagerOptions
         private readonly float $keeperInterval = 5.,
         private readonly int $queueSize = 10,
         public readonly ?float $timeout = null,
-        public readonly ?float $handlerTimeout = 300.,
-        public readonly string $handlerEndpoint = 'handler.php',
+        public readonly string $handler = 'handler.php',
         public readonly array $interruptSignals = [SIGHUP, SIGINT, SIGTERM],
     ) {
     }

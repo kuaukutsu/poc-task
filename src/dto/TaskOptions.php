@@ -12,14 +12,14 @@ use kuaukutsu\poc\task\EntityArrable;
 final class TaskOptions implements EntityArrable
 {
     public function __construct(
-        public ?float $timeout = null,
+        public float $timeout,
     ) {
     }
 
     public function toArray(): array
     {
         /**
-         * @var array<string, scalar|null>
+         * @var array<string, scalar>
          */
         return get_object_vars($this);
     }

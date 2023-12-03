@@ -34,15 +34,15 @@ final class TransitionStateTest extends TestCase
 
         $this->transition->canAccessTransitionState(
             $uuid->getUuid(),
-            $flag->setReady()->toValue(),
-            $flag->setRunning()->toValue(),
+            $flag->unset()->setReady()->toValue(),
+            $flag->unset()->setRunning()->toValue(),
         );
 
         $this->expectException(StateTransitionException::class);
         $this->transition->canAccessTransitionState(
             $uuid->getUuid(),
-            $flag->setRunning()->toValue(),
-            $flag->setRunning()->toValue(),
+            $flag->unset()->setRunning()->toValue(),
+            $flag->unset()->setRunning()->toValue(),
         );
     }
 
@@ -53,15 +53,15 @@ final class TransitionStateTest extends TestCase
 
         $this->transition->canAccessTransitionState(
             $uuid->getUuid(),
-            $flag->setRunning()->toValue(),
-            $flag->setSuccess()->toValue(),
+            $flag->unset()->setRunning()->toValue(),
+            $flag->unset()->setSuccess()->toValue(),
         );
 
         $this->expectException(StateTransitionException::class);
         $this->transition->canAccessTransitionState(
             $uuid->getUuid(),
-            $flag->setRunning()->setError()->toValue(),
-            $flag->setSuccess()->toValue(),
+            $flag->unset()->setRunning()->setError()->toValue(),
+            $flag->unset()->setSuccess()->toValue(),
         );
     }
 
@@ -72,15 +72,15 @@ final class TransitionStateTest extends TestCase
 
         $this->transition->canAccessTransitionState(
             $uuid->getUuid(),
-            $flag->setRunning()->toValue(),
-            $flag->setCanceled()->toValue(),
+            $flag->unset()->setRunning()->toValue(),
+            $flag->unset()->setCanceled()->toValue(),
         );
 
         $this->expectException(StateTransitionException::class);
         $this->transition->canAccessTransitionState(
             $uuid->getUuid(),
-            $flag->setRunning()->setSuccess()->toValue(),
-            $flag->setCanceled()->toValue(),
+            $flag->unset()->setRunning()->setSuccess()->toValue(),
+            $flag->unset()->setCanceled()->toValue(),
         );
     }
 
@@ -91,15 +91,15 @@ final class TransitionStateTest extends TestCase
 
         $this->transition->canAccessTransitionState(
             $uuid->getUuid(),
-            $flag->setRunning()->toValue(),
-            $flag->setPaused()->toValue(),
+            $flag->unset()->setRunning()->toValue(),
+            $flag->unset()->setPaused()->toValue(),
         );
 
         $this->expectException(StateTransitionException::class);
         $this->transition->canAccessTransitionState(
             $uuid->getUuid(),
-            $flag->setRunning()->setError()->toValue(),
-            $flag->setPaused()->toValue(),
+            $flag->unset()->setRunning()->setError()->toValue(),
+            $flag->unset()->setPaused()->toValue(),
         );
     }
 }

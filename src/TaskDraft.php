@@ -13,7 +13,7 @@ final class TaskDraft implements EntityTask
 {
     use TaskFlagCommand;
 
-    private ?float $timeout = null;
+    private float $timeout = 300.;
 
     private TaskStateInterface $state;
 
@@ -85,7 +85,7 @@ final class TaskDraft implements EntityTask
 
     public function setTimeout(float $timeout): self
     {
-        $this->timeout = $timeout;
+        $this->timeout = max(1, $timeout);
         return $this;
     }
 }

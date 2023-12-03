@@ -28,6 +28,6 @@ $manager->run(
         bindir: __DIR__,
         heartbeat: 5.,
         keeperInterval: 2.,
-        handlerEndpoint: 'handler.php',
+        handler: 'handler.php',
     )
 );
