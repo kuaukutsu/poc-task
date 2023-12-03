@@ -40,7 +40,6 @@ final class TaskBuilderTest extends TestCase
         self::assertInstanceOf(EntityTask::class, $draft);
         self::assertEquals('task test builder', $draft->getTitle());
         self::assertCount(1, $draft->getStages());
-        self::assertEmpty($draft->getOptions()->timeout);
 
         $draft->addStage(
             new EntityWrapper(
@@ -74,7 +73,7 @@ final class TaskBuilderTest extends TestCase
         $task = $this->builder->build($draft);
         self::assertEquals($draft->getTitle(), $task->getTitle());
         self::assertEquals(new TaskStateReady(), $task->getState());
-        self::assertEquals(200, $draft->getOptions()->timeout);
+        self::assertEquals($draft->getOptions()->timeout, $task->getOptions()->timeout);
 
         self::get(TaskDestroyer::class)->purge(
             new EntityUuid($task->getUuid())
@@ -104,6 +103,8 @@ final class TaskBuilderTest extends TestCase
 
         $task = $this->builder->build($draft);
         self::assertInstanceOf(TaskStateSkip::class, $task->getState());
+        // default
+        self::assertEquals(300., $task->getOptions()->timeout);
 
         self::get(TaskDestroyer::class)->purge(
             new EntityUuid($task->getUuid())

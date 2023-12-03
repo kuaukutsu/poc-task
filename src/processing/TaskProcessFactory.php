@@ -13,7 +13,7 @@ final class TaskProcessFactory
     {
         $cmd = [
             'php',
-            $options->handlerEndpoint,
+            $options->handler,
             '--stage=' . $context->stage,
         ];
 
@@ -29,7 +29,7 @@ final class TaskProcessFactory
                 $options->getBindir(),
                 getenv(),
                 null,
-                $context->options->timeout ?? $options->handlerTimeout
+                $context->options->timeout
             ),
         );
     }

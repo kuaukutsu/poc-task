@@ -46,6 +46,7 @@ final class TransitionState
             ],
             (new TaskFlag())->setRunning()->toValue() => [
                 (new TaskFlag())->setSuccess()->toValue(),
+                (new TaskFlag())->setPaused()->toValue(),
                 (new TaskFlag())->setSkiped()->toValue(),
                 (new TaskFlag())->setCanceled()->toValue(),
                 (new TaskFlag())->setWaiting()->toValue(),
