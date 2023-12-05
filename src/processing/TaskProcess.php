@@ -19,8 +19,6 @@ final class TaskProcess
     public const SUCCESS = 0;
     public const ERROR = 1;
 
-    private ?string $output = null;
-
     /**
      * @param non-empty-string $task
      * @param non-empty-string $stage
@@ -39,11 +37,7 @@ final class TaskProcess
 
     public function getOutput(): string
     {
-        if ($this->output === null) {
-            $this->output = $this->prepareOutput($this->process);
-        }
-
-        return $this->output;
+        return $this->prepareOutput($this->process);
     }
 
     public function isSuccessful(): bool

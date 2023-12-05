@@ -8,27 +8,35 @@ use kuaukutsu\poc\task\processing\TaskProcess;
 
 final class StageEvent implements EventInterface
 {
+    private readonly string $uuid;
+
+    private readonly string $status;
+
+    private readonly string $output;
+
     private readonly string $message;
 
-    public function __construct(
-        private readonly TaskProcess $process,
-    ) {
-        $this->message = "[{$this->process->task}] " . $this->process->stage;
+    public function __construct(TaskProcess $process)
+    {
+        $this->uuid = $process->stage;
+        $this->status = $process->getStatus();
+        $this->output = $process->getOutput();
+        $this->message = "[process->task] " . $process->stage;
     }
 
     public function getUuid(): string
     {
-        return $this->process->stage;
+        return $this->uuid;
     }
 
     public function getStatus(): string
     {
-        return $this->process->getStatus();
+        return $this->status;
     }
 
     public function getOutput(): string
     {
-        return $this->process->getOutput();
+        return $this->output;
     }
 
     public function getMessage(): string
