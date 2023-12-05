@@ -21,7 +21,7 @@ final class StageEvent implements EventInterface
         $this->uuid = $process->stage;
         $this->status = $process->getStatus();
         $this->output = $process->getOutput();
-        $this->message = "[process->task] " . $process->stage;
+        $this->message = "[$process->task] " . $process->stage;
     }
 
     public function getUuid(): string
