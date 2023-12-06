@@ -207,6 +207,7 @@ final class TaskProcessing
 
     /**
      * @param non-empty-string $previousStage
+     * @throws ProcessingException
      */
     private function enqueueNext(EntityTask $task, TaskStateInterface $state, string $previousStage): void
     {
@@ -243,6 +244,7 @@ final class TaskProcessing
 
     /**
      * @param non-empty-string $uuid
+     * @throws ProcessingException
      */
     private function factory(string $uuid): EntityTask
     {
