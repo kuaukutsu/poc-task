@@ -205,6 +205,9 @@ final class TaskProcessing
         }
     }
 
+    /**
+     * @param non-empty-string $previousStage
+     */
     private function enqueueNext(EntityTask $task, TaskStateInterface $state, string $previousStage): void
     {
         if ($state->getFlag()->isFinished() === false) {
