@@ -41,7 +41,7 @@ final class TaskExecutor
                 ->getState();
         }
 
-        if ($task->isSkiped()) {
+        if ($task->isSkipped()) {
             return $this->actionReady
                 ->execute($task)
                 ->getState();

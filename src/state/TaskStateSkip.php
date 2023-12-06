@@ -16,7 +16,7 @@ final class TaskStateSkip implements TaskStateInterface
 
     public function getFlag(): TaskFlag
     {
-        return (new TaskFlag())->setSkiped();
+        return (new TaskFlag())->setSkipped();
     }
 
     public function getMessage(): TaskStateMessage
