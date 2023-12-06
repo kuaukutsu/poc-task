@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\processing;
 
+use kuaukutsu\poc\task\state\TaskStateInterface;
 use Throwable;
 use kuaukutsu\poc\task\exception\ProcessingException;
 use kuaukutsu\poc\task\handler\StateFactory;
@@ -81,13 +82,16 @@ final class TaskProcessing
         if ($this->processPromise->has($process->task)) {
             $context = $this->processPromise->dequeue($process->task, $process->stage);
             if ($this->processPromise->canCompleted($context)) {
-                $state = $this->taskExecutor->stop($task);
-                if ($this->processPromise->completed($context, $state)) {
-                    $parentTask = $this->factory($context->task);
-                    if ($this->processReady->pushStageNext($parentTask, $context->stage) === false) {
-                        $this->taskExecutor->stop($parentTask);
-                    }
-                }
+                $state = $this->processPromise->completed(
+                    $context,
+                    $this->taskExecutor->stop($task)
+                );
+
+                $this->enqueueNext(
+                    $this->factory($context->task),
+                    $state,
+                    $context->stage,
+                );
             }
 
             return;
@@ -96,17 +100,8 @@ final class TaskProcessing
         $state = $this->stateFactory->create(
             $process->getOutput()
         );
-        if ($state->getFlag()->isWaiting()) {
-            return;
-        }
-        if ($state->getFlag()->isError()) {
-            $this->taskExecutor->stop($task);
-            return;
-        }
 
-        if ($this->processReady->pushStageNext($task, $process->stage) === false) {
-            $this->taskExecutor->stop($task);
-        }
+        $this->enqueueNext($task, $state, $process->stage);
     }
 
     /**
@@ -130,9 +125,17 @@ final class TaskProcessing
 
         if ($this->processPromise->has($process->task)) {
             $context = $this->processPromise->dequeue($process->task, $process->stage);
-            $this->taskExecutor->cancel(
-                $this->factory($context->task)
-            );
+
+            try {
+                $this->taskExecutor->cancel(
+                    $this->factory($context->task)
+                );
+            } catch (Throwable $exception) {
+                throw new ProcessingException(
+                    "[$process->task] TaskProcessing error: " . $exception->getMessage(),
+                    $exception,
+                );
+            }
         }
     }
 
@@ -199,6 +202,24 @@ final class TaskProcessing
                     $exception,
                 );
             }
+        }
+    }
+
+    private function enqueueNext(EntityTask $task, TaskStateInterface $state, string $previousStage): void
+    {
+        if ($state->getFlag()->isFinished() === false) {
+            return;
+        }
+
+        try {
+            if ($this->processReady->pushStageNext($task, $previousStage) === false) {
+                $this->taskExecutor->stop($task);
+            }
+        } catch (Throwable $exception) {
+            throw new ProcessingException(
+                "[{$task->getUuid()}] TaskProcessing error: " . $exception->getMessage(),
+                $exception,
+            );
         }
     }
 

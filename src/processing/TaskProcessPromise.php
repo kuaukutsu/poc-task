@@ -4,18 +4,20 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\processing;
 
-use RuntimeException;
 use kuaukutsu\poc\task\dto\StageModel;
 use kuaukutsu\poc\task\dto\StageModelState;
 use kuaukutsu\poc\task\exception\ProcessingException;
+use kuaukutsu\poc\task\state\TaskStateCanceled;
 use kuaukutsu\poc\task\state\TaskStateError;
 use kuaukutsu\poc\task\state\TaskStateInterface;
 use kuaukutsu\poc\task\state\TaskStateRelation;
+use kuaukutsu\poc\task\state\TaskStateSkip;
 use kuaukutsu\poc\task\state\TaskStateSuccess;
 use kuaukutsu\poc\task\service\StageCommand;
 use kuaukutsu\poc\task\service\StageQuery;
 use kuaukutsu\poc\task\EntityTask;
 use kuaukutsu\poc\task\EntityUuid;
+use Throwable;
 
 final class TaskProcessPromise
 {
@@ -75,56 +77,56 @@ final class TaskProcessPromise
         throw new ProcessingException("[$uuid] Queue promise is empty.");
     }
 
-    public function completed(TaskProcessContext $context, TaskStateInterface $statePrevious): bool
+    /**
+     * @throws ProcessingException
+     */
+    public function completed(TaskProcessContext $context, TaskStateInterface $statePrevious): TaskStateInterface
     {
-        if ($statePrevious->getFlag()->isFinished() === false) {
-            return false;
-        }
-
-        $stage = $this->query->getOne(new EntityUuid($context->stage));
-        if ($stage->taskUuid !== $context->task) {
-            return false;
-        }
+        $stage = $this->query->getOne(
+            new EntityUuid($context->stage)
+        );
 
         if ($statePrevious->getFlag()->isSuccess()) {
-            $this->stageSuccess($stage, $statePrevious);
-            return true;
+            $state = new TaskStateSuccess(
+                message: $statePrevious->getMessage(),
+                response: $statePrevious->getResponse(),
+            );
+        } elseif ($statePrevious->getFlag()->isError()) {
+            $state = new TaskStateError(
+                message: $statePrevious->getMessage(),
+                flag: $stage->flag,
+                response: $statePrevious->getResponse(),
+            );
+        } elseif ($statePrevious->getFlag()->isError()) {
+            $state = new TaskStateCanceled(
+                message: $statePrevious->getMessage(),
+                flag: $stage->flag,
+            );
+        } else {
+            $state = new TaskStateSkip(
+                message: $statePrevious->getMessage(),
+            );
         }
 
-        $this->stageError($stage, $statePrevious);
-        return false;
+        $this->state($stage, $state);
+        return $state;
     }
 
     /**
-     * @throws RuntimeException Ошибка выполнения комманды
+     * @throws ProcessingException Ошибка выполнения комманды
      */
-    private function stageError(StageModel $stage, TaskStateInterface $statePrevious): void
+    private function state(StageModel $stage, TaskStateInterface $state): void
     {
-        $state = new TaskStateError(
-            message: $statePrevious->getMessage(),
-            flag: $stage->flag,
-            response: $statePrevious->getResponse(),
-        );
-
-        $this->command->state(
-            new EntityUuid($stage->uuid),
-            new StageModelState($state),
-        );
-    }
-
-    /**
-     * @throws RuntimeException Ошибка выполнения комманды
-     */
-    private function stageSuccess(StageModel $stage, TaskStateInterface $statePrevious): void
-    {
-        $state = new TaskStateSuccess(
-            message: $statePrevious->getMessage(),
-            response: $statePrevious->getResponse(),
-        );
-
-        $this->command->state(
-            new EntityUuid($stage->uuid),
-            new StageModelState($state),
-        );
+        try {
+            $this->command->state(
+                new EntityUuid($stage->uuid),
+                new StageModelState($state),
+            );
+        } catch (Throwable $exception) {
+            throw new ProcessingException(
+                "[$stage->taskUuid] TaskProcessing, [$stage->uuid] Stage error: " . $exception->getMessage(),
+                $exception,
+            );
+        }
     }
 }
