@@ -21,7 +21,6 @@ $container = new Container($definitions);
  * @noinspection PhpUnhandledExceptionInspection
  */
 $manager = $container->get(TaskManager::class);
-
 /** @noinspection PhpUnhandledExceptionInspection */
 $manager->run(
     new TaskManagerOptions(
