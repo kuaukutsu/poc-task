@@ -19,7 +19,6 @@ use kuaukutsu\poc\task\event\StageEvent;
 use kuaukutsu\poc\task\event\StageTimeoutEvent;
 use kuaukutsu\poc\task\exception\ProcessingException;
 use kuaukutsu\poc\task\processing\TaskProcess;
-use kuaukutsu\poc\task\processing\TaskProcessContext;
 use kuaukutsu\poc\task\processing\TaskProcessFactory;
 use kuaukutsu\poc\task\processing\TaskProcessing;
 
@@ -70,21 +69,13 @@ final class TaskManager implements EventPublisherInterface
                     );
                 }
 
-                while (
-                    $this->processing->hasTaskProcess()
-                    && count($this->processesActive) < $options->getQueueSize()
-                ) {
-                    $this->processRun(
-                        $this->processing->getTaskProcess(),
-                        $options,
-                    );
-                }
+                $this->processRun($options);
             }
         );
 
         $this->keeperId = EventLoop::repeat(
             $options->getKeeperInterval(),
-            function (): void {
+            function () use ($options): void {
                 if ($this->processesActive === []) {
                     $this->keeperDisable();
                     return;
@@ -133,6 +124,8 @@ final class TaskManager implements EventPublisherInterface
                         continue;
                     }
                 }
+
+                $this->processRun($options);
             }
         );
         $this->keeperDisable();
@@ -216,13 +209,19 @@ final class TaskManager implements EventPublisherInterface
         exit($signal);
     }
 
-    private function processRun(TaskProcessContext $context, TaskManagerOptions $options): void
+    private function processRun(TaskManagerOptions $options): void
     {
-        if (array_key_exists($context->stage, $this->processesActive) === false) {
-            $process = $this->processFactory->create($context, $options);
-            $process->start();
+        while (
+            $this->processing->hasTaskProcess()
+            && count($this->processesActive) < $options->getQueueSize()
+        ) {
+            $context = $this->processing->getTaskProcess();
+            if (array_key_exists($context->stage, $this->processesActive) === false) {
+                $process = $this->processFactory->create($context, $options);
+                $process->start();
 
-            $this->processPush($process);
+                $this->processPush($process);
+            }
         }
     }
 

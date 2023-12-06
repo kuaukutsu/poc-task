@@ -13,6 +13,8 @@ use kuaukutsu\poc\task\TaskManager;
 use kuaukutsu\poc\task\TaskManagerOptions;
 use kuaukutsu\poc\task\tools\TaskManagerOutput;
 
+use function kuaukutsu\poc\task\tools\argument;
+
 require __DIR__ . '/bootstrap.php';
 
 $container = new Container($definitions);
@@ -28,7 +30,8 @@ $manager->on($container->get(TaskManagerOutput::class));
 $manager->run(
     new TaskManagerOptions(
         bindir: __DIR__,
-        heartbeat: 5.,
+        heartbeat: (float)argument('heartbeat', 2),
         keeperInterval: 1.,
+        queueSize: (int)argument('process', 30),
     )
 );

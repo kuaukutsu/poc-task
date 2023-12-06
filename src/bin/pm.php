@@ -12,6 +12,8 @@ use DI\Container;
 use kuaukutsu\poc\task\TaskManager;
 use kuaukutsu\poc\task\TaskManagerOptions;
 
+use function kuaukutsu\poc\task\tools\argument;
+
 require __DIR__ . '/bootstrap.php';
 
 $container = new Container($definitions);
@@ -25,8 +27,9 @@ $manager = $container->get(TaskManager::class);
 $manager->run(
     new TaskManagerOptions(
         bindir: __DIR__,
-        heartbeat: 5.,
-        keeperInterval: 2.,
+        heartbeat: (float)argument('heartbeat', 2),
+        keeperInterval: 1.,
+        queueSize: (int)argument('process', 30),
         handler: 'handler.php',
     )
 );
