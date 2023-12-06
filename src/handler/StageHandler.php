@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace kuaukutsu\poc\task\handler;
 
 use Throwable;
-use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use kuaukutsu\poc\task\dto\StageModel;
 use kuaukutsu\poc\task\dto\StageModelState;
@@ -23,7 +22,7 @@ final class StageHandler
         private readonly StageCommand $command,
         private readonly StageContextFactory $contextFactory,
         private readonly StageExecutor $executor,
-        private readonly ConsoleOutputInterface $output = new ConsoleOutput(),
+        private readonly ConsoleOutputInterface $output,
     ) {
     }
 

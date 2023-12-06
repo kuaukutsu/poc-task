@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use Symfony\Component\Console\Output\ConsoleOutput;
+use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use kuaukutsu\poc\task\service\StageCommand;
 use kuaukutsu\poc\task\service\StageQuery;
 use kuaukutsu\poc\task\service\TaskCommand;
@@ -21,4 +23,5 @@ $definitions = [
     TaskCommand::class => autowire(TaskCommandStub::class),
     StageQuery::class => create(StageQueryStub::class),
     StageCommand::class => autowire(StageCommandStub::class),
+    ConsoleOutputInterface::class => create(ConsoleOutput::class),
 ];

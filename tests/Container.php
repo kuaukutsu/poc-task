@@ -6,6 +6,10 @@ namespace kuaukutsu\poc\task\tests;
 
 use DI\DependencyException;
 use DI\NotFoundException;
+use Symfony\Component\Console\Output\NullOutput;
+use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Output\ConsoleOutputInterface;
+use kuaukutsu\poc\task\tools\NullConsoleOutput;
 use kuaukutsu\poc\task\service\StageCommand;
 use kuaukutsu\poc\task\service\StageQuery;
 use kuaukutsu\poc\task\service\TaskCommand;
@@ -40,6 +44,8 @@ trait Container
                     TaskCommand::class => autowire(TaskCommandStub::class),
                     StageQuery::class => create(StageQueryStub::class),
                     StageCommand::class => autowire(StageCommandStub::class),
+                    OutputInterface::class => create(NullOutput::class),
+                    ConsoleOutputInterface::class => autowire(NullConsoleOutput::class),
                 ]
             );
         }
