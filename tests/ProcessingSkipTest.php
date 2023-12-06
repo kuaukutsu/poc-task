@@ -69,7 +69,7 @@ final class ProcessingSkipTest extends TestCase
         $uuid = new EntityUuid($this->task->getUuid());
 
         $task = $this->taskQuery->getOne($uuid);
-        self::assertEquals($flag->unset()->setSkiped()->toValue(), $task->flag);
+        self::assertEquals($flag->unset()->setSkipped()->toValue(), $task->flag);
 
         self::assertFalse($this->processing->hasTaskProcess());
         $this->processing->loadTaskProcess($this->options);

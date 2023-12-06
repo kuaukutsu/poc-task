@@ -38,9 +38,9 @@ trait TaskFlagCommand
         return $this->flag->isPaused();
     }
 
-    final public function isSkiped(): bool
+    final public function isSkipped(): bool
     {
-        return $this->flag->isSkiped();
+        return $this->flag->isSkipped();
     }
 
     final public function isPromised(): bool

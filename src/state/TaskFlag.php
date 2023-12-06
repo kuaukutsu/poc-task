@@ -12,7 +12,7 @@ final class TaskFlag
     private const FLAG_CANCELED = 8;
     private const FLAG_PROMISED = 16;
     private const FLAG_PAUSED = 32;
-    private const FLAG_SKIPED = 64;
+    private const FLAG_SKIPPED = 64;
     private const FLAG_ERROR = 2048;
 
     public function __construct(private int $flag = 0)
@@ -63,14 +63,14 @@ final class TaskFlag
         return $this;
     }
 
-    public function isSkiped(): bool
+    public function isSkipped(): bool
     {
-        return ($this->flag & self::FLAG_SKIPED) === self::FLAG_SKIPED;
+        return ($this->flag & self::FLAG_SKIPPED) === self::FLAG_SKIPPED;
     }
 
-    public function setSkiped(): self
+    public function setSkipped(): self
     {
-        $this->flag = self::FLAG_SKIPED;
+        $this->flag = self::FLAG_SKIPPED;
         return $this;
     }
 
@@ -141,7 +141,7 @@ final class TaskFlag
         return $this->isSuccess()
             || $this->isError()
             || $this->isCanceled()
-            || $this->isSkiped();
+            || $this->isSkipped();
     }
 
     public function unset(): self
@@ -161,7 +161,7 @@ final class TaskFlag
             self::FLAG_CANCELED => 'canceled',
             self::FLAG_PROMISED => 'promised',
             self::FLAG_PAUSED => 'paused',
-            self::FLAG_SKIPED => 'skiped',
+            self::FLAG_SKIPPED => 'skipped',
             self::FLAG_ERROR => 'error',
             default => 'ready',
         };

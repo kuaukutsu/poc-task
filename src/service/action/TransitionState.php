@@ -31,13 +31,13 @@ final class TransitionState
         $map = [
             (new TaskFlag())->setReady()->toValue() => [
                 (new TaskFlag())->setRunning()->toValue(),
-                (new TaskFlag())->setSkiped()->toValue(),
+                (new TaskFlag())->setSkipped()->toValue(),
                 (new TaskFlag())->setCanceled()->toValue(),
                 (new TaskFlag())->setError()->toValue(),
             ],
             (new TaskFlag())->setPromised()->toValue() => [
                 (new TaskFlag())->setRunning()->toValue(),
-                (new TaskFlag())->setSkiped()->toValue(),
+                (new TaskFlag())->setSkipped()->toValue(),
                 (new TaskFlag())->setCanceled()->toValue(),
                 (new TaskFlag())->setError()->toValue(),
                 (new TaskFlag())->setPromised()->setPaused()->toValue(),
@@ -47,7 +47,7 @@ final class TransitionState
             (new TaskFlag())->setRunning()->toValue() => [
                 (new TaskFlag())->setSuccess()->toValue(),
                 (new TaskFlag())->setPaused()->toValue(),
-                (new TaskFlag())->setSkiped()->toValue(),
+                (new TaskFlag())->setSkipped()->toValue(),
                 (new TaskFlag())->setCanceled()->toValue(),
                 (new TaskFlag())->setWaiting()->toValue(),
                 (new TaskFlag())->setRunning()->setPaused()->toValue(),

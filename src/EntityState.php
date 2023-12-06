@@ -20,7 +20,7 @@ interface EntityState
 
     public function isPaused(): bool;
 
-    public function isSkiped(): bool;
+    public function isSkipped(): bool;
 
     public function isPromised(): bool;
 
