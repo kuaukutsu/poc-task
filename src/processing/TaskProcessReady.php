@@ -18,36 +18,59 @@ use kuaukutsu\poc\task\EntityUuid;
 
 final class TaskProcessReady
 {
+    private bool $qbalance = true;
+
     /**
      * @var SplQueue<TaskProcessContext> $queue
      */
     private readonly SplQueue $queue;
+
+    /**
+     * @var SplQueue<TaskProcessContext> $qpromises
+     */
+    private readonly SplQueue $qpromises;
 
     public function __construct(
         private readonly StageQuery $query,
         private readonly StageCommand $command,
     ) {
         $this->queue = new SplQueue();
+        $this->qpromises = new SplQueue();
     }
 
     public function has(): bool
     {
-        return $this->queue->isEmpty() === false;
+        return $this->queue->isEmpty() === false
+            || $this->qpromises->isEmpty() === false;
     }
 
     public function isEmpty(): bool
     {
-        return $this->queue->isEmpty();
+        return $this->queue->isEmpty()
+            && $this->qpromises->isEmpty();
     }
 
     public function count(): int
     {
-        return $this->queue->count();
+        return $this->queue->count() + $this->qpromises->count();
     }
 
+    /**
+     * QPromises может быть очень ёмкой, и в результате будет занимать весь операционный объём.
+     * Поэтому периодически пропускаем вперёд операционные задачи.
+     */
     public function dequeue(): TaskProcessContext
     {
-        return $this->queue->dequeue();
+        if ($this->qbalance) {
+            $this->qbalance = false;
+            return $this->queue->isEmpty()
+                ? $this->qpromises->dequeue()
+                : $this->queue->dequeue();
+        }
+
+        return $this->qpromises->isEmpty()
+            ? $this->queue->dequeue()
+            : $this->qpromises->dequeue();
     }
 
     /**
@@ -77,25 +100,6 @@ final class TaskProcessReady
     }
 
     /**
-     * @return array<string, true>
-     * @throws RuntimeException Ошибка выполнения комманды
-     */
-    public function pushStagePromise(EntityTask $task): array
-    {
-        $iterator = $this->query->iterableReadyByTask(
-            new EntityUuid($task->getUuid())
-        );
-
-        $index = [];
-        foreach ($iterator as $stage) {
-            $index[$stage->uuid] = true;
-            $this->enqueue($task, $this->processRun($stage->uuid));
-        }
-
-        return $index;
-    }
-
-    /**
      * @param non-empty-string $previous
      * @throws RuntimeException Ошибка выполнения комманды
      */
@@ -110,6 +114,31 @@ final class TaskProcessReady
         }
 
         return $this->enqueue($task, $this->processRun($stage->uuid), $previous);
+    }
+
+    /**
+     * @return array<string, true>
+     * @throws RuntimeException Ошибка выполнения комманды
+     */
+    public function pushStagePromise(EntityTask $task): array
+    {
+        $iterator = $this->query->iterableReadyByTask(
+            new EntityUuid($task->getUuid())
+        );
+
+        $index = [];
+        foreach ($iterator as $stage) {
+            $index[$stage->uuid] = true;
+            $this->qpromises->enqueue(
+                new TaskProcessContext(
+                    task: $task->getUuid(),
+                    stage: $this->processRun($stage->uuid)->uuid,
+                    options: $task->getOptions(),
+                )
+            );
+        }
+
+        return $index;
     }
 
     /**
@@ -163,7 +192,6 @@ final class TaskProcessReady
 
     /**
      * @param non-empty-string[] $indexTaskUuid
-     * @throws RuntimeException Ошибка выполнения комманды
      */
     private function processTerminate(array $indexTaskUuid): void
     {
