@@ -54,8 +54,7 @@ final class ActionPause implements TaskAction
 
     private function stagePause(EntityUuid $uuid): void
     {
-        $stageCollection = $this->stageQuery->getOpenByTask($uuid);
-        foreach ($stageCollection as $stage) {
+        foreach ($this->stageQuery->iterableOpenByTask($uuid) as $stage) {
             $state = new TaskStatePaused(
                 message: new TaskStateMessage('Paused'),
                 flag: $stage->flag,

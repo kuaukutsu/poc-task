@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\processing;
 
+use Throwable;
 use kuaukutsu\poc\task\dto\StageModel;
 use kuaukutsu\poc\task\dto\StageModelState;
+use kuaukutsu\poc\task\exception\NotFoundException;
 use kuaukutsu\poc\task\exception\ProcessingException;
 use kuaukutsu\poc\task\state\TaskStateCanceled;
 use kuaukutsu\poc\task\state\TaskStateError;
@@ -17,12 +19,11 @@ use kuaukutsu\poc\task\service\StageCommand;
 use kuaukutsu\poc\task\service\StageQuery;
 use kuaukutsu\poc\task\EntityTask;
 use kuaukutsu\poc\task\EntityUuid;
-use Throwable;
 
 final class TaskProcessPromise
 {
     /**
-     * @var array<string, TaskProcessContext>
+     * @var array<non-empty-string, TaskProcessContext>
      */
     private array $queue = [];
 
@@ -39,13 +40,6 @@ final class TaskProcessPromise
     {
         return array_key_exists($uuid, $this->queue)
             && $this->queue[$uuid]->storage !== [];
-    }
-
-    public function canCompleted(TaskProcessContext $context): bool
-    {
-        return $context->previous !== null
-            && array_key_exists($context->previous, $this->queue)
-            && $this->queue[$context->previous]->storage === [];
     }
 
     /**
@@ -65,6 +59,8 @@ final class TaskProcessPromise
     }
 
     /**
+     * @param non-empty-string $uuid
+     * @param non-empty-string $stage
      * @throws ProcessingException
      */
     public function dequeue(string $uuid, string $stage): TaskProcessContext
@@ -78,12 +74,31 @@ final class TaskProcessPromise
     }
 
     /**
+     * @param non-empty-string $uuid
+     * @param non-empty-string $stage
      * @throws ProcessingException
      */
-    public function completed(TaskProcessContext $context, TaskStateInterface $taskState): TaskStateInterface
+    public function getContextIfCompleted(string $uuid, string $stage): ?TaskProcessContext
+    {
+        if (array_key_exists($uuid, $this->queue)) {
+            unset($this->queue[$uuid]->storage[$stage]);
+            if ($this->queue[$uuid]->storage === []) {
+                return $this->queue[$uuid];
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param non-empty-string $stageUuid
+     * @throws NotFoundException
+     * @throws ProcessingException
+     */
+    public function completed(string $stageUuid, TaskStateInterface $taskState): TaskStateInterface
     {
         $stage = $this->query->getOne(
-            new EntityUuid($context->stage)
+            new EntityUuid($stageUuid)
         );
 
         if ($taskState->getFlag()->isSuccess()) {

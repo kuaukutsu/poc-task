@@ -69,7 +69,7 @@ final class ProcessingTest extends TestCase
         self::assertEquals($flag->unset()->setRunning()->toValue(), $task->flag);
 
         $num = 0;
-        foreach ($this->stageQuery->findByTask($uuid) as $stage) {
+        foreach ($this->stageQuery->iterableByTask($uuid) as $stage) {
             $num++;
             if ($num === 1) {
                 self::assertEquals($flag->unset()->setRunning()->toValue(), $stage->flag);

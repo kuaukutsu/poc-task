@@ -89,7 +89,7 @@ final class ProcessingPromiseTest extends TestCase
         self::assertEquals(0, $exitCode);
 
         $num = 0;
-        foreach ($this->stageQuery->findByTask($uuid) as $stage) {
+        foreach ($this->stageQuery->iterableByTask($uuid) as $stage) {
             $num++;
             if ($num === 1) {
                 self::assertEquals($flag->unset()->setWaiting()->toValue(), $stage->flag);

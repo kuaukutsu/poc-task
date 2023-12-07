@@ -72,6 +72,34 @@ final class NumberHandlerStageStub extends TaskHandlerBase
                     'number' => $response->response->number + 4,
                 ],
             ),
+            new EntityWrapper(
+                class: IncreaseNumberStageStub::class,
+                params: [
+                    'name' => 'Nested three: ' . $response->name,
+                    'number' => $response->response->number + 5,
+                ],
+            ),
+            new EntityWrapper(
+                class: IncreaseNumberStageStub::class,
+                params: [
+                    'name' => 'Nested three: ' . $response->name,
+                    'number' => $response->response->number + 6,
+                ],
+            ),
+            new EntityWrapper(
+                class: IncreaseNumberStageStub::class,
+                params: [
+                    'name' => 'Nested three: ' . $response->name,
+                    'number' => $response->response->number + 7,
+                ],
+            ),
+            new EntityWrapper(
+                class: IncreaseNumberStageStub::class,
+                params: [
+                    'name' => 'Nested three: ' . $response->name,
+                    'number' => $response->response->number + 8,
+                ],
+            ),
         );
 
         return $this->wait(

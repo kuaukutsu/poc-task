@@ -85,29 +85,31 @@ final class StageServiceTest extends TestCase
 
     public function testGetOpenByTask(): void
     {
-        $collection = $this->query->getOpenByTask(
-            new EntityUuid()
-        );
-
-        self::assertEmpty($collection);
-
-        $collection = $this->query->getOpenByTask(
-            new EntityUuid($this->task->getUuid())
-        );
-
-        self::assertCount(1, $collection);
-        self::assertEquals($this->stage->uuid, $collection->getFirst()->uuid);
-    }
-
-    public function testFindByTask(): void
-    {
-        $generator = $this->query->findByTask(
+        $generator = $this->query->iterableOpenByTask(
             new EntityUuid()
         );
 
         self::assertEmpty($generator->current());
 
-        $generator = $this->query->findByTask(
+        $generator = $this->query->iterableOpenByTask(
+            new EntityUuid($this->task->getUuid())
+        );
+
+        foreach ($generator as $item) {
+            self::assertEquals($this->stage->uuid, $item->uuid);
+            break;
+        }
+    }
+
+    public function testFindByTask(): void
+    {
+        $generator = $this->query->iterableByTask(
+            new EntityUuid()
+        );
+
+        self::assertEmpty($generator->current());
+
+        $generator = $this->query->iterableByTask(
             new EntityUuid($this->task->getUuid())
         );
 
@@ -150,11 +152,11 @@ final class StageServiceTest extends TestCase
             self::get(TaskBuilder::class)
         );
 
-        $collection = $this->query->getOpenByTask(
-            new EntityUuid($this->task->getUuid())
-        );
-
-        $this->stage = $collection->getFirst();
+        $this->stage = $this->query
+            ->iterableByTask(
+                new EntityUuid($this->task->getUuid())
+            )
+            ->current();
     }
 
     protected function tearDown(): void
