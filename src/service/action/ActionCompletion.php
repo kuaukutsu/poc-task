@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\service\action;
 
+use kuaukutsu\poc\task\dto\StageModel;
 use kuaukutsu\poc\task\dto\TaskModelState;
+use kuaukutsu\poc\task\exception\ProcessingException;
 use kuaukutsu\poc\task\state\response\ResponseContextWrapper;
 use kuaukutsu\poc\task\state\TaskStateError;
 use kuaukutsu\poc\task\state\TaskStateInterface;
@@ -55,7 +57,7 @@ final class ActionCompletion implements TaskAction
         $uuid = new EntityUuid($task->getUuid());
         $context = new ResponseContextWrapper();
         foreach ($this->stageQuery->findByTask($uuid) as $item) {
-            $state = $this->stateFactory->create($item->state);
+            $state = $this->stateCreate($item);
             if ($state->getFlag()->isError()) {
                 return new TaskStateError(
                     message: $state->getMessage(),
@@ -94,5 +96,19 @@ final class ActionCompletion implements TaskAction
             message: new TaskStateMessage('TaskCompletion'),
             response: $context,
         );
+    }
+
+    private function stateCreate(StageModel $stage): TaskStateInterface
+    {
+        try {
+            return $this->stateFactory->create($stage->taskUuid, $stage->state);
+        } catch (ProcessingException $exception) {
+            return new TaskStateError(
+                new TaskStateMessage(
+                    $exception->getMessage(),
+                    $exception->getTraceAsString(),
+                ),
+            );
+        }
     }
 }

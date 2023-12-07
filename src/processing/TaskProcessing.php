@@ -98,7 +98,8 @@ final class TaskProcessing
         }
 
         $state = $this->stateFactory->create(
-            $process->getOutput()
+            $task->getUuid(),
+            $process->getOutput(),
         );
 
         $this->enqueueNext($task, $state, $process->stage);

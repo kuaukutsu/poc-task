@@ -80,31 +80,31 @@ final class TaskProcessPromise
     /**
      * @throws ProcessingException
      */
-    public function completed(TaskProcessContext $context, TaskStateInterface $statePrevious): TaskStateInterface
+    public function completed(TaskProcessContext $context, TaskStateInterface $taskState): TaskStateInterface
     {
         $stage = $this->query->getOne(
             new EntityUuid($context->stage)
         );
 
-        if ($statePrevious->getFlag()->isSuccess()) {
+        if ($taskState->getFlag()->isSuccess()) {
             $state = new TaskStateSuccess(
-                message: $statePrevious->getMessage(),
-                response: $statePrevious->getResponse(),
+                message: $taskState->getMessage(),
+                response: $taskState->getResponse(),
             );
-        } elseif ($statePrevious->getFlag()->isError()) {
+        } elseif ($taskState->getFlag()->isError()) {
             $state = new TaskStateError(
-                message: $statePrevious->getMessage(),
+                message: $taskState->getMessage(),
                 flag: $stage->flag,
-                response: $statePrevious->getResponse(),
+                response: $taskState->getResponse(),
             );
-        } elseif ($statePrevious->getFlag()->isError()) {
+        } elseif ($taskState->getFlag()->isError()) {
             $state = new TaskStateCanceled(
-                message: $statePrevious->getMessage(),
+                message: $taskState->getMessage(),
                 flag: $stage->flag,
             );
         } else {
             $state = new TaskStateSkip(
-                message: $statePrevious->getMessage(),
+                message: $taskState->getMessage(),
             );
         }
 

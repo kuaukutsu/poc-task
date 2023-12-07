@@ -101,7 +101,7 @@ final class TaskServiceTest extends TestCase
             new EntityUuid($this->task->getUuid())
         );
 
-        $state = $stateFactory->create($task->state);
+        $state = $stateFactory->create($task->uuid, $task->state);
 
         self::assertTrue($state->getFlag()->isReady());
         self::assertFalse($state->getFlag()->isFinished());
