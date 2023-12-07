@@ -41,11 +41,13 @@ final class TaskProcessPromise
             && $this->queue[$uuid]->storage !== [];
     }
 
-    public function canCompleted(TaskProcessContext $context): bool
+    /**
+     * @param non-empty-string $uuid
+     */
+    public function canCompleted(string $uuid): bool
     {
-        return $context->previous !== null
-            && array_key_exists($context->previous, $this->queue)
-            && $this->queue[$context->previous]->storage === [];
+        return array_key_exists($uuid, $this->queue)
+            && $this->queue[$uuid]->storage === [];
     }
 
     /**

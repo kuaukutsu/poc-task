@@ -71,7 +71,7 @@ final class ProcessingTerminateTest extends TestCase
         $task = $this->taskQuery->getOne($uuid);
         self::assertEquals($flag->unset()->setPaused()->toValue(), $task->flag);
 
-        foreach ($this->stageQuery->findByTask($uuid) as $stage) {
+        foreach ($this->stageQuery->iterableByTask($uuid) as $stage) {
             self::assertEquals($flag->unset()->setReady()->toValue(), $stage->flag);
         }
 

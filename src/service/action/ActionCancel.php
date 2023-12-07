@@ -54,8 +54,7 @@ final class ActionCancel implements TaskAction
 
     private function stageCancel(EntityUuid $uuid): void
     {
-        $stageCollection = $this->stageQuery->getOpenByTask($uuid);
-        foreach ($stageCollection as $stage) {
+        foreach ($this->stageQuery->iterableOpenByTask($uuid) as $stage) {
             $state = new TaskStateCanceled(
                 message: new TaskStateMessage('Canceled'),
                 flag: $stage->flag,

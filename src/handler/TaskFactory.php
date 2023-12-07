@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\handler;
 
-use TypeError;
+use Throwable;
 use kuaukutsu\poc\task\dto\TaskModel;
 use kuaukutsu\poc\task\exception\BuilderException;
 use kuaukutsu\poc\task\state\TaskStatePrepare;
@@ -27,7 +27,7 @@ final class TaskFactory
                 state: $this->prepareState($dto->state),
                 options: $dto->options,
             );
-        } catch (TypeError $exception) {
+        } catch (Throwable $exception) {
             throw new BuilderException("[$dto->uuid] TaskFactory failure.", $exception);
         }
     }

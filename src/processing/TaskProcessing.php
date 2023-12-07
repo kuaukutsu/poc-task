@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\processing;
 
-use kuaukutsu\poc\task\state\TaskStateInterface;
 use Throwable;
 use kuaukutsu\poc\task\exception\ProcessingException;
 use kuaukutsu\poc\task\handler\StateFactory;
 use kuaukutsu\poc\task\handler\TaskFactory;
+use kuaukutsu\poc\task\state\TaskStateInterface;
 use kuaukutsu\poc\task\state\TaskStateRelation;
 use kuaukutsu\poc\task\service\TaskQuery;
 use kuaukutsu\poc\task\service\TaskExecutor;
@@ -81,7 +81,7 @@ final class TaskProcessing
 
         if ($this->processPromise->has($process->task)) {
             $context = $this->processPromise->dequeue($process->task, $process->stage);
-            if ($this->processPromise->canCompleted($context)) {
+            if ($this->processPromise->canCompleted($process->task)) {
                 $state = $this->processPromise->completed(
                     $context,
                     $this->taskExecutor->stop($task)

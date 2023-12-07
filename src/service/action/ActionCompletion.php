@@ -44,19 +44,19 @@ final class ActionCompletion implements TaskAction
             return $this->actionCancel->execute($task);
         }
 
-        $model = $this->taskCommand->state(
-            new EntityUuid($task->getUuid()),
-            new TaskModelState($state),
+        return $this->factory->create(
+            $this->taskCommand->state(
+                new EntityUuid($task->getUuid()),
+                new TaskModelState($state),
+            )
         );
-
-        return $this->factory->create($model);
     }
 
     private function handleStagesState(EntityTask $task): ?TaskStateInterface
     {
         $uuid = new EntityUuid($task->getUuid());
         $context = new ResponseContextWrapper();
-        foreach ($this->stageQuery->findByTask($uuid) as $item) {
+        foreach ($this->stageQuery->iterableByTask($uuid) as $item) {
             $state = $this->stateCreate($item);
             if ($state->getFlag()->isError()) {
                 return new TaskStateError(

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace kuaukutsu\poc\task\tests\service;
 
 use Generator;
-use kuaukutsu\poc\task\dto\StageCollection;
 use kuaukutsu\poc\task\dto\StageModel;
 use kuaukutsu\poc\task\dto\TaskMetrics;
 use kuaukutsu\poc\task\exception\NotFoundException;
@@ -35,7 +34,7 @@ final class StageQueryStub implements StageQuery
     /**
      * @return Generator<StageModel>
      */
-    public function findByTask(EntityUuid $taskUuid): Generator
+    public function iterableByTask(EntityUuid $taskUuid): Generator
     {
         foreach ($this->getData() as $item) {
             if ($item->taskUuid === $taskUuid->getUuid()) {
@@ -44,34 +43,34 @@ final class StageQueryStub implements StageQuery
         }
     }
 
-    public function getOpenByTask(EntityUuid $taskUuid): StageCollection
+    /**
+     * @return Generator<StageModel>
+     */
+    public function iterableOpenByTask(EntityUuid $taskUuid): Generator
     {
-        $collection = new StageCollection();
         foreach ($this->getData() as $item) {
             if ($item->taskUuid === $taskUuid->getUuid()) {
                 $flag = new TaskFlag($item->flag);
                 if ($flag->isReady() || $flag->isRunning() || $flag->isWaiting()) {
-                    $collection->attach($item);
+                    yield $item;
                 }
             }
         }
-
-        return $collection;
     }
 
-    public function getReadyByTask(EntityUuid $taskUuid): StageCollection
+    /**
+     * @return Generator<StageModel>
+     */
+    public function iterableReadyByTask(EntityUuid $taskUuid): Generator
     {
-        $collection = new StageCollection();
         foreach ($this->getData() as $item) {
             if ($item->taskUuid === $taskUuid->getUuid()) {
                 $flag = new TaskFlag($item->flag);
                 if ($flag->isReady() || $flag->isPaused()) {
-                    $collection->attach($item);
+                    yield $item;
                 }
             }
         }
-
-        return $collection;
     }
 
     public function getMetricsByTask(EntityUuid $taskUuid): TaskMetrics

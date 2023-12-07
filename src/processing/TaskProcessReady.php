@@ -82,13 +82,12 @@ final class TaskProcessReady
      */
     public function pushStagePromise(EntityTask $task): array
     {
-        $collection = $this->query->getReadyByTask(new EntityUuid($task->getUuid()));
-        if ($collection->isEmpty()) {
-            return [];
-        }
+        $iterator = $this->query->iterableReadyByTask(
+            new EntityUuid($task->getUuid())
+        );
 
         $index = [];
-        foreach ($collection as $stage) {
+        foreach ($iterator as $stage) {
             $index[$stage->uuid] = true;
             $this->enqueue($task, $this->processRun($stage->uuid));
         }
