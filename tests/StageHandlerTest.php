@@ -64,7 +64,7 @@ final class StageHandlerTest extends TestCase
     {
         $stage = $this->generateStage();
         $state = self::get(StateFactory::class)
-            ->create($stage->state);
+            ->create($stage->taskUuid, $stage->state);
 
         self::assertTrue($state->getFlag()->isReady());
         self::assertFalse($state->getFlag()->isFinished());

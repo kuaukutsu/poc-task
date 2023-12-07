@@ -4,13 +4,15 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\state;
 
+use Exception;
 use TypeError;
 use kuaukutsu\poc\task\state\response\ResponseWrapper;
 
 trait TaskStatePrepare
 {
     /**
-     * @throws TypeError
+     * @throws TypeError unserialize
+     * @throws Exception Allowed memory size of N bytes exhausted
      */
     private function prepareState(string $state): TaskStateInterface
     {

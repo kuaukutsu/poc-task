@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\tests;
 
+use kuaukutsu\poc\task\EntityUuid;
 use Psr\Container\ContainerExceptionInterface;
 use PHPUnit\Framework\TestCase;
 use kuaukutsu\poc\task\handler\StateFactory;
@@ -27,6 +28,7 @@ final class TaskResponseTest extends TestCase
             }
         };
 
+        $uuid = new EntityUuid();
         $context = new ResponseContextWrapper();
         $context->pushSuccessResponse(
             $response('test')
@@ -44,7 +46,9 @@ final class TaskResponseTest extends TestCase
         self::assertNotEmpty($stateSerialize);
 
         /** @var TaskStateSuccess $stateObject */
-        $stateObject = self::get(StateFactory::class)->create($stateSerialize);
+        $stateObject = self::get(StateFactory::class)
+            ->create($uuid->getUuid(), $stateSerialize);
+
         self::assertTrue($stateObject->getFlag()->isSuccess());
         self::assertTrue($stateObject->getFlag()->isFinished());
 
