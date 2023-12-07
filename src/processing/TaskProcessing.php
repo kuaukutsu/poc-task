@@ -80,10 +80,10 @@ final class TaskProcessing
         }
 
         if ($this->processPromise->has($process->task)) {
-            $context = $this->processPromise->dequeue($process->task, $process->stage);
-            if ($this->processPromise->canCompleted($process->task)) {
+            $context = $this->processPromise->getContextIfCompleted($process->task, $process->stage);
+            if ($context !== null) {
                 $state = $this->processPromise->completed(
-                    $context,
+                    $context->stage,
                     $this->taskExecutor->stop($task)
                 );
 
