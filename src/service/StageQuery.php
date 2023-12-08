@@ -23,6 +23,8 @@ interface StageQuery
 
     public function findPausedByTask(EntityUuid $taskUuid): ?StageModel;
 
+    public function findLastCompletedByTask(EntityUuid $taskUuid): ?StageModel;
+
     /**
      * @return Generator<StageModel>
      */

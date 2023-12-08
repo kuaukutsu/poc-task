@@ -79,10 +79,7 @@ final class TaskCommandStub implements TaskCommand
     public function terminate(array $indexUuid, TaskModelState $model): bool
     {
         foreach ($indexUuid as $uuid) {
-            $this->state(
-                new EntityUuid($uuid),
-                $model
-            );
+            $this->state(new EntityUuid($uuid), $model);
         }
 
         return true;
