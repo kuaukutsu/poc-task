@@ -33,6 +33,10 @@ final class TaskQueryStub implements TaskQuery
             if ($flag->isReady() || $flag->isPromised()) {
                 $collection->attach($item);
             }
+
+            if ($collection->count() === $limit) {
+                return $collection;
+            }
         }
 
         return $collection;
@@ -46,6 +50,10 @@ final class TaskQueryStub implements TaskQuery
             if ($flag->isPaused()) {
                 $collection->attach($item);
             }
+
+            if ($collection->count() === $limit) {
+                return $collection;
+            }
         }
 
         return $collection;
@@ -58,6 +66,10 @@ final class TaskQueryStub implements TaskQuery
             $flag = new TaskFlag($item->flag);
             if ($flag->isRunning()) {
                 $collection->attach($item);
+            }
+
+            if ($collection->count() === $limit) {
+                return $collection;
             }
         }
 
