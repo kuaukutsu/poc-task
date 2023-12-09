@@ -23,7 +23,7 @@ interface StageQuery
 
     public function findPausedByTask(EntityUuid $taskUuid): ?StageModel;
 
-    public function findRunnedByTask(EntityUuid $taskUuid): ?StageModel;
+    public function findForgottenByTask(EntityUuid $taskUuid): ?StageModel;
 
     public function findPreviousCompletedByTask(EntityUuid $taskUuid, int $stageOrder): ?StageModel;
 

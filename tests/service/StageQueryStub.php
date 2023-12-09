@@ -106,7 +106,7 @@ final class StageQueryStub implements StageQuery
         return null;
     }
 
-    public function findRunnedByTask(EntityUuid $taskUuid): ?StageModel
+    public function findForgottenByTask(EntityUuid $taskUuid): ?StageModel
     {
         foreach ($this->getData() as $item) {
             if ($item->taskUuid === $taskUuid->getUuid()) {
