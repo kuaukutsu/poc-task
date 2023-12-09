@@ -245,12 +245,18 @@ final class TaskProcessing
      */
     private function enqueueNext(EntityTask $task, TaskStateInterface $state, string $previousStage): void
     {
-        if ($state->getFlag()->isWaiting()) {
-            $this->taskExecutor->wait($task, $state);
-            return;
-        }
-
         if ($state->getFlag()->isFinished() === false) {
+            if ($state->getFlag()->isWaiting()) {
+                try {
+                    $this->taskExecutor->wait($task, $state);
+                } catch (Throwable $exception) {
+                    throw new ProcessingException(
+                        "[{$task->getUuid()}] TaskProcessing error: " . $exception->getMessage(),
+                        $exception,
+                    );
+                }
+            }
+
             return;
         }
 
@@ -262,6 +268,7 @@ final class TaskProcessing
 
             if ($task->isWaiting()) {
                 $this->taskExecutor->run($task);
+                return;
             }
         } catch (Throwable $exception) {
             throw new ProcessingException(
