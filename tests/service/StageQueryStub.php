@@ -120,18 +120,20 @@ final class StageQueryStub implements StageQuery
         return null;
     }
 
-    public function findLastCompletedByTask(EntityUuid $taskUuid): ?StageModel
+    public function findPreviousCompletedByTask(EntityUuid $taskUuid, int $stageOrder): ?StageModel
     {
-        $lastItem = null;
+        $findPreviousOrder = $stageOrder - 1;
         foreach ($this->getData() as $item) {
-            if ($item->taskUuid === $taskUuid->getUuid()) {
+            if ($item->taskUuid === $taskUuid->getUuid() && $item->order === $findPreviousOrder) {
                 $flag = new TaskFlag($item->flag);
                 if ($flag->isFinished()) {
-                    $lastItem = $item;
+                    return $item;
                 }
+
+                return null;
             }
         }
 
-        return $lastItem;
+        return null;
     }
 }
