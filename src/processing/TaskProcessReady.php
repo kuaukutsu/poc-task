@@ -87,7 +87,7 @@ final class TaskProcessReady
         return $this->enqueue(
             $task,
             $this->processRun($stage->uuid),
-            $this->query->findLastCompletedByTask($uuid)?->uuid,
+            $this->query->findPreviousCompletedByTask($uuid, $stage->order)?->uuid,
         );
     }
 
@@ -120,7 +120,7 @@ final class TaskProcessReady
         return $this->enqueue(
             $task,
             $this->processRun($stage->uuid),
-            $this->query->findLastCompletedByTask($uuid)?->uuid,
+            $this->query->findPreviousCompletedByTask($uuid, $stage->order)?->uuid,
         );
     }
 

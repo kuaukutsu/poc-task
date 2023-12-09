@@ -25,7 +25,7 @@ interface StageQuery
 
     public function findRunnedByTask(EntityUuid $taskUuid): ?StageModel;
 
-    public function findLastCompletedByTask(EntityUuid $taskUuid): ?StageModel;
+    public function findPreviousCompletedByTask(EntityUuid $taskUuid, int $stageOrder): ?StageModel;
 
     /**
      * @return Generator<StageModel>
