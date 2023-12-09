@@ -29,7 +29,6 @@ final class ActionCompletion implements TaskAction
         private readonly StateFactory $stateFactory,
         private readonly TaskCommand $taskCommand,
         private readonly TaskFactory $factory,
-        private readonly ActionCancel $actionCancel,
     ) {
     }
 
@@ -39,20 +38,17 @@ final class ActionCompletion implements TaskAction
             return $task;
         }
 
-        $state ??= $this->handleStagesState($task);
-        if ($state === null) {
-            return $this->actionCancel->execute($task);
-        }
-
         return $this->factory->create(
             $this->taskCommand->state(
                 new EntityUuid($task->getUuid()),
-                new TaskModelState($state),
+                new TaskModelState(
+                    $state ?? $this->handleStagesState($task)
+                ),
             )
         );
     }
 
-    private function handleStagesState(EntityTask $task): ?TaskStateInterface
+    private function handleStagesState(EntityTask $task): TaskStateInterface
     {
         $uuid = new EntityUuid($task->getUuid());
         $context = new ResponseContextWrapper();
@@ -83,11 +79,7 @@ final class ActionCompletion implements TaskAction
                 );
             }
 
-            if ($state->getFlag()->isReady() || $state->getFlag()->isPromised()) {
-                return $state;
-            }
-
-            return null;
+            return $state;
         }
 
         $this->stageCommand->removeByTask($uuid);

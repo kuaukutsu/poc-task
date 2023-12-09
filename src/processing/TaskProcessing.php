@@ -227,7 +227,7 @@ final class TaskProcessing
         foreach ($this->taskQuery->getRunning($limit) as $item) {
             try {
                 $task = $this->taskFactory->create($item);
-                $this->processReady->pushStageOnRunning($task)
+                $this->processReady->pushStageOnForgotten($task)
                     ? $this->taskExecutor->run($task)
                     : $this->taskExecutor->stop($task);
             } catch (Throwable $exception) {

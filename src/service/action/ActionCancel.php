@@ -34,7 +34,6 @@ final class ActionCancel implements TaskAction
             return $task;
         }
 
-        $uuid = new EntityUuid($task->getUuid());
         $state ??= new TaskStateCanceled(
             message: new TaskStateMessage('Canceled'),
             flag: $task->getFlag(),
@@ -51,23 +50,30 @@ final class ActionCancel implements TaskAction
             new TaskModelState($state),
         );
 
-        $this->stageCancel($uuid);
+        $this->stageCancel($model->uuid);
 
         return $this->factory->create($model);
     }
 
-    private function stageCancel(EntityUuid $uuid): void
+    /**
+     * @param non-empty-string $uuid
+     */
+    private function stageCancel(string $uuid): void
     {
-        foreach ($this->stageQuery->iterableOpenByTask($uuid) as $stage) {
-            $state = new TaskStateCanceled(
-                message: new TaskStateMessage('Canceled'),
-                flag: $stage->flag,
-            );
+        $iterator = $this->stageQuery->iterableOpenByTask(
+            new EntityUuid($uuid)
+        );
 
+        foreach ($iterator as $stage) {
             try {
                 $this->stageCommand->state(
                     new EntityUuid($stage->uuid),
-                    new StageModelState($state),
+                    new StageModelState(
+                        new TaskStateCanceled(
+                            message: new TaskStateMessage('Canceled'),
+                            flag: $stage->flag,
+                        )
+                    ),
                 );
             } catch (Throwable) {
             }

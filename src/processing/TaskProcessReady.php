@@ -107,12 +107,10 @@ final class TaskProcessReady
     /**
      * @throws RuntimeException Ошибка выполнения комманды
      */
-    public function pushStageOnRunning(EntityTask $task): bool
+    public function pushStageOnForgotten(EntityTask $task): bool
     {
         $uuid = new EntityUuid($task->getUuid());
-        $stage = $this->query->findRunnedByTask($uuid)
-            ?? $this->query->findReadyByTask($uuid);
-
+        $stage = $this->query->findForgottenByTask($uuid);
         if ($stage === null) {
             return false;
         }
