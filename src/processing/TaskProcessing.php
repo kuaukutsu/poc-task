@@ -21,10 +21,10 @@ final class TaskProcessing
     public function __construct(
         private readonly TaskQuery $taskQuery,
         private readonly TaskFactory $taskFactory,
-        private readonly StateFactory $stateFactory,
         private readonly TaskExecutor $taskExecutor,
         private readonly TaskProcessReady $processReady,
         private readonly TaskProcessPromise $processPromise,
+        private readonly StateFactory $stateFactory,
     ) {
     }
 
@@ -43,17 +43,29 @@ final class TaskProcessing
      */
     public function loadTaskProcess(TaskManagerOptions $options): void
     {
-        // Первым делом в очередь добавляем те что на Паузе
+        // Первым делом в очередь добавляем те что на Паузе.
         if ($this->processReady->isEmpty()) {
             $this->loadingPaused(
                 $options->getQueueSize(),
             );
         }
 
-        // Если capacity позволяет, добавляем в очередь задачи из Ожидания
+        // Если capacity позволяет, добавляем в очередь задачи из Ожидания.
         $capacity = $options->getQueueSize() - $this->processReady->count();
         if ($capacity > 0) {
             $this->loadingReady($capacity);
+        }
+    }
+
+    /**
+     * @throws ProcessingException
+     */
+    public function checkTaskProcess(TaskManagerOptions $options): void
+    {
+        if ($this->processReady->isEmpty()) {
+            $this->loadingForgotten(
+                $options->getQueueSize()
+            );
         }
     }
 
@@ -75,7 +87,7 @@ final class TaskProcessing
         }
 
         $task = $this->factory($process->task);
-        if ($task->isFinished() || $task->isPromised()) {
+        if ($task->isFinished()) {
             return;
         }
 
@@ -207,18 +219,56 @@ final class TaskProcessing
     }
 
     /**
+     * @param positive-int $limit
+     * @throws ProcessingException
+     */
+    private function loadingForgotten(int $limit): void
+    {
+        foreach ($this->taskQuery->getRunning($limit) as $item) {
+            try {
+                $task = $this->taskFactory->create($item);
+                $this->processReady->pushStageOnRunning($task)
+                    ? $this->taskExecutor->run($task)
+                    : $this->taskExecutor->stop($task);
+            } catch (Throwable $exception) {
+                throw new ProcessingException(
+                    "[$item->uuid] TaskProcessing error: " . $exception->getMessage(),
+                    $exception,
+                );
+            }
+        }
+    }
+
+    /**
      * @param non-empty-string $previousStage
      * @throws ProcessingException
      */
     private function enqueueNext(EntityTask $task, TaskStateInterface $state, string $previousStage): void
     {
         if ($state->getFlag()->isFinished() === false) {
+            if ($state->getFlag()->isWaiting()) {
+                try {
+                    $this->taskExecutor->wait($task, $state);
+                } catch (Throwable $exception) {
+                    throw new ProcessingException(
+                        "[{$task->getUuid()}] TaskProcessing error: " . $exception->getMessage(),
+                        $exception,
+                    );
+                }
+            }
+
             return;
         }
 
         try {
             if ($this->processReady->pushStageNext($task, $previousStage) === false) {
                 $this->taskExecutor->stop($task);
+                return;
+            }
+
+            if ($task->isWaiting()) {
+                $this->taskExecutor->run($task);
+                return;
             }
         } catch (Throwable $exception) {
             throw new ProcessingException(

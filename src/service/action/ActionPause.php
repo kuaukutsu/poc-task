@@ -30,6 +30,10 @@ final class ActionPause implements TaskAction
 
     public function execute(EntityTask $task, ?TaskStateInterface $state = null): EntityTask
     {
+        if ($task->isPaused()) {
+            return $task;
+        }
+
         $uuid = new EntityUuid($task->getUuid());
         $state ??= new TaskStatePaused(
             message: new TaskStateMessage('Paused'),
@@ -55,15 +59,15 @@ final class ActionPause implements TaskAction
     private function stagePause(EntityUuid $uuid): void
     {
         foreach ($this->stageQuery->iterableOpenByTask($uuid) as $stage) {
-            $state = new TaskStatePaused(
-                message: new TaskStateMessage('Paused'),
-                flag: $stage->flag,
-            );
-
             try {
                 $this->stageCommand->state(
                     new EntityUuid($stage->uuid),
-                    new StageModelState($state),
+                    new StageModelState(
+                        new TaskStatePaused(
+                            message: new TaskStateMessage('Task Paused'),
+                            flag: $stage->flag,
+                        )
+                    ),
                 );
             } catch (Throwable) {
             }

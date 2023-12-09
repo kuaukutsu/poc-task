@@ -51,6 +51,19 @@ final class TaskQueryStub implements TaskQuery
         return $collection;
     }
 
+    public function getRunning(int $limit): TaskCollection
+    {
+        $collection = new TaskCollection();
+        foreach ($this->getData() as $item) {
+            $flag = new TaskFlag($item->flag);
+            if ($flag->isRunning()) {
+                $collection->attach($item);
+            }
+        }
+
+        return $collection;
+    }
+
     public function existsOpenByChecksum(string $checksum): bool
     {
         foreach ($this->getData() as $item) {

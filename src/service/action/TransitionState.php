@@ -14,11 +14,13 @@ final class TransitionState
      */
     public function canAccessTransitionState(string $uuid, int $currentState, int $transitionState): void
     {
-        if ((new TaskFlag($currentState))->isFinished()) {
+        $flag = new TaskFlag($currentState);
+        if ($flag->isFinished()) {
             throw new StateTransitionException($uuid, $currentState, $transitionState);
         }
 
-        if (in_array($transitionState, $this->mapTransitionState($currentState), true) === false) {
+        $mapTransitionState = $this->mapTransitionState($currentState);
+        if (in_array($transitionState, $mapTransitionState, true) === false) {
             throw new StateTransitionException($uuid, $currentState, $transitionState);
         }
     }
@@ -35,15 +37,6 @@ final class TransitionState
                 (new TaskFlag())->setCanceled()->toValue(),
                 (new TaskFlag())->setError()->toValue(),
             ],
-            (new TaskFlag())->setPromised()->toValue() => [
-                (new TaskFlag())->setRunning()->toValue(),
-                (new TaskFlag())->setSkipped()->toValue(),
-                (new TaskFlag())->setCanceled()->toValue(),
-                (new TaskFlag())->setError()->toValue(),
-                (new TaskFlag())->setPromised()->setPaused()->toValue(),
-                (new TaskFlag())->setPromised()->setCanceled()->toValue(),
-                (new TaskFlag())->setPromised()->setError()->toValue(),
-            ],
             (new TaskFlag())->setRunning()->toValue() => [
                 (new TaskFlag())->setSuccess()->toValue(),
                 (new TaskFlag())->setPaused()->toValue(),
@@ -53,6 +46,32 @@ final class TransitionState
                 (new TaskFlag())->setRunning()->setPaused()->toValue(),
                 (new TaskFlag())->setRunning()->setCanceled()->toValue(),
                 (new TaskFlag())->setRunning()->setError()->toValue(),
+            ],
+            (new TaskFlag())->setPromised()->toValue() => [
+                (new TaskFlag())->setRunning()->toValue(),
+                (new TaskFlag())->setSkipped()->toValue(),
+                (new TaskFlag())->setCanceled()->toValue(),
+                (new TaskFlag())->setError()->toValue(),
+                (new TaskFlag())->setPromised()->setPaused()->toValue(),
+                (new TaskFlag())->setPromised()->setCanceled()->toValue(),
+                (new TaskFlag())->setPromised()->setError()->toValue(),
+            ],
+            (new TaskFlag())->setWaiting()->toValue() => [
+                (new TaskFlag())->setRunning()->toValue(),
+                (new TaskFlag())->setSuccess()->toValue(),
+                (new TaskFlag())->setPaused()->toValue(),
+                (new TaskFlag())->setSkipped()->toValue(),
+                (new TaskFlag())->setCanceled()->toValue(),
+                (new TaskFlag())->setWaiting()->setPaused()->toValue(),
+                (new TaskFlag())->setWaiting()->setCanceled()->toValue(),
+                (new TaskFlag())->setWaiting()->setError()->toValue(),
+            ],
+            // pause
+            (new TaskFlag())->setPaused()->toValue() => [
+                (new TaskFlag())->setRunning()->toValue(),
+            ],
+            (new TaskFlag())->setRunning()->setPaused()->toValue() => [
+                (new TaskFlag())->setRunning()->toValue(),
             ],
         ];
 

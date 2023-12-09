@@ -30,6 +30,10 @@ final class ActionCancel implements TaskAction
 
     public function execute(EntityTask $task, ?TaskStateInterface $state = null): EntityTask
     {
+        if ($task->isCanceled()) {
+            return $task;
+        }
+
         $uuid = new EntityUuid($task->getUuid());
         $state ??= new TaskStateCanceled(
             message: new TaskStateMessage('Canceled'),

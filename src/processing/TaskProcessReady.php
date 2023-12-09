@@ -78,12 +78,17 @@ final class TaskProcessReady
      */
     public function pushStageOnPause(EntityTask $task): bool
     {
-        $stage = $this->query->findPausedByTask(new EntityUuid($task->getUuid()));
+        $uuid = new EntityUuid($task->getUuid());
+        $stage = $this->query->findPausedByTask($uuid);
         if ($stage === null) {
             return false;
         }
 
-        return $this->enqueue($task, $this->processRun($stage->uuid));
+        return $this->enqueue(
+            $task,
+            $this->processRun($stage->uuid),
+            $this->query->findLastCompletedByTask($uuid)?->uuid,
+        );
     }
 
     /**
@@ -97,6 +102,26 @@ final class TaskProcessReady
         }
 
         return $this->enqueue($task, $this->processRun($stage->uuid));
+    }
+
+    /**
+     * @throws RuntimeException Ошибка выполнения комманды
+     */
+    public function pushStageOnRunning(EntityTask $task): bool
+    {
+        $uuid = new EntityUuid($task->getUuid());
+        $stage = $this->query->findRunnedByTask($uuid)
+            ?? $this->query->findReadyByTask($uuid);
+
+        if ($stage === null) {
+            return false;
+        }
+
+        return $this->enqueue(
+            $task,
+            $this->processRun($stage->uuid),
+            $this->query->findLastCompletedByTask($uuid)?->uuid,
+        );
     }
 
     /**
@@ -147,8 +172,12 @@ final class TaskProcessReady
     public function terminate(): array
     {
         $index = [];
-        while ($this->has()) {
-            $index[$this->dequeue()->task] = true;
+        while ($this->queue->isEmpty() === false) {
+            $index[$this->queue->dequeue()->task] = true;
+        }
+
+        while ($this->qpromises->isEmpty() === false) {
+            $index[$this->qpromises->dequeue()->task] = true;
         }
 
         $index = array_keys($index);
