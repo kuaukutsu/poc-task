@@ -21,10 +21,10 @@ final class TaskProcessing
     public function __construct(
         private readonly TaskQuery $taskQuery,
         private readonly TaskFactory $taskFactory,
-        private readonly StateFactory $stateFactory,
         private readonly TaskExecutor $taskExecutor,
         private readonly TaskProcessReady $processReady,
         private readonly TaskProcessPromise $processPromise,
+        private readonly StateFactory $stateFactory,
     ) {
     }
 
@@ -75,7 +75,7 @@ final class TaskProcessing
         }
 
         $task = $this->factory($process->task);
-        if ($task->isFinished() || $task->isPromised()) {
+        if ($task->isFinished()) {
             return;
         }
 
@@ -212,6 +212,11 @@ final class TaskProcessing
      */
     private function enqueueNext(EntityTask $task, TaskStateInterface $state, string $previousStage): void
     {
+        if ($state->getFlag()->isWaiting()) {
+            $this->taskExecutor->wait($task, $state);
+            return;
+        }
+
         if ($state->getFlag()->isFinished() === false) {
             return;
         }
@@ -219,6 +224,11 @@ final class TaskProcessing
         try {
             if ($this->processReady->pushStageNext($task, $previousStage) === false) {
                 $this->taskExecutor->stop($task);
+                return;
+            }
+
+            if ($task->isWaiting()) {
+                $this->taskExecutor->run($task);
             }
         } catch (Throwable $exception) {
             throw new ProcessingException(

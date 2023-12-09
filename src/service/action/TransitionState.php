@@ -56,6 +56,16 @@ final class TransitionState
                 (new TaskFlag())->setPromised()->setCanceled()->toValue(),
                 (new TaskFlag())->setPromised()->setError()->toValue(),
             ],
+            (new TaskFlag())->setWaiting()->toValue() => [
+                (new TaskFlag())->setRunning()->toValue(),
+                (new TaskFlag())->setSuccess()->toValue(),
+                (new TaskFlag())->setPaused()->toValue(),
+                (new TaskFlag())->setSkipped()->toValue(),
+                (new TaskFlag())->setCanceled()->toValue(),
+                (new TaskFlag())->setWaiting()->setPaused()->toValue(),
+                (new TaskFlag())->setWaiting()->setCanceled()->toValue(),
+                (new TaskFlag())->setWaiting()->setError()->toValue(),
+            ],
             // pause
             (new TaskFlag())->setPaused()->toValue() => [
                 (new TaskFlag())->setRunning()->toValue(),

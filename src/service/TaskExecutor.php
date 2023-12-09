@@ -11,6 +11,7 @@ use kuaukutsu\poc\task\service\action\ActionReady;
 use kuaukutsu\poc\task\service\action\ActionResume;
 use kuaukutsu\poc\task\service\action\ActionRun;
 use kuaukutsu\poc\task\service\action\ActionTerminate;
+use kuaukutsu\poc\task\service\action\ActionWait;
 use kuaukutsu\poc\task\state\TaskStateInterface;
 use kuaukutsu\poc\task\EntityTask;
 
@@ -23,13 +24,14 @@ final class TaskExecutor
         private readonly ActionReady $actionReady,
         private readonly ActionResume $actionResume,
         private readonly ActionRun $actionRun,
+        private readonly ActionWait $actionWait,
         private readonly ActionTerminate $actionTerminate,
     ) {
     }
 
     public function run(EntityTask $task): TaskStateInterface
     {
-        if ($task->isReady() || $task->isPromised()) {
+        if ($task->isReady() || $task->isPromised() || $task->isWaiting()) {
             return $this->actionRun
                 ->execute($task)
                 ->getState();
@@ -68,6 +70,13 @@ final class TaskExecutor
     {
         return $this->actionPause
             ->execute($task)
+            ->getState();
+    }
+
+    public function wait(EntityTask $task, TaskStateInterface $state): TaskStateInterface
+    {
+        return $this->actionWait
+            ->execute($task, $state)
             ->getState();
     }
 
