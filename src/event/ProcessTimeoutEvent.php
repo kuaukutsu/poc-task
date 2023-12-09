@@ -7,7 +7,7 @@ namespace kuaukutsu\poc\task\event;
 use kuaukutsu\poc\task\processing\TaskProcess;
 use Symfony\Component\Process\Process;
 
-final class StageTimeoutEvent implements EventInterface
+final class ProcessTimeoutEvent implements EventInterface
 {
     public function __construct(
         private readonly TaskProcess $process,

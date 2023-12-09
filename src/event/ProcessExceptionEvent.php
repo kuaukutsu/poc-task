@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\event;
 
+use kuaukutsu\poc\task\exception\ProcessingException;
 use kuaukutsu\poc\task\processing\TaskProcess;
 
-final class StageEvent implements EventInterface
+final class ProcessExceptionEvent implements EventInterface
 {
     private readonly string $uuid;
 
@@ -16,12 +17,12 @@ final class StageEvent implements EventInterface
 
     private readonly string $message;
 
-    public function __construct(TaskProcess $process)
+    public function __construct(TaskProcess $process, ProcessingException $exception)
     {
         $this->uuid = $process->stage;
         $this->status = $process->getStatus();
         $this->output = $process->getOutput();
-        $this->message = "[$process->task] " . $process->stage;
+        $this->message = "[$process->task] " . $exception->getMessage();
     }
 
     public function getUuid(): string
