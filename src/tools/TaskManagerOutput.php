@@ -8,7 +8,7 @@ use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use kuaukutsu\poc\task\event\Event;
 use kuaukutsu\poc\task\event\EventInterface;
 use kuaukutsu\poc\task\event\EventSubscriberInterface;
-use kuaukutsu\poc\task\event\StageEvent;
+use kuaukutsu\poc\task\event\ProcessEvent;
 
 final class TaskManagerOutput implements EventSubscriberInterface
 {
@@ -23,8 +23,8 @@ final class TaskManagerOutput implements EventSubscriberInterface
             $subscriptions[$event->value] = $this->trace(...);
         }
 
-        $subscriptions[Event::StageSuccess->value] = $this->traceProcessSuccess(...);
-        $subscriptions[Event::StageError->value] = $this->traceProcessError(...);
+        $subscriptions[Event::ProcessSuccess->value] = $this->traceProcessSuccess(...);
+        $subscriptions[Event::ProcessError->value] = $this->traceProcessError(...);
 
         /**
          * @var array<class-string<Event>, callable(Event $name, EventInterface $event):void>
@@ -35,10 +35,11 @@ final class TaskManagerOutput implements EventSubscriberInterface
     public function trace(Event $name, EventInterface $event): void
     {
         match ($name) {
-            Event::StagePush => $this->stdout('push: ' . $event->getMessage()),
-            Event::StagePull => $this->stdout('pull: ' . $event->getMessage()),
-            Event::StageStop => $this->stdout('stop: ' . $event->getMessage()),
-            Event::StageTimeout => $this->stdout('timeout: ' . $event->getMessage()),
+            Event::ProcessPush => $this->stdout('push: ' . $event->getMessage()),
+            Event::ProcessPull => $this->stdout('pull: ' . $event->getMessage()),
+            Event::ProcessStop => $this->stdout('stop: ' . $event->getMessage()),
+            Event::ProcessTimeout => $this->stdout('timeout: ' . $event->getMessage()),
+            Event::ProcessException => $this->stdout('exception: ' . $event->getMessage()),
             default => $this->stdout($event->getMessage()),
         };
     }
@@ -46,7 +47,7 @@ final class TaskManagerOutput implements EventSubscriberInterface
     /**
      * @noinspection PhpUnusedParameterInspection
      */
-    public function traceProcessSuccess(Event $name, StageEvent $event): void
+    public function traceProcessSuccess(Event $name, ProcessEvent $event): void
     {
         $this->stdout("success: [{$event->getUuid()}] " . $event->getOutput());
     }
@@ -54,7 +55,7 @@ final class TaskManagerOutput implements EventSubscriberInterface
     /**
      * @noinspection PhpUnusedParameterInspection
      */
-    public function traceProcessError(Event $name, StageEvent $event): void
+    public function traceProcessError(Event $name, ProcessEvent $event): void
     {
         $this->stdout("error: [{$event->getUuid()}] " . $event->getOutput());
     }

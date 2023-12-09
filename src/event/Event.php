@@ -14,15 +14,17 @@ enum Event: string
 
     case LoopException = 'loop-exception-event';
 
-    case StagePush = 'process-push-event';
+    case ProcessPush = 'process-push-event';
 
-    case StagePull = 'process-pull-event';
+    case ProcessPull = 'process-pull-event';
 
-    case StageStop = 'process-stop-event';
+    case ProcessStop = 'process-stop-event';
 
-    case StageSuccess = 'process-success-event';
+    case ProcessSuccess = 'process-success-event';
 
-    case StageError = 'process-error-event';
+    case ProcessError = 'process-error-event';
 
-    case StageTimeout = 'process-timeout-event';
+    case ProcessException = 'process-error-exception';
+
+    case ProcessTimeout = 'process-timeout-event';
 }

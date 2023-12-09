@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task;
 
+use kuaukutsu\poc\task\event\ProcessExceptionEvent;
 use RuntimeException;
 use DateTimeImmutable;
 use Revolt\EventLoop;
@@ -15,8 +16,8 @@ use kuaukutsu\poc\task\event\LoopTickEvent;
 use kuaukutsu\poc\task\event\LoopTimeoutEvent;
 use kuaukutsu\poc\task\event\LoopExceptionEvent;
 use kuaukutsu\poc\task\event\PublisherEvent;
-use kuaukutsu\poc\task\event\StageEvent;
-use kuaukutsu\poc\task\event\StageTimeoutEvent;
+use kuaukutsu\poc\task\event\ProcessEvent;
+use kuaukutsu\poc\task\event\ProcessTimeoutEvent;
 use kuaukutsu\poc\task\exception\ProcessingException;
 use kuaukutsu\poc\task\processing\TaskProcess;
 use kuaukutsu\poc\task\processing\TaskProcessFactory;
@@ -95,16 +96,16 @@ final class TaskManager implements EventPublisherInterface
                 foreach ($this->processesActive as $process) {
                     if ($process->isRunning() === false) {
                         $this->trigger(
-                            $process->isSuccessful() ? Event::StageSuccess : Event::StageError,
-                            new StageEvent($process)
+                            $process->isSuccessful() ? Event::ProcessSuccess : Event::ProcessError,
+                            new ProcessEvent($process)
                         );
 
                         try {
                             $this->processing->next($process);
                         } catch (ProcessingException $exception) {
                             $this->trigger(
-                                Event::LoopException,
-                                new LoopExceptionEvent($exception)
+                                Event::ProcessException,
+                                new ProcessExceptionEvent($process, $exception)
                             );
                         }
 
@@ -117,16 +118,16 @@ final class TaskManager implements EventPublisherInterface
                         $process->checkTimeout();
                     } catch (ProcessTimedOutException $exception) {
                         $this->trigger(
-                            Event::StageTimeout,
-                            new StageTimeoutEvent($process, $exception->getMessage())
+                            Event::ProcessTimeout,
+                            new ProcessTimeoutEvent($process, $exception->getMessage())
                         );
 
                         try {
                             $this->processing->cancel($process);
                         } catch (ProcessingException $exception) {
                             $this->trigger(
-                                Event::LoopException,
-                                new LoopExceptionEvent($exception)
+                                Event::ProcessException,
+                                new ProcessExceptionEvent($process, $exception)
                             );
                         }
 
@@ -208,7 +209,7 @@ final class TaskManager implements EventPublisherInterface
 
         foreach ($this->processesActive as $process) {
             if ($process->isRunning() || $process->isStarted()) {
-                $this->trigger(Event::StageStop, new StageEvent($process));
+                $this->trigger(Event::ProcessStop, new ProcessEvent($process));
                 $process->stop(10., $signal);
                 $this->processing->pause($process);
             }
@@ -242,14 +243,14 @@ final class TaskManager implements EventPublisherInterface
             $this->keeperEnable();
         }
 
-        $this->trigger(Event::StagePush, new StageEvent($process));
+        $this->trigger(Event::ProcessPush, new ProcessEvent($process));
         $this->processesActive[$process->stage] = $process;
     }
 
     private function processPull(TaskProcess $process): void
     {
         $process->stop(0);
-        $this->trigger(Event::StagePull, new StageEvent($process));
+        $this->trigger(Event::ProcessPull, new ProcessEvent($process));
 
         unset($this->processesActive[$process->stage]);
         if ($this->processesActive === []) {
