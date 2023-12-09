@@ -43,17 +43,29 @@ final class TaskProcessing
      */
     public function loadTaskProcess(TaskManagerOptions $options): void
     {
-        // Первым делом в очередь добавляем те что на Паузе
+        // Первым делом в очередь добавляем те что на Паузе.
         if ($this->processReady->isEmpty()) {
             $this->loadingPaused(
                 $options->getQueueSize(),
             );
         }
 
-        // Если capacity позволяет, добавляем в очередь задачи из Ожидания
+        // Если capacity позволяет, добавляем в очередь задачи из Ожидания.
         $capacity = $options->getQueueSize() - $this->processReady->count();
         if ($capacity > 0) {
             $this->loadingReady($capacity);
+        }
+    }
+
+    /**
+     * @throws ProcessingException
+     */
+    public function checkTaskProcess(TaskManagerOptions $options): void
+    {
+        if ($this->processReady->isEmpty()) {
+            $this->loadingForgotten(
+                $options->getQueueSize()
+            );
         }
     }
 
@@ -195,6 +207,27 @@ final class TaskProcessing
                     : $this->processReady->pushStageOnReady($task);
 
                 $isRun
+                    ? $this->taskExecutor->run($task)
+                    : $this->taskExecutor->stop($task);
+            } catch (Throwable $exception) {
+                throw new ProcessingException(
+                    "[$item->uuid] TaskProcessing error: " . $exception->getMessage(),
+                    $exception,
+                );
+            }
+        }
+    }
+
+    /**
+     * @param positive-int $limit
+     * @throws ProcessingException
+     */
+    private function loadingForgotten(int $limit): void
+    {
+        foreach ($this->taskQuery->getRunning($limit) as $item) {
+            try {
+                $task = $this->taskFactory->create($item);
+                $this->processReady->pushStageOnRunning($task)
                     ? $this->taskExecutor->run($task)
                     : $this->taskExecutor->stop($task);
             } catch (Throwable $exception) {

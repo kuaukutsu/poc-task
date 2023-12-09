@@ -105,6 +105,26 @@ final class TaskProcessReady
     }
 
     /**
+     * @throws RuntimeException Ошибка выполнения комманды
+     */
+    public function pushStageOnRunning(EntityTask $task): bool
+    {
+        $uuid = new EntityUuid($task->getUuid());
+        $stage = $this->query->findRunnedByTask($uuid)
+            ?? $this->query->findReadyByTask($uuid);
+
+        if ($stage === null) {
+            return false;
+        }
+
+        return $this->enqueue(
+            $task,
+            $this->processRun($stage->uuid),
+            $this->query->findLastCompletedByTask($uuid)?->uuid,
+        );
+    }
+
+    /**
      * @param non-empty-string $previous
      * @throws RuntimeException Ошибка выполнения комманды
      */

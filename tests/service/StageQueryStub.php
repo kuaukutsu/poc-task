@@ -106,6 +106,20 @@ final class StageQueryStub implements StageQuery
         return null;
     }
 
+    public function findRunnedByTask(EntityUuid $taskUuid): ?StageModel
+    {
+        foreach ($this->getData() as $item) {
+            if ($item->taskUuid === $taskUuid->getUuid()) {
+                $flag = new TaskFlag($item->flag);
+                if ($flag->isRunning()) {
+                    return $item;
+                }
+            }
+        }
+
+        return null;
+    }
+
     public function findLastCompletedByTask(EntityUuid $taskUuid): ?StageModel
     {
         $lastItem = null;

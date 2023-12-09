@@ -70,6 +70,17 @@ final class TaskManager implements EventPublisherInterface
                 }
 
                 $this->processRun($options);
+
+                if ($this->processesActive === []) {
+                    try {
+                        $this->processing->checkTaskProcess($options);
+                    } catch (ProcessingException $exception) {
+                        $this->trigger(
+                            Event::LoopException,
+                            new LoopExceptionEvent($exception)
+                        );
+                    }
+                }
             }
         );
 
