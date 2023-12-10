@@ -22,7 +22,7 @@ final class StageQueryStub implements StageQuery
 
     public function getOne(EntityUuid $uuid): StageModel
     {
-        $storage = $this->getData();
+        $storage = $this->getDataSafe();
         if (array_key_exists($uuid->getUuid(), $storage) === false) {
             throw new NotFoundException("[{$uuid->getUuid()}] Stage not found.");
         }
@@ -32,7 +32,7 @@ final class StageQueryStub implements StageQuery
 
     public function findOne(EntityUuid $uuid): ?StageModel
     {
-        return $this->getData()[$uuid->getUuid()] ?? null;
+        return $this->getDataSafe()[$uuid->getUuid()] ?? null;
     }
 
     /**
@@ -143,7 +143,7 @@ final class StageQueryStub implements StageQuery
 
     private function getDataSafe(): array
     {
-        $this->mutex->lock(3);
+        $this->mutex->lock(10);
         $storage = $this->getData();
         $this->mutex->unlock();
 

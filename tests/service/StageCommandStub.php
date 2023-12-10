@@ -35,21 +35,18 @@ final class StageCommandStub implements StageCommand
             ]
         );
 
-        $this->mutex->lock(3);
-        $storage = $this->getData();
+        $storage = $this->getDataSafe();
         $storage[] = $dto->toArray();
-        $this->save(
+        $this->saveSafe(
             array_values($storage)
         );
 
-        $this->mutex->unlock();
         return $dto;
     }
 
     public function state(EntityUuid $uuid, StageModelState $model): StageModel
     {
-        $this->mutex->lock(3);
-        $storage = $this->getData();
+        $storage = $this->getDataSafe();
         if (array_key_exists($uuid->getUuid(), $storage) === false) {
             throw new RuntimeException(
                 "[{$uuid->getUuid()}] Stage not found."
@@ -66,17 +63,16 @@ final class StageCommandStub implements StageCommand
         );
 
         $storage[$uuid->getUuid()] = $dto;
-        $this->save(
+        $this->saveSafe(
             array_values($storage)
         );
 
-        $this->mutex->unlock();
         return $dto;
     }
 
     public function terminateByTask(array $indexUuid, StageModelState $model): bool
     {
-        foreach ($this->getData() as $item) {
+        foreach ($this->getDataSafe() as $item) {
             $flag = new TaskFlag($item->flag);
             if ($flag->isRunning() && in_array($item->taskUuid, $indexUuid, true)) {
                 $this->state(
@@ -91,17 +87,17 @@ final class StageCommandStub implements StageCommand
 
     public function removeByTask(EntityUuid $taskUuid): bool
     {
-        $storage = array_filter(
-            $this->getData(),
-            static fn(StageModel $stage): bool => $stage->taskUuid !== $taskUuid->getUuid()
+        return $this->saveSafe(
+            array_filter(
+                $this->getDataSafe(),
+                static fn(StageModel $stage): bool => $stage->taskUuid !== $taskUuid->getUuid()
+            )
         );
-
-        return $this->save($storage);
     }
 
     public function remove(EntityUuid $uuid): bool
     {
-        $storage = $this->getData();
+        $storage = $this->getDataSafe();
         if (array_key_exists($uuid->getUuid(), $storage) === false) {
             throw new NotFoundException(
                 "[{$uuid->getUuid()}] Stage not found."
@@ -109,6 +105,24 @@ final class StageCommandStub implements StageCommand
         }
 
         unset($storage[$uuid->getUuid()]);
-        return $this->save($storage);
+        return $this->saveSafe($storage);
+    }
+
+    private function saveSafe(array $data): bool
+    {
+        $this->mutex->lock(3);
+        $isSuccess = $this->save($data);
+        $this->mutex->unlock();
+
+        return $isSuccess;
+    }
+
+    private function getDataSafe(): array
+    {
+        $this->mutex->lock(10);
+        $storage = $this->getData();
+        $this->mutex->unlock();
+
+        return $storage;
     }
 }

@@ -21,7 +21,7 @@ final class TaskQueryStub implements TaskQuery
 
     public function getOne(EntityUuid $uuid): TaskModel
     {
-        $storage = $this->getData();
+        $storage = $this->getDataSafe();
         if (array_key_exists($uuid->getUuid(), $storage) === false) {
             throw new NotFoundException("[{$uuid->getUuid()}] Task not found.");
         }
@@ -98,7 +98,7 @@ final class TaskQueryStub implements TaskQuery
 
     private function getDataSafe(): array
     {
-        $this->mutex->lock(3);
+        $this->mutex->lock(10);
         $storage = $this->getData();
         $this->mutex->unlock();
 

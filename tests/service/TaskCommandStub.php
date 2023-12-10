@@ -37,21 +37,18 @@ final class TaskCommandStub implements TaskCommand
             ]
         );
 
-        $this->mutex->lock(3);
-        $storage = $this->getData();
+        $storage = $this->getDataSafe();
         $storage[] = $dto->toArray();
-        $this->save(
+        $this->saveSafe(
             array_values($storage)
         );
 
-        $this->mutex->unlock();
         return $dto;
     }
 
     public function state(EntityUuid $uuid, TaskModelState $model): TaskModel
     {
-        $this->mutex->lock(3);
-        $storage = $this->getData();
+        $storage = $this->getDataSafe();
         if (array_key_exists($uuid->getUuid(), $storage) === false) {
             throw new RuntimeException(
                 "[{$uuid->getUuid()}] Task not found."
@@ -68,11 +65,10 @@ final class TaskCommandStub implements TaskCommand
         );
 
         $storage[$uuid->getUuid()] = $dto;
-        $this->save(
+        $this->saveSafe(
             array_values($storage)
         );
 
-        $this->mutex->unlock();
         return $dto;
     }
 
@@ -87,7 +83,7 @@ final class TaskCommandStub implements TaskCommand
 
     public function remove(EntityUuid $uuid): bool
     {
-        $storage = $this->getData();
+        $storage = $this->getDataSafe();
         if (array_key_exists($uuid->getUuid(), $storage) === false) {
             throw new NotFoundException(
                 "[{$uuid->getUuid()}] Task not found."
@@ -95,6 +91,24 @@ final class TaskCommandStub implements TaskCommand
         }
 
         unset($storage[$uuid->getUuid()]);
-        return $this->save($storage);
+        return $this->saveSafe($storage);
+    }
+
+    private function saveSafe(array $data): bool
+    {
+        $this->mutex->lock(3);
+        $isSuccess = $this->save($data);
+        $this->mutex->unlock();
+
+        return $isSuccess;
+    }
+
+    private function getDataSafe(): array
+    {
+        $this->mutex->lock(10);
+        $storage = $this->getData();
+        $this->mutex->unlock();
+
+        return $storage;
     }
 }
