@@ -40,9 +40,9 @@ trait Container
         if (self::$container === null) {
             self::$container = new \DI\Container(
                 [
-                    TaskQuery::class => create(TaskQueryStub::class),
+                    TaskQuery::class => autowire(TaskQueryStub::class),
                     TaskCommand::class => autowire(TaskCommandStub::class),
-                    StageQuery::class => create(StageQueryStub::class),
+                    StageQuery::class => autowire(StageQueryStub::class),
                     StageCommand::class => autowire(StageCommandStub::class),
                     OutputInterface::class => create(NullOutput::class),
                     ConsoleOutputInterface::class => autowire(NullConsoleOutput::class),

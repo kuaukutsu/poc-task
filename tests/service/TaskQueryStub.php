@@ -15,6 +15,10 @@ final class TaskQueryStub implements TaskQuery
 {
     use TaskStorage;
 
+    public function __construct(private readonly Mutex $mutex)
+    {
+    }
+
     public function getOne(EntityUuid $uuid): TaskModel
     {
         $storage = $this->getData();
@@ -28,7 +32,7 @@ final class TaskQueryStub implements TaskQuery
     public function getReady(int $limit): TaskCollection
     {
         $collection = new TaskCollection();
-        foreach ($this->getData() as $item) {
+        foreach ($this->getDataSafe() as $item) {
             $flag = new TaskFlag($item->flag);
             if ($flag->isReady() || $flag->isPromised()) {
                 $collection->attach($item);
@@ -45,7 +49,7 @@ final class TaskQueryStub implements TaskQuery
     public function getPaused(int $limit): TaskCollection
     {
         $collection = new TaskCollection();
-        foreach ($this->getData() as $item) {
+        foreach ($this->getDataSafe() as $item) {
             $flag = new TaskFlag($item->flag);
             if ($flag->isPaused()) {
                 $collection->attach($item);
@@ -62,7 +66,7 @@ final class TaskQueryStub implements TaskQuery
     public function getRunning(int $limit): TaskCollection
     {
         $collection = new TaskCollection();
-        foreach ($this->getData() as $item) {
+        foreach ($this->getDataSafe() as $item) {
             $flag = new TaskFlag($item->flag);
             if ($flag->isRunning()) {
                 $collection->attach($item);
@@ -78,7 +82,7 @@ final class TaskQueryStub implements TaskQuery
 
     public function existsOpenByChecksum(string $checksum): bool
     {
-        foreach ($this->getData() as $item) {
+        foreach ($this->getDataSafe() as $item) {
             if ($item->checksum === $checksum) {
                 $flag = new TaskFlag($item->flag);
                 if ($flag->isFinished()) {
@@ -90,5 +94,14 @@ final class TaskQueryStub implements TaskQuery
         }
 
         return false;
+    }
+
+    private function getDataSafe(): array
+    {
+        $this->mutex->lock(3);
+        $storage = $this->getData();
+        $this->mutex->unlock();
+
+        return $storage;
     }
 }

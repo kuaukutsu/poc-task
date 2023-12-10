@@ -16,6 +16,10 @@ final class StageQueryStub implements StageQuery
 {
     use StageStorage;
 
+    public function __construct(private readonly Mutex $mutex)
+    {
+    }
+
     public function getOne(EntityUuid $uuid): StageModel
     {
         $storage = $this->getData();
@@ -36,7 +40,7 @@ final class StageQueryStub implements StageQuery
      */
     public function iterableByTask(EntityUuid $taskUuid): Generator
     {
-        foreach ($this->getData() as $item) {
+        foreach ($this->getDataSafe() as $item) {
             if ($item->taskUuid === $taskUuid->getUuid()) {
                 yield $item;
             }
@@ -48,7 +52,7 @@ final class StageQueryStub implements StageQuery
      */
     public function iterableOpenByTask(EntityUuid $taskUuid): Generator
     {
-        foreach ($this->getData() as $item) {
+        foreach ($this->getDataSafe() as $item) {
             if ($item->taskUuid === $taskUuid->getUuid()) {
                 $flag = new TaskFlag($item->flag);
                 if ($flag->isReady() || $flag->isRunning() || $flag->isWaiting()) {
@@ -63,7 +67,7 @@ final class StageQueryStub implements StageQuery
      */
     public function iterableReadyByTask(EntityUuid $taskUuid): Generator
     {
-        foreach ($this->getData() as $item) {
+        foreach ($this->getDataSafe() as $item) {
             if ($item->taskUuid === $taskUuid->getUuid()) {
                 $flag = new TaskFlag($item->flag);
                 if ($flag->isReady() || $flag->isPaused()) {
@@ -80,7 +84,7 @@ final class StageQueryStub implements StageQuery
 
     public function findReadyByTask(EntityUuid $taskUuid): ?StageModel
     {
-        foreach ($this->getData() as $item) {
+        foreach ($this->getDataSafe() as $item) {
             if ($item->taskUuid === $taskUuid->getUuid()) {
                 $flag = new TaskFlag($item->flag);
                 if ($flag->isReady()) {
@@ -94,7 +98,7 @@ final class StageQueryStub implements StageQuery
 
     public function findPausedByTask(EntityUuid $taskUuid): ?StageModel
     {
-        foreach ($this->getData() as $item) {
+        foreach ($this->getDataSafe() as $item) {
             if ($item->taskUuid === $taskUuid->getUuid()) {
                 $flag = new TaskFlag($item->flag);
                 if ($flag->isPaused()) {
@@ -108,7 +112,7 @@ final class StageQueryStub implements StageQuery
 
     public function findForgottenByTask(EntityUuid $taskUuid): ?StageModel
     {
-        foreach ($this->getData() as $item) {
+        foreach ($this->getDataSafe() as $item) {
             if ($item->taskUuid === $taskUuid->getUuid()) {
                 $flag = new TaskFlag($item->flag);
                 if ($flag->isRunning()) {
@@ -123,7 +127,7 @@ final class StageQueryStub implements StageQuery
     public function findPreviousCompletedByTask(EntityUuid $taskUuid, int $stageOrder): ?StageModel
     {
         $findPreviousOrder = $stageOrder - 1;
-        foreach ($this->getData() as $item) {
+        foreach ($this->getDataSafe() as $item) {
             if ($item->taskUuid === $taskUuid->getUuid() && $item->order === $findPreviousOrder) {
                 $flag = new TaskFlag($item->flag);
                 if ($flag->isFinished()) {
@@ -135,5 +139,14 @@ final class StageQueryStub implements StageQuery
         }
 
         return null;
+    }
+
+    private function getDataSafe(): array
+    {
+        $this->mutex->lock(3);
+        $storage = $this->getData();
+        $this->mutex->unlock();
+
+        return $storage;
     }
 }

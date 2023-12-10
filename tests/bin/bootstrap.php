@@ -19,9 +19,9 @@ use function DI\create;
 require_once dirname(__DIR__, 2) . '/vendor/autoload.php';
 
 $definitions = [
-    TaskQuery::class => create(TaskQueryStub::class),
+    TaskQuery::class => autowire(TaskQueryStub::class),
     TaskCommand::class => autowire(TaskCommandStub::class),
-    StageQuery::class => create(StageQueryStub::class),
+    StageQuery::class => autowire(StageQueryStub::class),
     StageCommand::class => autowire(StageCommandStub::class),
     ConsoleOutputInterface::class => create(ConsoleOutput::class),
 ];
