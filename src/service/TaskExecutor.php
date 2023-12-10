@@ -59,17 +59,17 @@ final class TaskExecutor
             ->getState();
     }
 
-    public function cancel(EntityTask $task): TaskStateInterface
-    {
-        return $this->actionCancel
-            ->execute($task)
-            ->getState();
-    }
-
     public function pause(EntityTask $task): TaskStateInterface
     {
         return $this->actionPause
             ->execute($task)
+            ->getState();
+    }
+
+    public function cancel(EntityTask $task, ?TaskStateInterface $state = null): TaskStateInterface
+    {
+        return $this->actionCancel
+            ->execute($task, $state)
             ->getState();
     }
 

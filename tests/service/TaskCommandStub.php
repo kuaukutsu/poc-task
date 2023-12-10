@@ -96,7 +96,7 @@ final class TaskCommandStub implements TaskCommand
 
     private function saveSafe(array $data): bool
     {
-        $this->mutex->lock(3);
+        $this->mutex->lock(5);
         $isSuccess = $this->save($data);
         $this->mutex->unlock();
 

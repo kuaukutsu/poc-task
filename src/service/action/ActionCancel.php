@@ -60,7 +60,7 @@ final class ActionCancel implements TaskAction
      */
     private function stageCancel(string $uuid): void
     {
-        $iterator = $this->stageQuery->iterableOpenByTask(
+        $iterator = $this->stageQuery->iterableRunningByTask(
             new EntityUuid($uuid)
         );
 
@@ -70,7 +70,7 @@ final class ActionCancel implements TaskAction
                     new EntityUuid($stage->uuid),
                     new StageModelState(
                         new TaskStateCanceled(
-                            message: new TaskStateMessage('Canceled'),
+                            message: new TaskStateMessage('Task Canceled.'),
                             flag: $stage->flag,
                         )
                     ),

@@ -85,13 +85,13 @@ final class StageServiceTest extends TestCase
 
     public function testGetOpenByTask(): void
     {
-        $generator = $this->query->iterableOpenByTask(
+        $generator = $this->query->iterableRunningByTask(
             new EntityUuid()
         );
 
         self::assertEmpty($generator->current());
 
-        $generator = $this->query->iterableOpenByTask(
+        $generator = $this->query->iterableRunningByTask(
             new EntityUuid($this->task->getUuid())
         );
 

@@ -11,7 +11,6 @@ use kuaukutsu\poc\task\state\response\ResponseContextWrapper;
 use kuaukutsu\poc\task\state\TaskStateError;
 use kuaukutsu\poc\task\state\TaskStateInterface;
 use kuaukutsu\poc\task\state\TaskStateMessage;
-use kuaukutsu\poc\task\state\TaskStatePaused;
 use kuaukutsu\poc\task\state\TaskStateSuccess;
 use kuaukutsu\poc\task\handler\StateFactory;
 use kuaukutsu\poc\task\handler\TaskFactory;
@@ -57,7 +56,6 @@ final class ActionCompletion implements TaskAction
             if ($state->getFlag()->isError()) {
                 return new TaskStateError(
                     message: $state->getMessage(),
-                    flag: $task->getFlag(),
                 );
             }
 
@@ -68,18 +66,7 @@ final class ActionCompletion implements TaskAction
                         ? $context->pushSuccessResponse($response)
                         : $context->pushFailureResponse($response);
                 }
-
-                continue;
             }
-
-            if ($state->getFlag()->isPaused()) {
-                return new TaskStatePaused(
-                    message: $state->getMessage(),
-                    flag: $task->getFlag(),
-                );
-            }
-
-            return $state;
         }
 
         $this->stageCommand->removeByTask($uuid);

@@ -6,10 +6,10 @@ namespace kuaukutsu\poc\task\tests\service;
 
 use kuaukutsu\poc\task\dto\TaskCollection;
 use kuaukutsu\poc\task\dto\TaskModel;
-use kuaukutsu\poc\task\EntityUuid;
 use kuaukutsu\poc\task\exception\NotFoundException;
 use kuaukutsu\poc\task\service\TaskQuery;
 use kuaukutsu\poc\task\state\TaskFlag;
+use kuaukutsu\poc\task\EntityUuid;
 
 final class TaskQueryStub implements TaskQuery
 {
@@ -68,7 +68,7 @@ final class TaskQueryStub implements TaskQuery
         $collection = new TaskCollection();
         foreach ($this->getDataSafe() as $item) {
             $flag = new TaskFlag($item->flag);
-            if ($flag->isRunning()) {
+            if ($flag->isError() === false && $flag->isRunning()) {
                 $collection->attach($item);
             }
 
