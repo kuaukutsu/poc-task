@@ -35,12 +35,12 @@ interface StageQuery
     /**
      * @return Generator<StageModel>
      */
-    public function iterableOpenByTask(EntityUuid $taskUuid): Generator;
+    public function iterableReadyByTask(EntityUuid $taskUuid): Generator;
 
     /**
      * @return Generator<StageModel>
      */
-    public function iterableReadyByTask(EntityUuid $taskUuid): Generator;
+    public function iterableRunningByTask(EntityUuid $taskUuid): Generator;
 
     public function getMetricsByTask(EntityUuid $taskUuid): TaskMetrics;
 }

@@ -92,14 +92,20 @@ final class TaskProcessPromise
 
     /**
      * @param non-empty-string $stageUuid
-     * @throws NotFoundException
      * @throws ProcessingException
      */
     public function completed(string $stageUuid, TaskStateInterface $taskState): TaskStateInterface
     {
-        $stage = $this->query->getOne(
-            new EntityUuid($stageUuid)
-        );
+        try {
+            $stage = $this->query->getOne(
+                new EntityUuid($stageUuid)
+            );
+        } catch (NotFoundException $exception) {
+            throw new ProcessingException(
+                "[$stageUuid] Stage Promise failure: " . $exception->getMessage(),
+                $exception,
+            );
+        }
 
         if ($taskState->getFlag()->isSuccess()) {
             $state = new TaskStateSuccess(

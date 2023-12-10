@@ -40,8 +40,7 @@ final class TaskProcessReady
 
     public function has(): bool
     {
-        return $this->queue->isEmpty() === false
-            || $this->qpromises->isEmpty() === false;
+        return $this->isEmpty() === false;
     }
 
     public function isEmpty(): bool
@@ -79,7 +78,9 @@ final class TaskProcessReady
     public function pushStageOnPause(EntityTask $task): bool
     {
         $uuid = new EntityUuid($task->getUuid());
-        $stage = $this->query->findPausedByTask($uuid);
+        $stage = $this->query->findPausedByTask($uuid)
+            ?? $this->query->findReadyByTask($uuid);
+
         if ($stage === null) {
             return false;
         }
@@ -96,7 +97,8 @@ final class TaskProcessReady
      */
     public function pushStageOnReady(EntityTask $task): bool
     {
-        $stage = $this->query->findReadyByTask(new EntityUuid($task->getUuid()));
+        $uuid = new EntityUuid($task->getUuid());
+        $stage = $this->query->findReadyByTask($uuid);
         if ($stage === null) {
             return false;
         }

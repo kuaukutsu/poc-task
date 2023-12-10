@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task;
 
-use kuaukutsu\poc\task\event\ProcessExceptionEvent;
 use RuntimeException;
 use DateTimeImmutable;
 use Revolt\EventLoop;
@@ -18,6 +17,7 @@ use kuaukutsu\poc\task\event\LoopExceptionEvent;
 use kuaukutsu\poc\task\event\PublisherEvent;
 use kuaukutsu\poc\task\event\ProcessEvent;
 use kuaukutsu\poc\task\event\ProcessTimeoutEvent;
+use kuaukutsu\poc\task\event\ProcessExceptionEvent;
 use kuaukutsu\poc\task\exception\ProcessingException;
 use kuaukutsu\poc\task\processing\TaskProcess;
 use kuaukutsu\poc\task\processing\TaskProcessFactory;
@@ -243,18 +243,18 @@ final class TaskManager implements EventPublisherInterface
             $this->keeperEnable();
         }
 
-        $this->trigger(Event::ProcessPush, new ProcessEvent($process));
         $this->processesActive[$process->stage] = $process;
+        $this->trigger(Event::ProcessPush, new ProcessEvent($process));
     }
 
     private function processPull(TaskProcess $process): void
     {
         $process->stop(0);
-        $this->trigger(Event::ProcessPull, new ProcessEvent($process));
-
         unset($this->processesActive[$process->stage]);
         if ($this->processesActive === []) {
             $this->keeperDisable();
         }
+
+        $this->trigger(Event::ProcessPull, new ProcessEvent($process));
     }
 }

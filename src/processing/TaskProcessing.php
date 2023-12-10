@@ -9,6 +9,8 @@ use kuaukutsu\poc\task\exception\ProcessingException;
 use kuaukutsu\poc\task\handler\StateFactory;
 use kuaukutsu\poc\task\handler\TaskFactory;
 use kuaukutsu\poc\task\state\TaskStateInterface;
+use kuaukutsu\poc\task\state\TaskStateCanceled;
+use kuaukutsu\poc\task\state\TaskStateMessage;
 use kuaukutsu\poc\task\state\TaskStateRelation;
 use kuaukutsu\poc\task\service\TaskQuery;
 use kuaukutsu\poc\task\service\TaskExecutor;
@@ -83,6 +85,13 @@ final class TaskProcessing
     public function next(TaskProcess $process): void
     {
         if ($process->isSuccessful() === false) {
+            $this->canceled(
+                $process->task,
+                new TaskStateCanceled(
+                    new TaskStateMessage($process->getOutput())
+                )
+            );
+
             return;
         }
 
@@ -122,33 +131,11 @@ final class TaskProcessing
      */
     public function cancel(TaskProcess $process): void
     {
-        $task = $this->factory($process->task);
-        if ($task->isFinished()) {
-            return;
-        }
-
-        try {
-            $this->taskExecutor->cancel($task);
-        } catch (Throwable $exception) {
-            throw new ProcessingException(
-                "[$process->task] TaskProcessing error: " . $exception->getMessage(),
-                $exception,
-            );
-        }
-
+        $this->canceled($process->task);
         if ($this->processPromise->has($process->task)) {
-            $context = $this->processPromise->dequeue($process->task, $process->stage);
-
-            try {
-                $this->taskExecutor->cancel(
-                    $this->factory($context->task)
-                );
-            } catch (Throwable $exception) {
-                throw new ProcessingException(
-                    "[$process->task] TaskProcessing error: " . $exception->getMessage(),
-                    $exception,
-                );
-            }
+            $this->canceled(
+                $this->processPromise->dequeue($process->task, $process->stage)->task
+            );
         }
     }
 
@@ -291,6 +278,26 @@ final class TaskProcessing
         }
 
         return false;
+    }
+
+    /**
+     * @param non-empty-string $taskUuid
+     */
+    private function canceled(string $taskUuid, ?TaskStateInterface $state = null): void
+    {
+        $task = $this->factory($taskUuid);
+        if ($task->isFinished()) {
+            return;
+        }
+
+        try {
+            $this->taskExecutor->cancel($task, $state);
+        } catch (Throwable $exception) {
+            throw new ProcessingException(
+                "[$taskUuid] TaskCanceled error: " . $exception->getMessage(),
+                $exception,
+            );
+        }
     }
 
     /**

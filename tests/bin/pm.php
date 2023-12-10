@@ -31,7 +31,7 @@ $manager->run(
     new TaskManagerOptions(
         bindir: __DIR__,
         heartbeat: (float)argument('heartbeat', 2),
-        keeperInterval: 1.,
+        keeperInterval: (float)argument('iterval', 1),
         queueSize: (int)argument('process', 30),
     )
 );

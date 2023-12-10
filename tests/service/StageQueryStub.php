@@ -50,21 +50,6 @@ final class StageQueryStub implements StageQuery
     /**
      * @return Generator<StageModel>
      */
-    public function iterableOpenByTask(EntityUuid $taskUuid): Generator
-    {
-        foreach ($this->getDataSafe() as $item) {
-            if ($item->taskUuid === $taskUuid->getUuid()) {
-                $flag = new TaskFlag($item->flag);
-                if ($flag->isReady() || $flag->isRunning() || $flag->isWaiting()) {
-                    yield $item;
-                }
-            }
-        }
-    }
-
-    /**
-     * @return Generator<StageModel>
-     */
     public function iterableReadyByTask(EntityUuid $taskUuid): Generator
     {
         foreach ($this->getDataSafe() as $item) {
@@ -77,9 +62,19 @@ final class StageQueryStub implements StageQuery
         }
     }
 
-    public function getMetricsByTask(EntityUuid $taskUuid): TaskMetrics
+    /**
+     * @return Generator<StageModel>
+     */
+    public function iterableRunningByTask(EntityUuid $taskUuid): Generator
     {
-        return new TaskMetrics();
+        foreach ($this->getDataSafe() as $item) {
+            if ($item->taskUuid === $taskUuid->getUuid()) {
+                $flag = new TaskFlag($item->flag);
+                if ($flag->isError() === false && $flag->isRunning()) {
+                    yield $item;
+                }
+            }
+        }
     }
 
     public function findReadyByTask(EntityUuid $taskUuid): ?StageModel
@@ -115,7 +110,7 @@ final class StageQueryStub implements StageQuery
         foreach ($this->getDataSafe() as $item) {
             if ($item->taskUuid === $taskUuid->getUuid()) {
                 $flag = new TaskFlag($item->flag);
-                if ($flag->isRunning()) {
+                if ($flag->isError() === false && $flag->isRunning()) {
                     return $item;
                 }
             }
@@ -139,6 +134,11 @@ final class StageQueryStub implements StageQuery
         }
 
         return null;
+    }
+
+    public function getMetricsByTask(EntityUuid $taskUuid): TaskMetrics
+    {
+        return new TaskMetrics();
     }
 
     private function getDataSafe(): array

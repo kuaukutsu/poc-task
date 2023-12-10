@@ -12,6 +12,8 @@ use kuaukutsu\poc\task\exception\BuilderException;
 use kuaukutsu\poc\task\processing\TaskProcess;
 use kuaukutsu\poc\task\service\StageCommand;
 use kuaukutsu\poc\task\service\StageQuery;
+use kuaukutsu\poc\task\state\TaskStateError;
+use kuaukutsu\poc\task\state\TaskStateMessage;
 use kuaukutsu\poc\task\state\TaskStateInterface;
 use kuaukutsu\poc\task\EntityUuid;
 
@@ -34,10 +36,21 @@ final class StageHandler
     {
         try {
             $stage = $this->query->getOne(new EntityUuid($uuid));
-            $state = $this->execute($stage, $previous);
         } catch (Throwable $exception) {
             $this->stderr($exception->getMessage());
             return TaskProcess::ERROR;
+        }
+
+        try {
+            $state = $this->execute($stage, $previous);
+        } catch (Throwable $exception) {
+            $state = new TaskStateError(
+                new TaskStateMessage(
+                    $exception->getMessage(),
+                    $exception->getTraceAsString(),
+                ),
+                $stage->flag,
+            );
         }
 
         try {
