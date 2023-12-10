@@ -34,11 +34,11 @@ final class ActionRun implements TaskAction
             $state->getFlag()->toValue(),
         );
 
-        $model = $this->command->state(
-            new EntityUuid($task->getUuid()),
-            new TaskModelState($state),
+        return $this->factory->create(
+            $this->command->state(
+                new EntityUuid($task->getUuid()),
+                new TaskModelState($state),
+            )
         );
-
-        return $this->factory->create($model);
     }
 }

@@ -65,7 +65,6 @@ final class ActionPause implements TaskAction
                     new StageModelState(
                         new TaskStatePaused(
                             message: new TaskStateMessage('Task Paused'),
-                            flag: $stage->flag,
                         )
                     ),
                 );

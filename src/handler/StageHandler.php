@@ -8,7 +8,6 @@ use Throwable;
 use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use kuaukutsu\poc\task\dto\StageModel;
 use kuaukutsu\poc\task\dto\StageModelState;
-use kuaukutsu\poc\task\exception\BuilderException;
 use kuaukutsu\poc\task\processing\TaskProcess;
 use kuaukutsu\poc\task\service\StageCommand;
 use kuaukutsu\poc\task\service\StageQuery;
@@ -42,21 +41,11 @@ final class StageHandler
         }
 
         try {
-            $state = $this->execute($stage, $previous);
-        } catch (Throwable $exception) {
-            $state = new TaskStateError(
-                new TaskStateMessage(
-                    $exception->getMessage(),
-                    $exception->getTraceAsString(),
-                ),
-                $stage->flag,
-            );
-        }
-
-        try {
             $stage = $this->command->state(
                 new EntityUuid($uuid),
-                new StageModelState($state),
+                new StageModelState(
+                    $this->execute($stage, $previous)
+                ),
             );
         } catch (Throwable $exception) {
             $this->stderr($exception->getMessage());
@@ -69,19 +58,33 @@ final class StageHandler
 
     /**
      * @param non-empty-string|null $previous
-     * @throws BuilderException
      */
     private function execute(StageModel $stage, ?string $previous): TaskStateInterface
     {
-        $previousState = null;
+        $previousStage = null;
         if ($previous !== null) {
-            $previousState = $this->query->findOne(new EntityUuid($previous))?->state;
+            $previousStage = $this->query->findOne(
+                new EntityUuid($previous)
+            );
         }
 
-        return $this->executor->execute(
-            $stage,
-            $this->contextFactory->create($stage, $previousState)
-        );
+        try {
+            return $this->executor->execute(
+                $stage,
+                $this->contextFactory->create(
+                    $stage,
+                    $previousStage,
+                )
+            );
+        } catch (Throwable $exception) {
+            return new TaskStateError(
+                new TaskStateMessage(
+                    $exception->getMessage(),
+                    $exception->getTraceAsString(),
+                ),
+                $stage->flag,
+            );
+        }
     }
 
     private function stdout(string $message): void

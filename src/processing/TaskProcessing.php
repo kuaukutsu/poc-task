@@ -10,7 +10,6 @@ use kuaukutsu\poc\task\handler\StateFactory;
 use kuaukutsu\poc\task\handler\TaskFactory;
 use kuaukutsu\poc\task\state\TaskStateInterface;
 use kuaukutsu\poc\task\state\TaskStateCanceled;
-use kuaukutsu\poc\task\state\TaskStateMessage;
 use kuaukutsu\poc\task\state\TaskStateRelation;
 use kuaukutsu\poc\task\service\TaskQuery;
 use kuaukutsu\poc\task\service\TaskExecutor;
@@ -85,10 +84,15 @@ final class TaskProcessing
     public function next(TaskProcess $process): void
     {
         if ($process->isSuccessful() === false) {
+            $state = $this->stateFactory->create(
+                $process->task,
+                $process->getOutput(),
+            );
+
             $this->canceled(
                 $process->task,
                 new TaskStateCanceled(
-                    new TaskStateMessage($process->getOutput())
+                    $state->getMessage()
                 )
             );
 
@@ -119,7 +123,7 @@ final class TaskProcessing
         }
 
         $state = $this->stateFactory->create(
-            $task->getUuid(),
+            $process->task,
             $process->getOutput(),
         );
 
