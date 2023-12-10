@@ -22,13 +22,13 @@ final class ActionReady implements TaskAction
 
     public function execute(EntityTask $task, ?TaskStateInterface $state = null): EntityTask
     {
-        $model = $this->command->state(
-            new EntityUuid($task->getUuid()),
-            new TaskModelState(
-                new TaskStateReady()
-            ),
+        return $this->factory->create(
+            $this->command->state(
+                new EntityUuid($task->getUuid()),
+                new TaskModelState(
+                    new TaskStateReady()
+                ),
+            )
         );
-
-        return $this->factory->create($model);
     }
 }

@@ -7,16 +7,21 @@ namespace kuaukutsu\poc\task\handler;
 use kuaukutsu\poc\task\dto\StageModel;
 use kuaukutsu\poc\task\state\TaskStatePrepare;
 use kuaukutsu\poc\task\TaskStageContext;
+use Throwable;
 
 final class StageContextFactory
 {
     use TaskStatePrepare;
 
-    public function create(StageModel $stage, ?string $previousState = null): TaskStageContext
+    public function create(StageModel $stage, ?StageModel $previousStage = null): TaskStageContext
     {
         $previous = null;
-        if ($previousState !== null) {
-            $previous = $this->prepareState($previousState);
+        if ($previousStage !== null) {
+            try {
+                $previous = $this->prepareState($previousStage->state);
+            } catch (Throwable) {
+                // Вероятно, в будущем будем выкидывать исключение, чтобы падать в execute.
+            }
         }
 
         return new TaskStageContext(
