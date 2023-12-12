@@ -131,13 +131,12 @@ final class StageQueryStub implements StageQuery
     public function findPreviousCompletedByTask(EntityUuid $taskUuid, int $stageOrder): ?StageModel
     {
         $flag = new TaskFlag();
-        $findPreviousOrder = $stageOrder - 1;
 
         try {
             return $this->getRow(
                 [
                     'task_uuid' => $taskUuid->getUuid(),
-                    'order' => $findPreviousOrder,
+                    'order' => --$stageOrder,
                     'flag' => [
                         $flag->unset()->setSuccess()->toValue(),
                         $flag->unset()->setError()->toValue(),

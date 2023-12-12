@@ -36,71 +36,17 @@ final class NumberHandlerStageStub extends TaskHandlerBase
         $response = $context->previous->getResponse();
 
         $task = $this->builder->create('Nested Task: ' . $context->task);
-        $task->addStage(
-            new EntityWrapper(
-                class: IncreaseNumberStageStub::class,
-                params: [
-                    'name' => 'Nested 1: ' . $response->name,
-                    'number' => $response->response->number,
-                ],
-            ),
-            new EntityWrapper(
-                class: IncreaseNumberStageStub::class,
-                params: [
-                    'name' => 'Nested 2: ' . $response->name,
-                    'number' => $response->response->number + 1,
-                ],
-            ),
-            new EntityWrapper(
-                class: IncreaseNumberStageStub::class,
-                params: [
-                    'name' => 'Nested 3: ' . $response->name,
-                    'number' => $response->response->number + 2,
-                ],
-            ),
-            new EntityWrapper(
-                class: IncreaseNumberStageStub::class,
-                params: [
-                    'name' => 'Nested 4: ' . $response->name,
-                    'number' => $response->response->number + 3,
-                ],
-            ),
-            new EntityWrapper(
-                class: IncreaseNumberStageStub::class,
-                params: [
-                    'name' => 'Nested 5: ' . $response->name,
-                    'number' => $response->response->number + 4,
-                ],
-            ),
-            new EntityWrapper(
-                class: IncreaseNumberStageStub::class,
-                params: [
-                    'name' => 'Nested 6: ' . $response->name,
-                    'number' => $response->response->number + 5,
-                ],
-            ),
-            new EntityWrapper(
-                class: IncreaseNumberStageStub::class,
-                params: [
-                    'name' => 'Nested 7: ' . $response->name,
-                    'number' => $response->response->number + 6,
-                ],
-            ),
-            new EntityWrapper(
-                class: IncreaseNumberStageStub::class,
-                params: [
-                    'name' => 'Nested 8: ' . $response->name,
-                    'number' => $response->response->number + 7,
-                ],
-            ),
-            new EntityWrapper(
-                class: IncreaseNumberStageStub::class,
-                params: [
-                    'name' => 'Nested 9: ' . $response->name,
-                    'number' => $response->response->number + 8,
-                ],
-            ),
-        );
+        foreach (range(0, 25) as $row) {
+            $task->addStage(
+                new EntityWrapper(
+                    class: IncreaseNumberStageStub::class,
+                    params: [
+                        'name' => "Nested $row: " . $response->name,
+                        'number' => $response->response->number + $row,
+                    ],
+                ),
+            );
+        }
 
         return $this->wait(
             $this->builder->build($task, $context),

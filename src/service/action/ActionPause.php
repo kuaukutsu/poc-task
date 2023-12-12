@@ -29,7 +29,7 @@ final class ActionPause implements TaskAction
 
     public function execute(EntityTask $task, ?TaskStateInterface $state = null): EntityTask
     {
-        if ($task->isPaused()) {
+        if ($task->isPaused() || $task->isPromised() || $task->isWaiting()) {
             return $task;
         }
 

@@ -12,6 +12,7 @@ use kuaukutsu\poc\task\dto\TaskModelCreate;
 use kuaukutsu\poc\task\dto\TaskModelState;
 use kuaukutsu\poc\task\exception\NotFoundException;
 use kuaukutsu\poc\task\service\TaskCommand;
+use kuaukutsu\poc\task\state\TaskFlag;
 use kuaukutsu\poc\task\EntityUuid;
 
 final class TaskCommandStub implements TaskCommand
@@ -85,9 +86,24 @@ final class TaskCommandStub implements TaskCommand
 
     public function terminate(array $indexUuid, TaskModelState $model): bool
     {
+        $this->mutex->lock(5);
         foreach ($indexUuid as $uuid) {
-            $this->state(new EntityUuid($uuid), $model);
+            $stmt = $this->connection->prepare(
+                'UPDATE task SET flag=:flag, state=:state, updated_at=:updated_at WHERE uuid=:uuid AND flag=:running'
+            );
+
+            $stmt->bindValue(':flag', $model->flag, SQLITE3_INTEGER);
+            $stmt->bindValue(':state', $model->state);
+            $stmt->bindValue(':updated_at', gmdate('c'));
+            $stmt->bindValue(':uuid', $uuid);
+            $stmt->bindValue(':running', (new TaskFlag())->setRunning()->toValue(), SQLITE3_INTEGER);
+            if ($stmt->execute() === false) {
+                $this->mutex->unlock();
+                throw new RuntimeException('ModelSave error: ' . $this->connection->lastErrorMsg());
+            }
         }
+
+        $this->mutex->unlock();
 
         return true;
     }
