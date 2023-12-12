@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\tests;
 
-use kuaukutsu\poc\task\state\TaskCommand;
-use kuaukutsu\poc\task\state\TaskStateRelation;
 use PHPUnit\Framework\MockObject\Exception;
 use Psr\Container\ContainerExceptionInterface;
 use PHPUnit\Framework\TestCase;
@@ -13,6 +11,8 @@ use Symfony\Component\Process\Process;
 use kuaukutsu\poc\task\handler\StageHandler;
 use kuaukutsu\poc\task\processing\TaskProcess;
 use kuaukutsu\poc\task\processing\TaskProcessing;
+use kuaukutsu\poc\task\state\TaskCommand;
+use kuaukutsu\poc\task\state\TaskStateRelation;
 use kuaukutsu\poc\task\state\TaskStateInterface;
 use kuaukutsu\poc\task\state\TaskStateMessage;
 use kuaukutsu\poc\task\state\TaskStateSuccess;
@@ -28,7 +28,6 @@ use kuaukutsu\poc\task\TaskManagerOptions;
 use kuaukutsu\poc\task\TaskBuilder;
 use kuaukutsu\poc\task\tests\stub\TestContextResponseStageStub;
 use kuaukutsu\poc\task\tests\stub\TestHandlerStageStub;
-use kuaukutsu\poc\task\tests\service\Storage;
 
 final class ProcessingPromiseTest extends TestCase
 {

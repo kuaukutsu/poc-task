@@ -20,7 +20,6 @@ use kuaukutsu\poc\task\EntityTask;
 use kuaukutsu\poc\task\TaskManagerOptions;
 use kuaukutsu\poc\task\TaskBuilder;
 use kuaukutsu\poc\task\tests\stub\TestStageStub;
-use kuaukutsu\poc\task\tests\service\Storage;
 
 final class ProcessingSkipTest extends TestCase
 {

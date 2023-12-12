@@ -13,7 +13,6 @@ use kuaukutsu\poc\task\state\TaskFlag;
 use kuaukutsu\poc\task\EntityTask;
 use kuaukutsu\poc\task\EntityUuid;
 use kuaukutsu\poc\task\TaskBuilder;
-use kuaukutsu\poc\task\tests\service\Storage;
 
 final class TaskViewerTest extends TestCase
 {
