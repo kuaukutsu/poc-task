@@ -90,8 +90,8 @@ final class ProcessingSkipTest extends TestCase
 
     public static function setUpBeforeClass(): void
     {
-        unlink(Storage::task->value);
-        unlink(Storage::stage->value);
+        //unlink(Storage::task->value);
+        //unlink(Storage::stage->value);
     }
 
     protected function setUp(): void

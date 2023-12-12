@@ -24,12 +24,17 @@ interface TaskQuery
     /**
      * @param positive-int $limit
      */
+    public function getPromise(int $limit): TaskCollection;
+
+    /**
+     * @param positive-int $limit
+     */
     public function getPaused(int $limit): TaskCollection;
 
     /**
      * @param positive-int $limit
      */
-    public function getRunning(int $limit): TaskCollection;
+    public function getForgotten(int $limit): TaskCollection;
 
     public function existsOpenByChecksum(string $checksum): bool;
 }

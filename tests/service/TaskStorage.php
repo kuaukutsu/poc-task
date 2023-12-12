@@ -4,59 +4,131 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\tests\service;
 
+use SQLite3;
+use SQLite3Result;
 use Throwable;
 use RuntimeException;
 use kuaukutsu\poc\task\dto\TaskModel;
+use kuaukutsu\poc\task\exception\NotFoundException;
 
 use function kuaukutsu\poc\task\tools\entity_hydrator;
 
 trait TaskStorage
 {
-    private function storage(): string
+    private function db(): SQLite3
     {
-        return Storage::task->value;
+        $connection = new SQLite3(Storage::task->value);
+        $connection->exec(
+            <<<SQL
+CREATE TABLE IF NOT EXISTS task(
+    uuid TEXT PRIMARY KEY, 
+    title TEXT,
+    flag INT,
+    state TEXT,
+    options TEXT,
+    checksum TEXT,
+    created_at TEXT,
+    updated_at TEXT
+)
+SQL
+        );
+
+        return $connection;
     }
 
     /**
-     * @return array<string, TaskModel>
+     * @throws NotFoundException
      * @throws RuntimeException
      */
-    private function getData(): array
+    private function getRow(array $conditions, SQLite3 $db): TaskModel
     {
-        $data = @file_get_contents($this->storage());
-        if (empty($data)) {
-            return [];
+        $data = $this->prepareConditions($conditions, $db)
+            ->fetchArray(SQLITE3_ASSOC);
+
+        if ($data === false) {
+            throw new NotFoundException('Task Not Found.');
         }
 
+        return $this->prepareData($data);
+    }
+
+    /**
+     * @return TaskModel[]
+     */
+    private function getRows(array $conditions, SQLite3 $db): array
+    {
+        $result = $this->prepareConditions($conditions, $db);
+
+        $rows = [];
+        while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+            $rows[] = $this->prepareData($row);
+        }
+
+        return $rows;
+    }
+
+    private function prepareData(array $data): TaskModel
+    {
         try {
-            $items = json_decode($data, true, 512, JSON_THROW_ON_ERROR);
+            $data['options'] = json_decode($data['options'], true, 512, JSON_THROW_ON_ERROR);
         } catch (Throwable) {
-            return [];
+            $data['options'] = [];
         }
 
-        $list = [];
-        foreach ($items as $item) {
-            $dto = entity_hydrator(TaskModel::class, $item);
-            $list[$dto->uuid] = $dto;
-        }
-
-        return $list;
+        return entity_hydrator(TaskModel::class, $data);
     }
 
-    /**
-     * @throws RuntimeException
-     */
-    private function save(array $storage): bool
+    private function prepareConditions(array $conditions, SQLite3 $db): SQLite3Result
     {
-        try {
-            file_put_contents(
-                $this->storage(),
-                json_encode($storage, JSON_THROW_ON_ERROR),
-            );
-        } catch (Throwable $exception) {
-            throw new RuntimeException($exception->getMessage(), $exception->getCode(), $exception);
+        $stmttConditions = '';
+        foreach ($conditions as $key => $value) {
+            if ($stmttConditions !== '') {
+                $stmttConditions .= ' AND ';
+            }
+
+            if (is_array($value)) {
+                $stmttConditions .= '( ';
+                $row = 0;
+                foreach ($value as $ignored) {
+                    if ($row > 0) {
+                        $stmttConditions .= ' OR ';
+                    }
+
+                    $stmttConditions .= $key . '=:' . $key . $row;
+                    $row++;
+                }
+                $stmttConditions .= ') ';
+            } else {
+                $stmttConditions .= $key . '=:' . $key;
+            }
         }
 
-        return true;
+        $stmtt = $db->prepare('SELECT * FROM task WHERE ' . trim($stmttConditions));
+        foreach ($conditions as $key => $value) {
+            if (is_array($value)) {
+                $row = 0;
+                foreach ($value as $itemValue) {
+                    $stmtt->bindValue(
+                        ':' . $key . $row,
+                        $itemValue,
+                        is_int($itemValue) ? SQLITE3_INTEGER : SQLITE3_TEXT,
+                    );
+                    $row++;
+                }
+            } else {
+                $stmtt->bindValue(
+                    ':' . $key,
+                    $value,
+                    is_int($value) ? SQLITE3_INTEGER : SQLITE3_TEXT,
+                );
+            }
+        }
+
+        $result = $stmtt->execute();
+        if ($result === false) {
+            throw new RuntimeException('ModelRead error: ' . $this->connection->lastErrorMsg());
+        }
+
+        return $result;
     }
 }

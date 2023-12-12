@@ -10,7 +10,7 @@ enum Storage: string
 
     case data = self::DATA;
 
-    case task = self::DATA . '/task.json';
+    case task = self::DATA . '/task.sqlite3';
 
-    case stage = self::DATA . '/stage.json';
+    case stage = self::DATA . '/stage.sqlite3';
 }

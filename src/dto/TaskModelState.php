@@ -12,9 +12,9 @@ use kuaukutsu\poc\task\state\TaskStateInterface;
  */
 final class TaskModelState implements EntityArrable
 {
-    private readonly int $flag;
+    public readonly int $flag;
 
-    private readonly string $state;
+    public readonly string $state;
 
     public function __construct(TaskStateInterface $state)
     {

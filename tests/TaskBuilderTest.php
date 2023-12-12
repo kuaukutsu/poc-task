@@ -23,7 +23,22 @@ final class TaskBuilderTest extends TestCase
 {
     use Container;
 
-    private TaskBuilder $builder;
+    private ?EntityTask $task = null;
+
+    private readonly TaskBuilder $builder;
+
+    private readonly TaskDestroyer $destroyer;
+
+    /**
+     * @throws ContainerExceptionInterface
+     */
+    public function __construct(string $name)
+    {
+        parent::__construct($name);
+
+        $this->builder = self::get(TaskBuilder::class);
+        $this->destroyer = self::get(TaskDestroyer::class);
+    }
 
     public function testDraftBuilder(): void
     {
@@ -188,17 +203,18 @@ final class TaskBuilderTest extends TestCase
             ),
         );
 
-        $this->builder->build($draft);
+        $this->task = $this->builder->build($draft);
 
         $this->expectException(LogicException::class);
         $this->builder->build($draftDuplicate);
     }
 
-    /**
-     * @throws ContainerExceptionInterface
-     */
-    protected function setUp(): void
+    protected function tearDown(): void
     {
-        $this->builder = self::get(TaskBuilder::class);
+        if ($this->task !== null) {
+            $this->destroyer->purge(
+                new EntityUuid($this->task->getUuid())
+            );
+        }
     }
 }

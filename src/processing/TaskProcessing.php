@@ -8,11 +8,9 @@ use Throwable;
 use kuaukutsu\poc\task\exception\ProcessingException;
 use kuaukutsu\poc\task\handler\StateFactory;
 use kuaukutsu\poc\task\handler\TaskFactory;
-use kuaukutsu\poc\task\state\TaskStateInterface;
-use kuaukutsu\poc\task\state\TaskStateCanceled;
-use kuaukutsu\poc\task\state\TaskStateRelation;
 use kuaukutsu\poc\task\service\TaskQuery;
 use kuaukutsu\poc\task\service\TaskExecutor;
+use kuaukutsu\poc\task\state\TaskStateRelation;
 use kuaukutsu\poc\task\TaskManagerOptions;
 use kuaukutsu\poc\task\EntityTask;
 use kuaukutsu\poc\task\EntityUuid;
@@ -24,7 +22,6 @@ final class TaskProcessing
         private readonly TaskFactory $taskFactory,
         private readonly TaskExecutor $taskExecutor,
         private readonly TaskProcessReady $processReady,
-        private readonly TaskProcessPromise $processPromise,
         private readonly StateFactory $stateFactory,
     ) {
     }
@@ -55,6 +52,9 @@ final class TaskProcessing
         $capacity = $options->getQueueSize() - $this->processReady->count();
         if ($capacity > 0) {
             $this->loadingReady($capacity);
+            $this->loadingPromise(
+                $options->getQueueSize()
+            );
         }
     }
 
@@ -63,11 +63,11 @@ final class TaskProcessing
      */
     public function checkTaskProcess(TaskManagerOptions $options): void
     {
-        if ($this->processReady->isEmpty()) {
-            $this->loadingForgotten(
-                $options->getQueueSize()
-            );
-        }
+//        if ($this->processReady->isEmpty()) {
+//            $this->loadingForgotten(
+//                $options->getQueueSize()
+//            );
+//        }
     }
 
     public function terminate(int $signal): void
@@ -83,42 +83,8 @@ final class TaskProcessing
      */
     public function next(TaskProcess $process): void
     {
-        if ($process->isSuccessful() === false) {
-            $state = $this->stateFactory->create(
-                $process->task,
-                $process->getOutput(),
-            );
-
-            $this->canceled(
-                $process->task,
-                new TaskStateCanceled(
-                    $state->getMessage()
-                )
-            );
-
-            return;
-        }
-
         $task = $this->factory($process->task);
-        if ($task->isFinished()) {
-            return;
-        }
-
-        if ($this->processPromise->has($process->task)) {
-            $context = $this->processPromise->getContextIfCompleted($process->task, $process->stage);
-            if ($context !== null) {
-                $state = $this->processPromise->completed(
-                    $context->stage,
-                    $this->taskExecutor->stop($task)
-                );
-
-                $this->enqueueNext(
-                    $this->factory($context->task),
-                    $state,
-                    $context->stage,
-                );
-            }
-
+        if ($task->isPromised()) {
             return;
         }
 
@@ -127,7 +93,18 @@ final class TaskProcessing
             $process->getOutput(),
         );
 
-        $this->enqueueNext($task, $state, $process->stage);
+        if ($task->isFinished() || $state->getFlag()->isFinished() === false) {
+            if ($state instanceof TaskStateRelation) {
+                $this->nextStage(
+                    $this->factory($state->task),
+                    $state->stage,
+                );
+            }
+
+            return;
+        }
+
+        $this->nextStage($task, $process->stage);
     }
 
     /**
@@ -135,10 +112,23 @@ final class TaskProcessing
      */
     public function cancel(TaskProcess $process): void
     {
-        $this->canceled($process->task);
-        if ($this->processPromise->has($process->task)) {
-            $this->canceled(
-                $this->processPromise->dequeue($process->task, $process->stage)->task
+        $task = $this->factory($process->task);
+        if ($task->isFinished()) {
+            return;
+        }
+
+        try {
+            $this->taskExecutor->cancel(
+                $task,
+                $this->stateFactory->create(
+                    $process->task,
+                    $process->getMessage(),
+                )
+            );
+        } catch (Throwable $exception) {
+            throw new ProcessingException(
+                "[$process->task] TaskCanceled error: " . $exception->getMessage(),
+                $exception,
             );
         }
     }
@@ -172,12 +162,12 @@ final class TaskProcessing
         foreach ($this->taskQuery->getPaused($limit) as $item) {
             try {
                 $task = $this->taskFactory->create($item);
-                $this->processReady->pushStageOnPause($task)
-                    ? $this->taskExecutor->run($task)
-                    : $this->taskExecutor->stop($task);
+                if ($this->processReady->pushStageOnPause($task)) {
+                    $this->taskExecutor->run($task);
+                }
             } catch (Throwable $exception) {
                 throw new ProcessingException(
-                    "[$item->uuid] TaskProcessing error: " . $exception->getMessage(),
+                    "[$item->uuid] TaskLoading error: " . $exception->getMessage(),
                     $exception,
                 );
             }
@@ -193,16 +183,31 @@ final class TaskProcessing
         foreach ($this->taskQuery->getReady($limit) as $item) {
             try {
                 $task = $this->taskFactory->create($item);
-                $isRun = $task->isPromised()
-                    ? $this->enqueuePromise($task)
-                    : $this->processReady->pushStageOnReady($task);
-
-                $isRun
-                    ? $this->taskExecutor->run($task)
-                    : $this->taskExecutor->stop($task);
+                if ($this->processReady->pushStageOnReady($task)) {
+                    $this->taskExecutor->run($task);
+                }
             } catch (Throwable $exception) {
                 throw new ProcessingException(
-                    "[$item->uuid] TaskProcessing error: " . $exception->getMessage(),
+                    "[$item->uuid] TaskLoading error: " . $exception->getMessage(),
+                    $exception,
+                );
+            }
+        }
+    }
+
+    /**
+     * @param positive-int $limit
+     * @throws ProcessingException
+     */
+    private function loadingPromise(int $limit): void
+    {
+        foreach ($this->taskQuery->getPromise($limit) as $item) {
+            try {
+                $task = $this->taskFactory->create($item);
+                $this->processReady->pushStagePromise($task, $limit);
+            } catch (Throwable $exception) {
+                throw new ProcessingException(
+                    "[$item->uuid] TaskLoading error: " . $exception->getMessage(),
                     $exception,
                 );
             }
@@ -215,15 +220,13 @@ final class TaskProcessing
      */
     private function loadingForgotten(int $limit): void
     {
-        foreach ($this->taskQuery->getRunning($limit) as $item) {
+        foreach ($this->taskQuery->getForgotten($limit) as $item) {
             try {
                 $task = $this->taskFactory->create($item);
-                $this->processReady->pushStageOnForgotten($task)
-                    ? $this->taskExecutor->run($task)
-                    : $this->taskExecutor->stop($task);
+                $this->processReady->pushStageOnForgotten($task);
             } catch (Throwable $exception) {
                 throw new ProcessingException(
-                    "[$item->uuid] TaskProcessing error: " . $exception->getMessage(),
+                    "[$item->uuid] TaskLoading error: " . $exception->getMessage(),
                     $exception,
                 );
             }
@@ -234,71 +237,13 @@ final class TaskProcessing
      * @param non-empty-string $previousStage
      * @throws ProcessingException
      */
-    private function enqueueNext(EntityTask $task, TaskStateInterface $state, string $previousStage): void
+    private function nextStage(EntityTask $task, string $previousStage): void
     {
-        if ($state->getFlag()->isFinished() === false) {
-            if ($state->getFlag()->isWaiting()) {
-                try {
-                    $this->taskExecutor->wait($task, $state);
-                } catch (Throwable $exception) {
-                    throw new ProcessingException(
-                        "[{$task->getUuid()}] TaskProcessing error: " . $exception->getMessage(),
-                        $exception,
-                    );
-                }
-            }
-
-            return;
-        }
-
         try {
-            if ($this->processReady->pushStageNext($task, $previousStage) === false) {
-                $this->taskExecutor->stop($task);
-                return;
-            }
-
-            if ($task->isWaiting()) {
-                $this->taskExecutor->run($task);
-                return;
-            }
+            $this->processReady->pushStageNext($task, $previousStage);
         } catch (Throwable $exception) {
             throw new ProcessingException(
                 "[{$task->getUuid()}] TaskProcessing error: " . $exception->getMessage(),
-                $exception,
-            );
-        }
-    }
-
-    private function enqueuePromise(EntityTask $task): bool
-    {
-        $state = $task->getState();
-        if ($state instanceof TaskStateRelation) {
-            $index = $this->processReady->pushStagePromise($task);
-            if ($index === []) {
-                return false;
-            }
-
-            return $this->processPromise->enqueue($task, $state, $index);
-        }
-
-        return false;
-    }
-
-    /**
-     * @param non-empty-string $taskUuid
-     */
-    private function canceled(string $taskUuid, ?TaskStateInterface $state = null): void
-    {
-        $task = $this->factory($taskUuid);
-        if ($task->isFinished()) {
-            return;
-        }
-
-        try {
-            $this->taskExecutor->cancel($task, $state);
-        } catch (Throwable $exception) {
-            throw new ProcessingException(
-                "[$taskUuid] TaskCanceled error: " . $exception->getMessage(),
                 $exception,
             );
         }

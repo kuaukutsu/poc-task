@@ -15,7 +15,6 @@ use kuaukutsu\poc\task\service\TaskDestroyer;
 use kuaukutsu\poc\task\TaskBuilder;
 use kuaukutsu\poc\task\EntityTask;
 use kuaukutsu\poc\task\EntityUuid;
-use kuaukutsu\poc\task\tests\service\Storage;
 
 final class TaskServiceTest extends TestCase
 {
@@ -105,12 +104,6 @@ final class TaskServiceTest extends TestCase
 
         self::assertTrue($state->getFlag()->isReady());
         self::assertFalse($state->getFlag()->isFinished());
-    }
-
-    public static function setUpBeforeClass(): void
-    {
-        unlink(Storage::task->value);
-        unlink(Storage::stage->value);
     }
 
     /**

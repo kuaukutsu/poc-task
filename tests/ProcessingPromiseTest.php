@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\tests;
 
+use kuaukutsu\poc\task\state\TaskCommand;
+use kuaukutsu\poc\task\state\TaskStateRelation;
 use PHPUnit\Framework\MockObject\Exception;
 use Psr\Container\ContainerExceptionInterface;
 use PHPUnit\Framework\TestCase;
@@ -85,7 +87,7 @@ final class ProcessingPromiseTest extends TestCase
 
         $context = $this->processing->getTaskProcess();
         $contextStageOne = $context->stage;
-        $exitCode = $this->handler->handle($context->stage);
+        $exitCode = $this->handler->handle($context->task, $context->stage);
         self::assertEquals(0, $exitCode);
 
         $num = 0;
@@ -121,10 +123,10 @@ final class ProcessingPromiseTest extends TestCase
         // Nested Task
         $nestedUuid = new EntityUuid($contextNestedTask->task);
         $task = $this->taskQuery->getOne($nestedUuid);
-        self::assertEquals($flag->unset()->setRunning()->toValue(), $task->flag);
+        self::assertEquals($flag->unset()->setPromised()->toValue(), $task->flag);
 
         // one stage
-        $exitCode = $this->handler->handle($contextNestedTask->stage);
+        $exitCode = $this->handler->handle($contextNestedTask->task, $contextNestedTask->stage);
         self::assertEquals(0, $exitCode);
         $this->processing->next(
             new TaskProcess(
@@ -140,7 +142,7 @@ final class ProcessingPromiseTest extends TestCase
 
         // two stage
         $contextNestedTask = $this->processing->getTaskProcess();
-        $exitCode = $this->handler->handle($contextNestedTask->stage);
+        $exitCode = $this->handler->handle($contextNestedTask->task, $contextNestedTask->stage);
         self::assertEquals(0, $exitCode);
         $this->processing->next(
             new TaskProcess(
@@ -155,15 +157,28 @@ final class ProcessingPromiseTest extends TestCase
         );
 
         // completed
+        $exitCode = $this->handler->handle($contextNestedTask->task, TaskCommand::stop()->toValue());
+        self::assertEquals(0, $exitCode);
         $task = $this->taskQuery->getOne($nestedUuid);
         self::assertEquals($flag->unset()->setSuccess()->toValue(), $task->flag);
 
-        $this->destroyer->purge($nestedUuid);
-
         // Возврат контекста
+        $this->processing->next(
+            new TaskProcess(
+                $contextNestedTask->task,
+                $contextNestedTask->stage,
+                $this->getProcess(
+                    new TaskStateRelation(
+                        task: $context->task,
+                        stage: $context->stage,
+                    )
+                ),
+            )
+        );
+
         $contextReturnTask = $this->processing->getTaskProcess();
         self::assertEquals($context->task, $contextReturnTask->task);
-        $exitCode = $this->handler->handle($contextReturnTask->stage, $contextStageOne);
+        $exitCode = $this->handler->handle($contextReturnTask->task, $contextReturnTask->stage, $contextStageOne);
         self::assertEquals(0, $exitCode);
         $this->processing->next(
             new TaskProcess(
@@ -178,17 +193,25 @@ final class ProcessingPromiseTest extends TestCase
         );
 
         $this->processing->loadTaskProcess($this->options);
+        $contextExitTask = $this->processing->getTaskProcess();
+        self::assertEquals(TaskCommand::stop()->toValue(), $contextExitTask->stage);
+        $exitCode = $this->handler->handle($contextExitTask->task, $contextExitTask->stage);
+        self::assertEquals(0, $exitCode);
+
+        $this->processing->loadTaskProcess($this->options);
         self::assertFalse($this->processing->hasTaskProcess());
 
         // completed
         $task = $this->taskQuery->getOne($uuid);
         self::assertEquals($flag->unset()->setSuccess()->toValue(), $task->flag);
+
+        $this->destroyer->purge($nestedUuid);
     }
 
     public static function setUpBeforeClass(): void
     {
-        unlink(Storage::task->value);
-        unlink(Storage::stage->value);
+        //unlink(Storage::task->value);
+        //unlink(Storage::stage->value);
     }
 
     protected function setUp(): void

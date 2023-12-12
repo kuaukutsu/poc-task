@@ -28,6 +28,22 @@ if (function_exists('kuaukutsu\poc\task\tools\argument') === false) {
     }
 }
 
+if (function_exists('kuaukutsu\poc\task\tools\get_task_uuid') === false) {
+    /**
+     * @return non-empty-string
+     * @throws RuntimeException
+     */
+    function get_task_uuid(): string
+    {
+        $uuid = argument('task');
+        if (is_string($uuid) === false || empty($uuid)) {
+            throw new RuntimeException("Task UUID must be declared.");
+        }
+
+        return $uuid;
+    }
+}
+
 if (function_exists('kuaukutsu\poc\task\tools\get_stage_uuid') === false) {
     /**
      * @return non-empty-string

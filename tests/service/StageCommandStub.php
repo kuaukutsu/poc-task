@@ -4,125 +4,135 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\tests\service;
 
+use SQLite3;
 use RuntimeException;
 use kuaukutsu\poc\task\dto\StageModel;
 use kuaukutsu\poc\task\dto\StageModelCreate;
 use kuaukutsu\poc\task\dto\StageModelState;
-use kuaukutsu\poc\task\exception\NotFoundException;
 use kuaukutsu\poc\task\state\TaskFlag;
 use kuaukutsu\poc\task\service\StageCommand;
 use kuaukutsu\poc\task\EntityUuid;
-
-use function kuaukutsu\poc\task\tools\entity_hydrator;
 
 final class StageCommandStub implements StageCommand
 {
     use StageStorage;
 
+    private readonly SQLite3 $connection;
+
     public function __construct(private readonly Mutex $mutex)
     {
+        $this->connection = $this->db();
     }
 
     public function create(EntityUuid $uuid, StageModelCreate $model): StageModel
     {
-        $dto = entity_hydrator(
-            StageModel::class,
-            [
-                ...$model->toArray(),
-                'uuid' => $uuid->getUuid(),
-                'createdAt' => gmdate('c'),
-                'updatedAt' => gmdate('c'),
-            ]
+        $this->mutex->lock(5);
+        $stmt = $this->connection->prepare(
+            'INSERT INTO stage VALUES (
+                          :uuid, :uuid_task, :flag, :state, :handler, :order, :created_at, :updated_at)'
         );
+        $stmt->bindValue(':uuid', $uuid->getUuid());
+        $stmt->bindValue(':uuid_task', $model->taskUuid);
+        $stmt->bindValue(':flag', $model->flag, SQLITE3_INTEGER);
+        $stmt->bindValue(':state', $model->state);
+        $stmt->bindValue(':handler', $model->handler);
+        $stmt->bindValue(':order', $model->order, SQLITE3_INTEGER);
+        $stmt->bindValue(':created_at', gmdate('c'));
+        $stmt->bindValue(':updated_at', gmdate('c'));
+        if ($stmt->execute() === false) {
+            $this->mutex->unlock();
+            throw new RuntimeException('ModelSave error: ' . $this->connection->lastErrorMsg());
+        }
 
-        $storage = $this->getDataSafe();
-        $storage[] = $dto->toArray();
-        $this->saveSafe(
-            array_values($storage)
-        );
+        $row = $this->getRow($uuid->getQueryCondition(), $this->connection);
+        $this->mutex->unlock();
 
-        return $dto;
+        return $row;
     }
 
     public function state(EntityUuid $uuid, StageModelState $model): StageModel
     {
-        $storage = $this->getDataSafe();
-        if (array_key_exists($uuid->getUuid(), $storage) === false) {
-            throw new RuntimeException(
-                "[{$uuid->getUuid()}] Stage not found."
-            );
+        $this->mutex->lock(5);
+        $stmt = $this->connection->prepare(
+            'UPDATE stage SET 
+                 flag=:flag, state=:state, updated_at=:updated_at WHERE uuid=:uuid'
+        );
+
+        $stmt->bindValue(':uuid', $uuid->getUuid());
+        $stmt->bindValue(':flag', $model->flag, SQLITE3_INTEGER);
+        $stmt->bindValue(':state', $model->state);
+        $stmt->bindValue(':updated_at', gmdate('c'));
+        if ($stmt->execute() === false) {
+            $this->mutex->unlock();
+            throw new RuntimeException('ModelSave error: ' . $this->connection->lastErrorMsg());
         }
 
-        $dto = entity_hydrator(
-            StageModel::class,
-            [
-                ...$storage[$uuid->getUuid()]->toArray(),
-                ...$model->toArray(),
-                'updatedAt' => gmdate('c'),
-            ]
+        $row = $this->getRow($uuid->getQueryCondition(), $this->connection);
+        $this->mutex->unlock();
+
+        return $row;
+    }
+
+    public function stateByTask(EntityUuid $uuid, StageModelState $model): bool
+    {
+        $this->mutex->lock(5);
+        $stmt = $this->connection->prepare(
+            'UPDATE stage SET 
+                 flag=:flag, state=:state, updated_at=:updated_at 
+             WHERE task_uuid=:uuid AND flag=:running'
         );
 
-        $storage[$uuid->getUuid()] = $dto;
-        $this->saveSafe(
-            array_values($storage)
-        );
+        $stmt->bindValue(':flag', $model->flag, SQLITE3_INTEGER);
+        $stmt->bindValue(':state', $model->state);
+        $stmt->bindValue(':updated_at', gmdate('c'));
+        $stmt->bindValue(':uuid', $uuid->getUuid());
+        $stmt->bindValue(':running', (new TaskFlag())->setRunning()->toValue(), SQLITE3_INTEGER);
+        if ($stmt->execute() === false) {
+            $this->mutex->unlock();
+            throw new RuntimeException('ModelSave error: ' . $this->connection->lastErrorMsg());
+        }
 
-        return $dto;
+        $this->mutex->unlock();
+
+        return true;
     }
 
     public function terminateByTask(array $indexUuid, StageModelState $model): bool
     {
-        foreach ($this->getDataSafe() as $item) {
-            $flag = new TaskFlag($item->flag);
-            if ($flag->isRunning() && in_array($item->taskUuid, $indexUuid, true)) {
-                $this->state(
-                    new EntityUuid($item->uuid),
-                    $model
-                );
-            }
+        foreach ($indexUuid as $taskUuid) {
+            $this->stateByTask(new EntityUuid($taskUuid), $model);
         }
 
         return true;
     }
 
-    public function removeByTask(EntityUuid $taskUuid): bool
+    public function removeByTask(EntityUuid $uuid): bool
     {
-        return $this->saveSafe(
-            array_filter(
-                $this->getDataSafe(),
-                static fn(StageModel $stage): bool => $stage->taskUuid !== $taskUuid->getUuid()
-            )
-        );
+        $this->mutex->lock(5);
+        $stmt = $this->connection->prepare('DELETE FROM stage WHERE task_uuid=:uuid');
+        $stmt->bindValue(':uuid', $uuid->getUuid());
+        if ($stmt->execute() === false) {
+            $this->mutex->unlock();
+            throw new RuntimeException('ModelDelete error: ' . $this->connection->lastErrorMsg());
+        }
+
+        $this->mutex->unlock();
+
+        return true;
     }
 
     public function remove(EntityUuid $uuid): bool
     {
-        $storage = $this->getDataSafe();
-        if (array_key_exists($uuid->getUuid(), $storage) === false) {
-            throw new NotFoundException(
-                "[{$uuid->getUuid()}] Stage not found."
-            );
+        $this->mutex->lock(5);
+        $stmt = $this->connection->prepare('DELETE FROM stage WHERE uuid=:uuid');
+        $stmt->bindValue(':uuid', $uuid->getUuid());
+        if ($stmt->execute() === false) {
+            $this->mutex->unlock();
+            throw new RuntimeException('ModelDelete error: ' . $this->connection->lastErrorMsg());
         }
 
-        unset($storage[$uuid->getUuid()]);
-        return $this->saveSafe($storage);
-    }
-
-    private function saveSafe(array $data): bool
-    {
-        $this->mutex->lock(5);
-        $isSuccess = $this->save($data);
         $this->mutex->unlock();
 
-        return $isSuccess;
-    }
-
-    private function getDataSafe(): array
-    {
-        $this->mutex->lock(10);
-        $storage = $this->getData();
-        $this->mutex->unlock();
-
-        return $storage;
+        return true;
     }
 }

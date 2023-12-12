@@ -40,6 +40,11 @@ final class TaskProcess
         return $this->prepareOutput($this->process);
     }
 
+    public function getMessage(): string
+    {
+        return trim($this->getOutput());
+    }
+
     public function isSuccessful(): bool
     {
         return $this->process->isSuccessful();

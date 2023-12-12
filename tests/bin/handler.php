@@ -13,6 +13,7 @@ use kuaukutsu\poc\task\handler\StageHandler;
 
 use function kuaukutsu\poc\task\tools\get_previous_uuid;
 use function kuaukutsu\poc\task\tools\get_stage_uuid;
+use function kuaukutsu\poc\task\tools\get_task_uuid;
 
 require __DIR__ . '/bootstrap.php';
 
@@ -23,5 +24,9 @@ $container = new Container($definitions);
  * @noinspection PhpUnhandledExceptionInspection
  */
 $handler = $container->get(StageHandler::class);
-$exitCode = $handler->handle(get_stage_uuid(), get_previous_uuid());
+$exitCode = $handler->handle(
+    get_task_uuid(),
+    get_stage_uuid(),
+    get_previous_uuid(),
+);
 exit($exitCode);
