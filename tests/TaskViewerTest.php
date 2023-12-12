@@ -13,7 +13,6 @@ use kuaukutsu\poc\task\state\TaskFlag;
 use kuaukutsu\poc\task\EntityTask;
 use kuaukutsu\poc\task\EntityUuid;
 use kuaukutsu\poc\task\TaskBuilder;
-use kuaukutsu\poc\task\tests\service\Storage;
 
 final class TaskViewerTest extends TestCase
 {
@@ -35,12 +34,6 @@ final class TaskViewerTest extends TestCase
 
         $this->viewer = self::get(TaskViewer::class);
         $this->destroyer = self::get(TaskDestroyer::class);
-    }
-
-    public static function setUpBeforeClass(): void
-    {
-        unlink(Storage::task->value);
-        unlink(Storage::stage->value);
     }
 
     public function testView(): void

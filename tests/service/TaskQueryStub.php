@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\tests\service;
 
+use SQLite3;
 use kuaukutsu\poc\task\dto\TaskCollection;
 use kuaukutsu\poc\task\dto\TaskModel;
 use kuaukutsu\poc\task\exception\NotFoundException;
@@ -15,32 +16,51 @@ final class TaskQueryStub implements TaskQuery
 {
     use TaskStorage;
 
+    private readonly SQLite3 $connection;
+
     public function __construct(private readonly Mutex $mutex)
     {
+        $this->connection = $this->db();
     }
 
     public function getOne(EntityUuid $uuid): TaskModel
     {
-        $storage = $this->getDataSafe();
-        if (array_key_exists($uuid->getUuid(), $storage) === false) {
-            throw new NotFoundException("[{$uuid->getUuid()}] Task not found.");
-        }
-
-        return $storage[$uuid->getUuid()];
+        return $this->getRow($uuid->getQueryCondition(), $this->connection);
     }
 
     public function getReady(int $limit): TaskCollection
     {
-        $collection = new TaskCollection();
-        foreach ($this->getDataSafe() as $item) {
-            $flag = new TaskFlag($item->flag);
-            if ($flag->isReady() || $flag->isPromised()) {
-                $collection->attach($item);
-            }
+        $flag = new TaskFlag();
+        $rows = $this->getRows(
+            [
+                'flag' => $flag->setReady()->toValue(),
+            ],
+            $limit,
+            $this->connection
+        );
 
-            if ($collection->count() === $limit) {
-                return $collection;
-            }
+        $collection = new TaskCollection();
+        foreach ($rows as $item) {
+            $collection->attach($item);
+        }
+
+        return $collection;
+    }
+
+    public function getPromise(int $limit): TaskCollection
+    {
+        $flag = new TaskFlag();
+        $rows = $this->getRows(
+            [
+                'flag' => $flag->setPromised()->toValue(),
+            ],
+            $limit,
+            $this->connection
+        );
+
+        $collection = new TaskCollection();
+        foreach ($rows as $item) {
+            $collection->attach($item);
         }
 
         return $collection;
@@ -48,30 +68,44 @@ final class TaskQueryStub implements TaskQuery
 
     public function getPaused(int $limit): TaskCollection
     {
-        $collection = new TaskCollection();
-        foreach ($this->getDataSafe() as $item) {
-            $flag = new TaskFlag($item->flag);
-            if ($flag->isPaused()) {
-                $collection->attach($item);
-            }
+        $flag = new TaskFlag();
+        $rows = $this->getRows(
+            [
+                'flag' => [
+                    $flag->unset()->setPaused()->toValue(),
+                    $flag->unset()->setRunning()->setPaused()->toValue(),
+                ],
+            ],
+            $limit,
+            $this->connection
+        );
 
-            if ($collection->count() === $limit) {
-                return $collection;
-            }
+        $collection = new TaskCollection();
+        foreach ($rows as $item) {
+            $collection->attach($item);
         }
 
         return $collection;
     }
 
-    public function getRunning(int $limit): TaskCollection
+    public function getForgotten(int $limit): TaskCollection
     {
+        $flag = new TaskFlag();
+        $rows = $this->getRows(
+            [
+                'flag' => $flag->unset()->setRunning()->toValue(),
+            ],
+            100,
+            $this->connection
+        );
+
         $collection = new TaskCollection();
-        foreach ($this->getDataSafe() as $item) {
-            $flag = new TaskFlag($item->flag);
-            if ($flag->isError() === false && $flag->isRunning()) {
-                $collection->attach($item);
+        foreach ($rows as $item) {
+            if ($this->isDateOlderThanOneDay($item->createdAt)) {
+                continue;
             }
 
+            $collection->attach($item);
             if ($collection->count() === $limit) {
                 return $collection;
             }
@@ -82,26 +116,29 @@ final class TaskQueryStub implements TaskQuery
 
     public function existsOpenByChecksum(string $checksum): bool
     {
-        foreach ($this->getDataSafe() as $item) {
-            if ($item->checksum === $checksum) {
-                $flag = new TaskFlag($item->flag);
-                if ($flag->isFinished()) {
-                    continue;
-                }
+        $flag = new TaskFlag();
 
-                return true;
-            }
+        try {
+            $this->getRow(
+                [
+                    'checksum' => $checksum,
+                    'flag' => [
+                        $flag->unset()->setReady()->toValue(),
+                        $flag->unset()->setRunning()->toValue(),
+                        $flag->unset()->setWaiting()->toValue(),
+                    ],
+                ],
+                $this->connection
+            );
+        } catch (NotFoundException) {
+            return false;
         }
 
-        return false;
+        return true;
     }
 
-    private function getDataSafe(): array
+    private function isDateOlderThanOneDay(string $createdAt): bool
     {
-        $this->mutex->lock(10);
-        $storage = $this->getData();
-        $this->mutex->unlock();
-
-        return $storage;
+        return (time() - strtotime($createdAt)) > 86400;
     }
 }

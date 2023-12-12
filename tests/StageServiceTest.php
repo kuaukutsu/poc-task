@@ -15,7 +15,6 @@ use kuaukutsu\poc\task\service\TaskDestroyer;
 use kuaukutsu\poc\task\TaskBuilder;
 use kuaukutsu\poc\task\EntityTask;
 use kuaukutsu\poc\task\EntityUuid;
-use kuaukutsu\poc\task\tests\service\Storage;
 
 final class StageServiceTest extends TestCase
 {
@@ -85,13 +84,13 @@ final class StageServiceTest extends TestCase
 
     public function testGetOpenByTask(): void
     {
-        $generator = $this->query->iterableRunningByTask(
+        $generator = $this->query->iterableByTask(
             new EntityUuid()
         );
 
         self::assertEmpty($generator->current());
 
-        $generator = $this->query->iterableRunningByTask(
+        $generator = $this->query->iterableByTask(
             new EntityUuid($this->task->getUuid())
         );
 
@@ -135,12 +134,6 @@ final class StageServiceTest extends TestCase
         self::assertEquals($this->task->getUuid(), $context->task);
         self::assertEquals($this->stage->uuid, $context->stage);
         self::assertEmpty($context->previous);
-    }
-
-    public static function setUpBeforeClass(): void
-    {
-        unlink(Storage::task->value);
-        unlink(Storage::stage->value);
     }
 
     /**

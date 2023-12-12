@@ -20,7 +20,6 @@ use kuaukutsu\poc\task\EntityTask;
 use kuaukutsu\poc\task\TaskManagerOptions;
 use kuaukutsu\poc\task\TaskBuilder;
 use kuaukutsu\poc\task\tests\stub\TestStageStub;
-use kuaukutsu\poc\task\tests\service\Storage;
 
 final class ProcessingSkipTest extends TestCase
 {
@@ -86,12 +85,6 @@ final class ProcessingSkipTest extends TestCase
 
         $this->processing->loadTaskProcess($this->options);
         self::assertTrue($this->processing->hasTaskProcess());
-    }
-
-    public static function setUpBeforeClass(): void
-    {
-        unlink(Storage::task->value);
-        unlink(Storage::stage->value);
     }
 
     protected function setUp(): void

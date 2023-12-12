@@ -15,7 +15,6 @@ use kuaukutsu\poc\task\EntityTask;
 use kuaukutsu\poc\task\EntityUuid;
 use kuaukutsu\poc\task\TaskManagerOptions;
 use kuaukutsu\poc\task\TaskBuilder;
-use kuaukutsu\poc\task\tests\service\Storage;
 
 final class ProcessingTerminateTest extends TestCase
 {
@@ -77,12 +76,6 @@ final class ProcessingTerminateTest extends TestCase
 
         $this->processing->loadTaskProcess($this->options);
         self::assertTrue($this->processing->hasTaskProcess());
-    }
-
-    public static function setUpBeforeClass(): void
-    {
-        unlink(Storage::task->value);
-        unlink(Storage::stage->value);
     }
 
     /**

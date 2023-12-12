@@ -54,9 +54,9 @@ cli:
 test-builder:
 	docker-compose -f ./docker-compose.yml run --rm -u ${USER} -w /src/tests \
 		-e XDEBUG_MODE=off \
-		cli php ./bin/builder.php --task=10
+		cli php ./bin/builder.php --task=5
 
 test-pm:
 	docker-compose -f ./docker-compose.yml run --rm -u ${USER} -w /src/tests \
 		-e XDEBUG_MODE=off \
-		cli php ./bin/pm.php --heartbeat=3 --iterval=1 --process=5
+		cli php ./bin/pm.php --heartbeat=5 --iterval=1 --process=5

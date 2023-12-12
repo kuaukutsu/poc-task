@@ -9,8 +9,8 @@ use kuaukutsu\poc\task\dto\StageModelState;
 use kuaukutsu\poc\task\dto\TaskModelState;
 use kuaukutsu\poc\task\handler\TaskFactory;
 use kuaukutsu\poc\task\service\StageCommand;
-use kuaukutsu\poc\task\service\StageQuery;
 use kuaukutsu\poc\task\service\TaskCommand;
+use kuaukutsu\poc\task\state\TaskStateError;
 use kuaukutsu\poc\task\state\TaskStateCanceled;
 use kuaukutsu\poc\task\state\TaskStateInterface;
 use kuaukutsu\poc\task\state\TaskStateMessage;
@@ -20,7 +20,6 @@ use kuaukutsu\poc\task\EntityTask;
 final class ActionCancel implements TaskAction
 {
     public function __construct(
-        private readonly StageQuery $stageQuery,
         private readonly StageCommand $stageCommand,
         private readonly TaskCommand $taskCommand,
         private readonly TaskFactory $factory,
@@ -35,7 +34,7 @@ final class ActionCancel implements TaskAction
         }
 
         $state ??= new TaskStateCanceled(
-            message: new TaskStateMessage('Canceled'),
+            message: new TaskStateMessage('Task Canceled.'),
             flag: $task->getFlag(),
         );
 
@@ -45,38 +44,19 @@ final class ActionCancel implements TaskAction
             $state->getFlag()->toValue(),
         );
 
-        $model = $this->taskCommand->state(
-            new EntityUuid($task->getUuid()),
-            new TaskModelState($state),
-        );
+        $uuid = new EntityUuid($task->getUuid());
 
-        $this->stageCancel($model->uuid);
-
-        return $this->factory->create($model);
-    }
-
-    /**
-     * @param non-empty-string $uuid
-     */
-    private function stageCancel(string $uuid): void
-    {
-        $iterator = $this->stageQuery->iterableRunningByTask(
-            new EntityUuid($uuid)
-        );
-
-        foreach ($iterator as $stage) {
-            try {
-                $this->stageCommand->state(
-                    new EntityUuid($stage->uuid),
-                    new StageModelState(
-                        new TaskStateCanceled(
-                            message: new TaskStateMessage('Task Canceled.'),
-                            flag: $stage->flag,
-                        )
-                    ),
-                );
-            } catch (Throwable) {
-            }
+        try {
+            $this->stageCommand->stateByTask($uuid, new StageModelState($state));
+        } catch (Throwable $e) {
+            $state = new TaskStateError(
+                message: new TaskStateMessage($e->getMessage(), $e->getTraceAsString()),
+                flag: $task->getFlag(),
+            );
         }
+
+        return $this->factory->create(
+            $this->taskCommand->state($uuid, new TaskModelState($state))
+        );
     }
 }

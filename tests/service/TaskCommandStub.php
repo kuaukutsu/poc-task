@@ -4,111 +4,122 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\tests\service;
 
+use SQLite3;
+use Throwable;
 use RuntimeException;
 use kuaukutsu\poc\task\dto\TaskModel;
 use kuaukutsu\poc\task\dto\TaskModelCreate;
 use kuaukutsu\poc\task\dto\TaskModelState;
 use kuaukutsu\poc\task\exception\NotFoundException;
 use kuaukutsu\poc\task\service\TaskCommand;
+use kuaukutsu\poc\task\state\TaskFlag;
 use kuaukutsu\poc\task\EntityUuid;
-
-use function kuaukutsu\poc\task\tools\entity_hydrator;
 
 final class TaskCommandStub implements TaskCommand
 {
     use TaskStorage;
 
+    private readonly SQLite3 $connection;
+
     public function __construct(private readonly Mutex $mutex)
     {
+        $this->connection = $this->db();
     }
 
     /**
      * @throws RuntimeException
+     * @throws NotFoundException
      */
     public function create(EntityUuid $uuid, TaskModelCreate $model): TaskModel
     {
-        $dto = entity_hydrator(
-            TaskModel::class,
-            [
-                ...$model->toArray(),
-                'uuid' => $uuid->getUuid(),
-                'created_at' => gmdate('c'),
-                'updated_at' => gmdate('c'),
-            ]
+        $this->mutex->lock(5);
+        $stmt = $this->connection->prepare(
+            'INSERT INTO task VALUES (
+                          :uuid, :title, :flag, :state, :options, :checksum, :created_at, :updated_at)'
         );
+        $stmt->bindValue(':uuid', $uuid->getUuid());
+        $stmt->bindValue(':title', $model->title);
+        $stmt->bindValue(':flag', $model->flag, SQLITE3_INTEGER);
+        $stmt->bindValue(':state', $model->state);
+        $stmt->bindValue(':checksum', $model->checksum);
+        $stmt->bindValue(':created_at', gmdate('c'));
+        $stmt->bindValue(':updated_at', gmdate('c'));
 
-        $storage = $this->getDataSafe();
-        $storage[] = $dto->toArray();
-        $this->saveSafe(
-            array_values($storage)
-        );
+        try {
+            $stmt->bindValue(':options', json_encode($model->options->toArray(), JSON_THROW_ON_ERROR));
+        } catch (Throwable) {
+            $stmt->bindValue(':options', '[]');
+        }
 
-        return $dto;
+        if ($stmt->execute() === false) {
+            $this->mutex->unlock();
+            throw new RuntimeException('ModelSave error: ' . $this->connection->lastErrorMsg());
+        }
+
+        $row = $this->getRow($uuid->getQueryCondition(), $this->connection);
+        $this->mutex->unlock();
+
+        return $row;
     }
 
     public function state(EntityUuid $uuid, TaskModelState $model): TaskModel
     {
-        $storage = $this->getDataSafe();
-        if (array_key_exists($uuid->getUuid(), $storage) === false) {
-            throw new RuntimeException(
-                "[{$uuid->getUuid()}] Task not found."
-            );
+        $this->mutex->lock(5);
+        $stmt = $this->connection->prepare(
+            'UPDATE task SET flag=:flag, state=:state, updated_at=:updated_at WHERE uuid=:uuid'
+        );
+
+        $stmt->bindValue(':flag', $model->flag, SQLITE3_INTEGER);
+        $stmt->bindValue(':state', $model->state);
+        $stmt->bindValue(':updated_at', gmdate('c'));
+        $stmt->bindValue(':uuid', $uuid->getUuid());
+        if ($stmt->execute() === false) {
+            $this->mutex->unlock();
+            throw new RuntimeException('ModelSave error: ' . $this->connection->lastErrorMsg());
         }
 
-        $dto = entity_hydrator(
-            TaskModel::class,
-            [
-                ...$storage[$uuid->getUuid()]->toArray(),
-                ...$model->toArray(),
-                'updated_at' => gmdate('c'),
-            ]
-        );
+        $row = $this->getRow($uuid->getQueryCondition(), $this->connection);
+        $this->mutex->unlock();
 
-        $storage[$uuid->getUuid()] = $dto;
-        $this->saveSafe(
-            array_values($storage)
-        );
-
-        return $dto;
+        return $row;
     }
 
     public function terminate(array $indexUuid, TaskModelState $model): bool
     {
+        $this->mutex->lock(5);
         foreach ($indexUuid as $uuid) {
-            $this->state(new EntityUuid($uuid), $model);
+            $stmt = $this->connection->prepare(
+                'UPDATE task SET flag=:flag, state=:state, updated_at=:updated_at WHERE uuid=:uuid AND flag=:running'
+            );
+
+            $stmt->bindValue(':flag', $model->flag, SQLITE3_INTEGER);
+            $stmt->bindValue(':state', $model->state);
+            $stmt->bindValue(':updated_at', gmdate('c'));
+            $stmt->bindValue(':uuid', $uuid);
+            $stmt->bindValue(':running', (new TaskFlag())->setRunning()->toValue(), SQLITE3_INTEGER);
+            if ($stmt->execute() === false) {
+                $this->mutex->unlock();
+                throw new RuntimeException('ModelSave error: ' . $this->connection->lastErrorMsg());
+            }
         }
+
+        $this->mutex->unlock();
 
         return true;
     }
 
     public function remove(EntityUuid $uuid): bool
     {
-        $storage = $this->getDataSafe();
-        if (array_key_exists($uuid->getUuid(), $storage) === false) {
-            throw new NotFoundException(
-                "[{$uuid->getUuid()}] Task not found."
-            );
+        $this->mutex->lock(5);
+        $stmt = $this->connection->prepare('DELETE FROM task WHERE uuid=:uuid');
+        $stmt->bindValue(':uuid', $uuid->getUuid());
+        if ($stmt->execute() === false) {
+            $this->mutex->unlock();
+            throw new RuntimeException('ModelDelete error: ' . $this->connection->lastErrorMsg());
         }
 
-        unset($storage[$uuid->getUuid()]);
-        return $this->saveSafe($storage);
-    }
-
-    private function saveSafe(array $data): bool
-    {
-        $this->mutex->lock(5);
-        $isSuccess = $this->save($data);
         $this->mutex->unlock();
 
-        return $isSuccess;
-    }
-
-    private function getDataSafe(): array
-    {
-        $this->mutex->lock(10);
-        $storage = $this->getData();
-        $this->mutex->unlock();
-
-        return $storage;
+        return true;
     }
 }

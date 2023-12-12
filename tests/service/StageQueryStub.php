@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\tests\service;
 
+use SQLite3;
 use Generator;
 use kuaukutsu\poc\task\dto\StageModel;
 use kuaukutsu\poc\task\dto\TaskMetrics;
@@ -16,23 +17,48 @@ final class StageQueryStub implements StageQuery
 {
     use StageStorage;
 
+    private readonly SQLite3 $connection;
+
     public function __construct(private readonly Mutex $mutex)
     {
+        $this->connection = $this->db();
     }
 
     public function getOne(EntityUuid $uuid): StageModel
     {
-        $storage = $this->getDataSafe();
-        if (array_key_exists($uuid->getUuid(), $storage) === false) {
-            throw new NotFoundException("[{$uuid->getUuid()}] Stage not found.");
-        }
-
-        return $storage[$uuid->getUuid()];
+        return $this->getRow($uuid->getQueryCondition(), $this->connection);
     }
 
     public function findOne(EntityUuid $uuid): ?StageModel
     {
-        return $this->getDataSafe()[$uuid->getUuid()] ?? null;
+        try {
+            return $this->getRow($uuid->getQueryCondition(), $this->connection);
+        } catch (NotFoundException) {
+            return null;
+        }
+    }
+
+    public function indexReadyByTask(EntityUuid $taskUuid, int $limit): array
+    {
+        $flag = new TaskFlag();
+        $rows = $this->getRows(
+            [
+                'task_uuid' => $taskUuid->getUuid(),
+                'flag' => [
+                    $flag->unset()->setReady()->toValue(),
+                    $flag->unset()->setRunning()->toValue(),
+                ],
+            ],
+            $limit,
+            $this->connection
+        );
+
+        $index = [];
+        foreach ($rows as $item) {
+            $index[] = $item->uuid;
+        }
+
+        return $index;
     }
 
     /**
@@ -40,113 +66,93 @@ final class StageQueryStub implements StageQuery
      */
     public function iterableByTask(EntityUuid $taskUuid): Generator
     {
-        foreach ($this->getDataSafe() as $item) {
-            if ($item->taskUuid === $taskUuid->getUuid()) {
-                yield $item;
-            }
-        }
-    }
+        $rows = $this->getRows(
+            [
+                'task_uuid' => $taskUuid->getUuid(),
+            ],
+            0,
+            $this->connection
+        );
 
-    /**
-     * @return Generator<StageModel>
-     */
-    public function iterableReadyByTask(EntityUuid $taskUuid): Generator
-    {
-        foreach ($this->getDataSafe() as $item) {
-            if ($item->taskUuid === $taskUuid->getUuid()) {
-                $flag = new TaskFlag($item->flag);
-                if ($flag->isReady() || $flag->isPaused()) {
-                    yield $item;
-                }
-            }
-        }
-    }
-
-    /**
-     * @return Generator<StageModel>
-     */
-    public function iterableRunningByTask(EntityUuid $taskUuid): Generator
-    {
-        foreach ($this->getDataSafe() as $item) {
-            if ($item->taskUuid === $taskUuid->getUuid()) {
-                $flag = new TaskFlag($item->flag);
-                if ($flag->isError() === false && $flag->isRunning()) {
-                    yield $item;
-                }
-            }
+        foreach ($rows as $item) {
+            yield $item;
         }
     }
 
     public function findReadyByTask(EntityUuid $taskUuid): ?StageModel
     {
-        foreach ($this->getDataSafe() as $item) {
-            if ($item->taskUuid === $taskUuid->getUuid()) {
-                $flag = new TaskFlag($item->flag);
-                if ($flag->isReady()) {
-                    return $item;
-                }
-            }
+        try {
+            return $this->getRow(
+                [
+                    'task_uuid' => $taskUuid->getUuid(),
+                    'flag' => (new TaskFlag())->setReady()->toValue(),
+                ],
+                $this->connection
+            );
+        } catch (NotFoundException) {
+            return null;
         }
-
-        return null;
     }
 
     public function findPausedByTask(EntityUuid $taskUuid): ?StageModel
     {
-        foreach ($this->getDataSafe() as $item) {
-            if ($item->taskUuid === $taskUuid->getUuid()) {
-                $flag = new TaskFlag($item->flag);
-                if ($flag->isPaused()) {
-                    return $item;
-                }
-            }
-        }
+        $flag = new TaskFlag();
 
-        return null;
+        try {
+            return $this->getRow(
+                [
+                    'task_uuid' => $taskUuid->getUuid(),
+                    'flag' => $flag->unset()->setPaused()->toValue(),
+                ],
+                $this->connection
+            );
+        } catch (NotFoundException) {
+            return null;
+        }
     }
 
     public function findForgottenByTask(EntityUuid $taskUuid): ?StageModel
     {
-        foreach ($this->getDataSafe() as $item) {
-            if ($item->taskUuid === $taskUuid->getUuid()) {
-                $flag = new TaskFlag($item->flag);
-                if ($flag->isError() === false && $flag->isRunning()) {
-                    return $item;
-                }
-            }
-        }
+        $flag = new TaskFlag();
 
-        return null;
+        try {
+            return $this->getRow(
+                [
+                    'task_uuid' => $taskUuid->getUuid(),
+                    'flag' => $flag->unset()->setRunning()->toValue(),
+                ],
+                $this->connection
+            );
+        } catch (NotFoundException) {
+            return null;
+        }
     }
 
     public function findPreviousCompletedByTask(EntityUuid $taskUuid, int $stageOrder): ?StageModel
     {
-        $findPreviousOrder = $stageOrder - 1;
-        foreach ($this->getDataSafe() as $item) {
-            if ($item->taskUuid === $taskUuid->getUuid() && $item->order === $findPreviousOrder) {
-                $flag = new TaskFlag($item->flag);
-                if ($flag->isFinished()) {
-                    return $item;
-                }
+        $flag = new TaskFlag();
 
-                return null;
-            }
+        try {
+            return $this->getRow(
+                [
+                    'task_uuid' => $taskUuid->getUuid(),
+                    'order' => --$stageOrder,
+                    'flag' => [
+                        $flag->unset()->setSuccess()->toValue(),
+                        $flag->unset()->setError()->toValue(),
+                        $flag->unset()->setCanceled()->toValue(),
+                        $flag->unset()->setSkipped()->toValue(),
+                    ],
+                ],
+                $this->connection
+            );
+        } catch (NotFoundException) {
+            return null;
         }
-
-        return null;
     }
 
     public function getMetricsByTask(EntityUuid $taskUuid): TaskMetrics
     {
         return new TaskMetrics();
-    }
-
-    private function getDataSafe(): array
-    {
-        $this->mutex->lock(10);
-        $storage = $this->getData();
-        $this->mutex->unlock();
-
-        return $storage;
     }
 }

@@ -101,7 +101,9 @@ final class TaskManager implements EventPublisherInterface
                         );
 
                         try {
-                            $this->processing->next($process);
+                            $process->isSuccessful()
+                                ? $this->processing->next($process)
+                                : $this->processing->cancel($process);
                         } catch (ProcessingException $exception) {
                             $this->trigger(
                                 Event::ProcessException,

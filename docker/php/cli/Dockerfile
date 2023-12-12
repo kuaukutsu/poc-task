@@ -18,6 +18,7 @@ RUN echo "# Create structure #" \
     && mkdir -p $WORKDIR \
     && chown -R $UID:www-data $WORKDIR
 
+# https://github.com/mlocati/docker-php-extension-installer
 RUN echo "# Install extensions #" \
     && install-php-extensions \
       sync \

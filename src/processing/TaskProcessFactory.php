@@ -14,6 +14,7 @@ final class TaskProcessFactory
         $cmd = [
             'php',
             $options->handler,
+            '--task=' . $context->task,
             '--stage=' . $context->stage,
         ];
 

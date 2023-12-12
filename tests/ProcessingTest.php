@@ -15,7 +15,6 @@ use kuaukutsu\poc\task\service\StageQuery;
 use kuaukutsu\poc\task\EntityTask;
 use kuaukutsu\poc\task\TaskManagerOptions;
 use kuaukutsu\poc\task\TaskBuilder;
-use kuaukutsu\poc\task\tests\service\Storage;
 
 final class ProcessingTest extends TestCase
 {
@@ -90,12 +89,6 @@ final class ProcessingTest extends TestCase
 
         $this->processing->loadTaskProcess($this->options);
         self::assertFalse($this->processing->hasTaskProcess());
-    }
-
-    public static function setUpBeforeClass(): void
-    {
-        unlink(Storage::task->value);
-        unlink(Storage::stage->value);
     }
 
     /**

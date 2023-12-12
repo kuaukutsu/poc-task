@@ -28,19 +28,14 @@ interface StageQuery
     public function findPreviousCompletedByTask(EntityUuid $taskUuid, int $stageOrder): ?StageModel;
 
     /**
+     * @return non-empty-string[]
+     */
+    public function indexReadyByTask(EntityUuid $taskUuid, int $limit): array;
+
+    /**
      * @return Generator<StageModel>
      */
     public function iterableByTask(EntityUuid $taskUuid): Generator;
-
-    /**
-     * @return Generator<StageModel>
-     */
-    public function iterableReadyByTask(EntityUuid $taskUuid): Generator;
-
-    /**
-     * @return Generator<StageModel>
-     */
-    public function iterableRunningByTask(EntityUuid $taskUuid): Generator;
 
     public function getMetricsByTask(EntityUuid $taskUuid): TaskMetrics;
 }

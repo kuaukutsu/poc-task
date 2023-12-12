@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\service\action;
 
+use kuaukutsu\poc\task\state\TaskStateError;
 use Throwable;
 use kuaukutsu\poc\task\dto\StageModelState;
 use kuaukutsu\poc\task\dto\TaskModelState;
 use kuaukutsu\poc\task\handler\TaskFactory;
 use kuaukutsu\poc\task\service\StageCommand;
-use kuaukutsu\poc\task\service\StageQuery;
 use kuaukutsu\poc\task\service\TaskCommand;
 use kuaukutsu\poc\task\state\TaskStateInterface;
 use kuaukutsu\poc\task\state\TaskStateMessage;
@@ -20,7 +20,6 @@ use kuaukutsu\poc\task\EntityTask;
 final class ActionPause implements TaskAction
 {
     public function __construct(
-        private readonly StageQuery $stageQuery,
         private readonly StageCommand $stageCommand,
         private readonly TaskCommand $taskCommand,
         private readonly TaskFactory $factory,
@@ -30,13 +29,12 @@ final class ActionPause implements TaskAction
 
     public function execute(EntityTask $task, ?TaskStateInterface $state = null): EntityTask
     {
-        if ($task->isPaused()) {
+        if ($task->isPaused() || $task->isPromised() || $task->isWaiting()) {
             return $task;
         }
 
-        $uuid = new EntityUuid($task->getUuid());
         $state ??= new TaskStatePaused(
-            message: new TaskStateMessage('Paused'),
+            message: new TaskStateMessage('Task Paused.'),
             flag: $task->getFlag(),
         );
 
@@ -46,30 +44,19 @@ final class ActionPause implements TaskAction
             $state->getFlag()->toValue(),
         );
 
-        $model = $this->taskCommand->state(
-            $uuid,
-            new TaskModelState($state),
-        );
+        $uuid = new EntityUuid($task->getUuid());
 
-        $this->stagePause($uuid);
-
-        return $this->factory->create($model);
-    }
-
-    private function stagePause(EntityUuid $uuid): void
-    {
-        foreach ($this->stageQuery->iterableRunningByTask($uuid) as $stage) {
-            try {
-                $this->stageCommand->state(
-                    new EntityUuid($stage->uuid),
-                    new StageModelState(
-                        new TaskStatePaused(
-                            message: new TaskStateMessage('Task Paused'),
-                        )
-                    ),
-                );
-            } catch (Throwable) {
-            }
+        try {
+            $this->stageCommand->stateByTask($uuid, new StageModelState($state));
+        } catch (Throwable $e) {
+            $state = new TaskStateError(
+                message: new TaskStateMessage($e->getMessage(), $e->getTraceAsString()),
+                flag: $task->getFlag(),
+            );
         }
+
+        return $this->factory->create(
+            $this->taskCommand->state($uuid, new TaskModelState($state))
+        );
     }
 }
