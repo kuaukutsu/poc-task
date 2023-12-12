@@ -17,7 +17,7 @@ trait TaskStorage
 {
     private function db(): SQLite3
     {
-        $connection = new SQLite3(Storage::task->value);
+        $connection = new SQLite3(__DIR__ . '/data/task.sqlite3');
         $connection->exec(
             <<<SQL
 CREATE TABLE IF NOT EXISTS task(
@@ -42,7 +42,12 @@ SQL
      */
     private function getRow(array $conditions, SQLite3 $db): TaskModel
     {
-        $data = $this->prepareConditions($conditions, $db)
+        $data = $this
+            ->prepareConditions(
+                $this->prepareSql($conditions),
+                $conditions,
+                $db,
+            )
             ->fetchArray(SQLITE3_ASSOC);
 
         if ($data === false) {
@@ -55,9 +60,13 @@ SQL
     /**
      * @return TaskModel[]
      */
-    private function getRows(array $conditions, SQLite3 $db): array
+    private function getRows(array $conditions, int $limit, SQLite3 $db): array
     {
-        $result = $this->prepareConditions($conditions, $db);
+        $result = $this->prepareConditions(
+            $this->prepareSql($conditions) . ' ORDER BY created_at ASC LIMIT ' . $limit,
+            $conditions,
+            $db,
+        );
 
         $rows = [];
         while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
@@ -78,7 +87,7 @@ SQL
         return entity_hydrator(TaskModel::class, $data);
     }
 
-    private function prepareConditions(array $conditions, SQLite3 $db): SQLite3Result
+    private function prepareSql(array $conditions): string
     {
         $stmttConditions = '';
         foreach ($conditions as $key => $value) {
@@ -103,7 +112,12 @@ SQL
             }
         }
 
-        $stmtt = $db->prepare('SELECT * FROM task WHERE ' . trim($stmttConditions));
+        return 'SELECT * FROM task WHERE ' . trim($stmttConditions);
+    }
+
+    private function prepareConditions(string $prepareSql, array $conditions, SQLite3 $db): SQLite3Result
+    {
+        $stmtt = $db->prepare($prepareSql);
         foreach ($conditions as $key => $value) {
             if (is_array($value)) {
                 $row = 0;

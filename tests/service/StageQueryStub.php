@@ -49,15 +49,13 @@ final class StageQueryStub implements StageQuery
                     $flag->unset()->setRunning()->toValue(),
                 ],
             ],
+            $limit,
             $this->connection
         );
 
         $index = [];
         foreach ($rows as $item) {
             $index[] = $item->uuid;
-            if (count($index) === $limit) {
-                return $index;
-            }
         }
 
         return $index;
@@ -72,6 +70,7 @@ final class StageQueryStub implements StageQuery
             [
                 'task_uuid' => $taskUuid->getUuid(),
             ],
+            0,
             $this->connection
         );
 

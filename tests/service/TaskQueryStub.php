@@ -35,16 +35,13 @@ final class TaskQueryStub implements TaskQuery
             [
                 'flag' => $flag->setReady()->toValue(),
             ],
+            $limit,
             $this->connection
         );
 
         $collection = new TaskCollection();
         foreach ($rows as $item) {
             $collection->attach($item);
-
-            if ($collection->count() === $limit) {
-                return $collection;
-            }
         }
 
         return $collection;
@@ -53,15 +50,17 @@ final class TaskQueryStub implements TaskQuery
     public function getPromise(int $limit): TaskCollection
     {
         $flag = new TaskFlag();
-        $rows = $this->getRows(['flag' => $flag->setPromised()->toValue()], $this->connection);
+        $rows = $this->getRows(
+            [
+                'flag' => $flag->setPromised()->toValue(),
+            ],
+            $limit,
+            $this->connection
+        );
 
         $collection = new TaskCollection();
         foreach ($rows as $item) {
             $collection->attach($item);
-
-            if ($collection->count() === $limit) {
-                return $collection;
-            }
         }
 
         return $collection;
@@ -70,15 +69,17 @@ final class TaskQueryStub implements TaskQuery
     public function getPaused(int $limit): TaskCollection
     {
         $flag = new TaskFlag();
-        $rows = $this->getRows(['flag' => $flag->unset()->setPaused()->toValue()], $this->connection);
+        $rows = $this->getRows(
+            [
+                'flag' => $flag->unset()->setPaused()->toValue(),
+            ],
+            $limit,
+            $this->connection
+        );
 
         $collection = new TaskCollection();
         foreach ($rows as $item) {
             $collection->attach($item);
-
-            if ($collection->count() === $limit) {
-                return $collection;
-            }
         }
 
         return $collection;
@@ -87,7 +88,13 @@ final class TaskQueryStub implements TaskQuery
     public function getForgotten(int $limit): TaskCollection
     {
         $flag = new TaskFlag();
-        $rows = $this->getRows(['flag' => $flag->unset()->setRunning()->toValue()], $this->connection);
+        $rows = $this->getRows(
+            [
+                'flag' => $flag->unset()->setRunning()->toValue(),
+            ],
+            100,
+            $this->connection
+        );
 
         $collection = new TaskCollection();
         foreach ($rows as $item) {
@@ -95,11 +102,7 @@ final class TaskQueryStub implements TaskQuery
                 continue;
             }
 
-            $flag = new TaskFlag($item->flag);
-            if ($flag->isError() === false && $flag->isRunning()) {
-                $collection->attach($item);
-            }
-
+            $collection->attach($item);
             if ($collection->count() === $limit) {
                 return $collection;
             }
