@@ -87,12 +87,6 @@ final class ProcessingSkipTest extends TestCase
         self::assertTrue($this->processing->hasTaskProcess());
     }
 
-    public static function setUpBeforeClass(): void
-    {
-        //unlink(Storage::task->value);
-        //unlink(Storage::stage->value);
-    }
-
     protected function setUp(): void
     {
         $draft = $this->builder->create(

@@ -36,12 +36,6 @@ final class TaskViewerTest extends TestCase
         $this->destroyer = self::get(TaskDestroyer::class);
     }
 
-    public static function setUpBeforeClass(): void
-    {
-        //unlink(Storage::task->value);
-        //unlink(Storage::stage->value);
-    }
-
     public function testView(): void
     {
         $flag = new TaskFlag();

@@ -207,12 +207,6 @@ final class ProcessingPromiseTest extends TestCase
         $this->destroyer->purge($nestedUuid);
     }
 
-    public static function setUpBeforeClass(): void
-    {
-        //unlink(Storage::task->value);
-        //unlink(Storage::stage->value);
-    }
-
     protected function setUp(): void
     {
         $this->task = $this->builder->build(

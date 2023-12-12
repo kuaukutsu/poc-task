@@ -63,11 +63,11 @@ final class TaskProcessing
      */
     public function checkTaskProcess(TaskManagerOptions $options): void
     {
-//        if ($this->processReady->isEmpty()) {
-//            $this->loadingForgotten(
-//                $options->getQueueSize()
-//            );
-//        }
+        if ($this->processReady->isEmpty()) {
+            $this->loadingForgotten(
+                $options->getQueueSize()
+            );
+        }
     }
 
     public function terminate(int $signal): void

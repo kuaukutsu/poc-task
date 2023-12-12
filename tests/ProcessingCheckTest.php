@@ -18,7 +18,6 @@ use kuaukutsu\poc\task\EntityTask;
 use kuaukutsu\poc\task\TaskManagerOptions;
 use kuaukutsu\poc\task\TaskBuilder;
 use kuaukutsu\poc\task\tests\stub\TestStageStub;
-use kuaukutsu\poc\task\tests\service\Storage;
 
 final class ProcessingCheckTest extends TestCase
 {
@@ -87,12 +86,6 @@ final class ProcessingCheckTest extends TestCase
         foreach ($this->stageQuery->iterableByTask($uuid) as $stage) {
             self::assertEquals($flag->unset()->setRunning()->toValue(), $stage->flag);
         }
-    }
-
-    public static function setUpBeforeClass(): void
-    {
-        unlink(Storage::task->value);
-        unlink(Storage::stage->value);
     }
 
     protected function setUp(): void

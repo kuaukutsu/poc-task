@@ -136,12 +136,6 @@ final class StageServiceTest extends TestCase
         self::assertEmpty($context->previous);
     }
 
-    public static function setUpBeforeClass(): void
-    {
-        //unlink(Storage::task->value);
-        //unlink(Storage::stage->value);
-    }
-
     /**
      * @throws ContainerExceptionInterface
      */

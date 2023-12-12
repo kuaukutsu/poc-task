@@ -91,12 +91,6 @@ final class ProcessingTest extends TestCase
         self::assertFalse($this->processing->hasTaskProcess());
     }
 
-    public static function setUpBeforeClass(): void
-    {
-        //unlink(Storage::task->value);
-        //unlink(Storage::stage->value);
-    }
-
     /**
      * @throws ContainerExceptionInterface
      */
