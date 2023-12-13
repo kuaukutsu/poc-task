@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\processing;
 
-use kuaukutsu\poc\task\state\TaskCommand;
 use RuntimeException;
 use SplQueue;
 use kuaukutsu\poc\task\dto\StageModel;
 use kuaukutsu\poc\task\dto\StageModelState;
+use kuaukutsu\poc\task\state\TaskCommand;
 use kuaukutsu\poc\task\state\TaskStateMessage;
 use kuaukutsu\poc\task\state\TaskStateReady;
 use kuaukutsu\poc\task\state\TaskStateRunning;
@@ -61,15 +61,17 @@ final class TaskProcessReady
             ?? $this->query->findReadyByTask($uuid);
 
         if ($stage === null) {
-            $this->enqueue($task, TaskCommand::stop()->toValue());
+            $this->enqueueCommand($task, TaskCommand::stop());
             return false;
         }
 
-        return $this->enqueue(
+        $this->enqueue(
             $task,
             $this->processRun($stage->uuid)->uuid,
             $this->query->findPreviousCompletedByTask($uuid, $stage->order)?->uuid,
         );
+
+        return true;
     }
 
     /**
@@ -80,14 +82,16 @@ final class TaskProcessReady
         $uuid = new EntityUuid($task->getUuid());
         $stage = $this->query->findReadyByTask($uuid);
         if ($stage === null) {
-            $this->enqueue($task, TaskCommand::stop()->toValue());
+            $this->enqueueCommand($task, TaskCommand::stop());
             return false;
         }
 
-        return $this->enqueue(
+        $this->enqueue(
             $task,
             $this->processRun($stage->uuid)->uuid,
         );
+
+        return true;
     }
 
     /**
@@ -98,15 +102,17 @@ final class TaskProcessReady
         $uuid = new EntityUuid($task->getUuid());
         $stage = $this->query->findForgottenByTask($uuid);
         if ($stage === null) {
-            $this->enqueue($task, TaskCommand::stop()->toValue());
+            $this->enqueueCommand($task, TaskCommand::stop());
             return false;
         }
 
-        return $this->enqueue(
+        $this->enqueue(
             $task,
             $this->processRun($stage->uuid)->uuid,
             $this->query->findPreviousCompletedByTask($uuid, $stage->order)?->uuid,
         );
+
+        return true;
     }
 
     /**
@@ -120,15 +126,17 @@ final class TaskProcessReady
             ?? $this->query->findReadyByTask($uuid);
 
         if ($stage === null) {
-            $this->enqueue($task, TaskCommand::stop()->toValue());
+            $this->enqueueCommand($task, TaskCommand::stop());
             return false;
         }
 
-        return $this->enqueue(
+        $this->enqueue(
             $task,
             $this->processRun($stage->uuid)->uuid,
             $previous,
         );
+
+        return true;
     }
 
     /**
@@ -136,13 +144,10 @@ final class TaskProcessReady
      */
     public function pushStagePromise(EntityTask $task, int $limit): bool
     {
-        $index = $this->query->indexReadyByTask(
-            new EntityUuid($task->getUuid()),
-            $limit,
-        );
-
+        $uuid = new EntityUuid($task->getUuid());
+        $index = $this->query->indexReadyByTask($uuid, $limit);
         if ($index === []) {
-            $this->enqueue($task, TaskCommand::stop()->toValue());
+            $this->enqueueCommand($task, TaskCommand::stop());
             return false;
         }
 
@@ -173,7 +178,7 @@ final class TaskProcessReady
      * @param non-empty-string $stage
      * @param non-empty-string|null $previous
      */
-    private function enqueue(EntityTask $task, string $stage, ?string $previous = null): bool
+    private function enqueue(EntityTask $task, string $stage, ?string $previous = null): void
     {
         $this->queue->enqueue(
             new TaskProcessContext(
@@ -183,8 +188,17 @@ final class TaskProcessReady
                 previous: $previous,
             )
         );
+    }
 
-        return true;
+    private function enqueueCommand(EntityTask $task, TaskCommand $command): void
+    {
+        $this->queue->enqueue(
+            new TaskProcessContext(
+                task: $task->getUuid(),
+                stage: $command->toValue(),
+                options: $task->getOptions(),
+            )
+        );
     }
 
     /**

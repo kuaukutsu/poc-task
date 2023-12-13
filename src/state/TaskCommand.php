@@ -12,7 +12,7 @@ final class TaskCommand
     /**
      * @param non-empty-string $command
      */
-    public function __construct(private readonly string $command = '00000000-0000-0000-0000-000000000000')
+    public function __construct(private readonly string $command = self::COMMAND_NULL)
     {
     }
 
