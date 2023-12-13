@@ -43,6 +43,21 @@ final class StageHandler
             }
         }
 
+        if ((new TaskCommand($stageUuid))->isState()) {
+            try {
+                $this->stdout(
+                    $this->stateSerialize(
+                        $this->handler->state($taskUuid)
+                    )
+                );
+
+                return TaskProcess::SUCCESS;
+            } catch (ProcessingException $exception) {
+                $this->stderr($exception->getMessage());
+                return TaskProcess::ERROR;
+            }
+        }
+
         try {
             $this->stdout(
                 $this->stateSerialize(

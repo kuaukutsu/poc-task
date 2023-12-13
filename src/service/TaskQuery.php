@@ -36,5 +36,8 @@ interface TaskQuery
      */
     public function getForgotten(int $limit): TaskCollection;
 
+    /**
+     * @param non-empty-string $checksum
+     */
     public function existsOpenByChecksum(string $checksum): bool;
 }

@@ -37,5 +37,7 @@ interface StageQuery
      */
     public function iterableByTask(EntityUuid $taskUuid): Generator;
 
+    public function existsOpenByTask(EntityUuid $taskUuid): bool;
+
     public function getMetricsByTask(EntityUuid $taskUuid): TaskMetrics;
 }

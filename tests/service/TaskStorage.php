@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS task(
     uuid TEXT PRIMARY KEY, 
     title TEXT,
     flag INT,
-    state TEXT,
+    state BLOB,
     options TEXT,
     checksum TEXT,
     created_at TEXT,
@@ -50,7 +50,7 @@ SQL
             )
             ->fetchArray(SQLITE3_ASSOC);
 
-        if ($data === false) {
+        if ($data === false || $data === []) {
             throw new NotFoundException('Task Not Found.');
         }
 

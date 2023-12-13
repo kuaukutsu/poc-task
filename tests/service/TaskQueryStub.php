@@ -93,7 +93,10 @@ final class TaskQueryStub implements TaskQuery
         $flag = new TaskFlag();
         $rows = $this->getRows(
             [
-                'flag' => $flag->unset()->setRunning()->toValue(),
+                'flag' => [
+                    $flag->unset()->setRunning()->toValue(),
+                    $flag->unset()->setPromised()->toValue(),
+                ],
             ],
             100,
             $this->connection
