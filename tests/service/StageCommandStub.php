@@ -34,8 +34,8 @@ final class StageCommandStub implements StageCommand
         $stmt->bindValue(':uuid', $uuid->getUuid());
         $stmt->bindValue(':uuid_task', $model->taskUuid);
         $stmt->bindValue(':flag', $model->flag, SQLITE3_INTEGER);
-        $stmt->bindValue(':state', $model->state);
-        $stmt->bindValue(':handler', $model->handler);
+        $stmt->bindValue(':state', $model->state, SQLITE3_BLOB);
+        $stmt->bindValue(':handler', $model->handler, SQLITE3_BLOB);
         $stmt->bindValue(':order', $model->order, SQLITE3_INTEGER);
         $stmt->bindValue(':created_at', gmdate('c'));
         $stmt->bindValue(':updated_at', gmdate('c'));
@@ -60,7 +60,7 @@ final class StageCommandStub implements StageCommand
 
         $stmt->bindValue(':uuid', $uuid->getUuid());
         $stmt->bindValue(':flag', $model->flag, SQLITE3_INTEGER);
-        $stmt->bindValue(':state', $model->state);
+        $stmt->bindValue(':state', $model->state, SQLITE3_BLOB);
         $stmt->bindValue(':updated_at', gmdate('c'));
         if ($stmt->execute() === false) {
             $this->mutex->unlock();
@@ -83,7 +83,7 @@ final class StageCommandStub implements StageCommand
         );
 
         $stmt->bindValue(':flag', $model->flag, SQLITE3_INTEGER);
-        $stmt->bindValue(':state', $model->state);
+        $stmt->bindValue(':state', $model->state, SQLITE3_BLOB);
         $stmt->bindValue(':updated_at', gmdate('c'));
         $stmt->bindValue(':uuid', $uuid->getUuid());
         $stmt->bindValue(':running', (new TaskFlag())->setRunning()->toValue(), SQLITE3_INTEGER);

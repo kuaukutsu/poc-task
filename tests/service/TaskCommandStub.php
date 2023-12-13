@@ -40,7 +40,7 @@ final class TaskCommandStub implements TaskCommand
         $stmt->bindValue(':uuid', $uuid->getUuid());
         $stmt->bindValue(':title', $model->title);
         $stmt->bindValue(':flag', $model->flag, SQLITE3_INTEGER);
-        $stmt->bindValue(':state', $model->state);
+        $stmt->bindValue(':state', $model->state, SQLITE3_BLOB);
         $stmt->bindValue(':checksum', $model->checksum);
         $stmt->bindValue(':created_at', gmdate('c'));
         $stmt->bindValue(':updated_at', gmdate('c'));
@@ -70,7 +70,7 @@ final class TaskCommandStub implements TaskCommand
         );
 
         $stmt->bindValue(':flag', $model->flag, SQLITE3_INTEGER);
-        $stmt->bindValue(':state', $model->state);
+        $stmt->bindValue(':state', $model->state, SQLITE3_BLOB);
         $stmt->bindValue(':updated_at', gmdate('c'));
         $stmt->bindValue(':uuid', $uuid->getUuid());
         if ($stmt->execute() === false) {
@@ -93,7 +93,7 @@ final class TaskCommandStub implements TaskCommand
             );
 
             $stmt->bindValue(':flag', $model->flag, SQLITE3_INTEGER);
-            $stmt->bindValue(':state', $model->state);
+            $stmt->bindValue(':state', $model->state, SQLITE3_BLOB);
             $stmt->bindValue(':updated_at', gmdate('c'));
             $stmt->bindValue(':uuid', $uuid);
             $stmt->bindValue(':running', (new TaskFlag())->setRunning()->toValue(), SQLITE3_INTEGER);

@@ -87,48 +87,54 @@ SQL
 
     private function prepareSql(array $conditions): string
     {
-        $stmttConditions = '';
+        $stmtConditions = '';
         foreach ($conditions as $key => $value) {
-            if ($stmttConditions !== '') {
-                $stmttConditions .= ' AND ';
+            if ($stmtConditions !== '') {
+                $stmtConditions .= ' AND ';
             }
 
             if (is_array($value)) {
-                $stmttConditions .= '( ';
+                $stmtConditions .= '( ';
                 $row = 0;
                 foreach ($value as $ignored) {
                     if ($row > 0) {
-                        $stmttConditions .= ' OR ';
+                        $stmtConditions .= ' OR ';
                     }
 
-                    $stmttConditions .= "\"$key\"=:" . $key . $row;
+                    $stmtConditions .= "\"$key\"=:" . $key . $row;
                     $row++;
                 }
-                $stmttConditions .= ') ';
+                $stmtConditions .= ') ';
             } else {
-                $stmttConditions .= "\"$key\"=:" . $key;
+                $stmtConditions .= "\"$key\"=:" . $key;
             }
         }
 
-        return 'SELECT * FROM stage WHERE ' . trim($stmttConditions);
+        return 'SELECT * FROM stage WHERE ' . trim($stmtConditions);
     }
 
     private function prepareConditions(string $prepareSql, array $conditions, SQLite3 $db): SQLite3Result
     {
-        $stmtt = $db->prepare($prepareSql);
+        $stmt = $db->prepare($prepareSql);
         foreach ($conditions as $key => $value) {
             if (is_array($value)) {
                 $row = 0;
                 foreach ($value as $itemValue) {
-                    $stmtt->bindValue(
+                    $stmt->bindValue(
                         ':' . $key . $row,
                         $itemValue,
                         is_int($itemValue) ? SQLITE3_INTEGER : SQLITE3_TEXT,
                     );
                     $row++;
                 }
+            } elseif ($key === 'handler' || $key === 'state') {
+                $stmt->bindValue(
+                    ':' . $key,
+                    $value,
+                    SQLITE3_BLOB,
+                );
             } else {
-                $stmtt->bindValue(
+                $stmt->bindValue(
                     ':' . $key,
                     $value,
                     is_int($value) ? SQLITE3_INTEGER : SQLITE3_TEXT,
@@ -136,7 +142,7 @@ SQL
             }
         }
 
-        $result = $stmtt->execute();
+        $result = $stmt->execute();
         if ($result === false) {
             throw new RuntimeException('ModelRead error: ' . $this->connection->lastErrorMsg());
         }
