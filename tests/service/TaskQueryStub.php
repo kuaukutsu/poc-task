@@ -124,8 +124,11 @@ final class TaskQueryStub implements TaskQuery
                     'checksum' => $checksum,
                     'flag' => [
                         $flag->unset()->setReady()->toValue(),
+                        $flag->unset()->setPaused()->toValue(),
                         $flag->unset()->setRunning()->toValue(),
+                        $flag->unset()->setRunning()->setPaused()->toValue(),
                         $flag->unset()->setWaiting()->toValue(),
+                        $flag->unset()->setPromised()->toValue(),
                     ],
                 ],
                 $this->connection

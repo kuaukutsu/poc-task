@@ -46,7 +46,7 @@ final class StageQueryStub implements StageQuery
                 'task_uuid' => $taskUuid->getUuid(),
                 'flag' => [
                     $flag->unset()->setReady()->toValue(),
-                    $flag->unset()->setRunning()->toValue(),
+                    $flag->unset()->setPaused()->toValue(),
                 ],
             ],
             $limit,
