@@ -147,7 +147,7 @@ final class TaskProcessReady
         $uuid = new EntityUuid($task->getUuid());
         $index = $this->query->indexReadyByTask($uuid, $limit);
         if ($index === []) {
-            $this->enqueueCommand($task, TaskCommand::stop());
+            $this->enqueueCommand($task, TaskCommand::state());
             return false;
         }
 

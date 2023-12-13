@@ -151,6 +151,30 @@ final class StageQueryStub implements StageQuery
         }
     }
 
+    public function existsOpenByTask(EntityUuid $taskUuid): bool
+    {
+        $flag = new TaskFlag();
+
+        try {
+            $this->getRow(
+                [
+                    'task_uuid' => $taskUuid->getUuid(),
+                    'flag' => [
+                        $flag->unset()->setReady()->toValue(),
+                        $flag->unset()->setPaused()->toValue(),
+                        $flag->unset()->setRunning()->toValue(),
+                        $flag->unset()->setRunning()->setPaused()->toValue(),
+                    ],
+                ],
+                $this->connection
+            );
+        } catch (NotFoundException) {
+            return false;
+        }
+
+        return true;
+    }
+
     public function getMetricsByTask(EntityUuid $taskUuid): TaskMetrics
     {
         return new TaskMetrics();

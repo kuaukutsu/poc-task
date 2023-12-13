@@ -22,6 +22,10 @@ final class IncreaseNumberStageStub extends TaskHandlerBase
         // полезная работа
         $number = $this->number + 1;
 
+        if (($number % 3) === 0) {
+            sleep(10);
+        }
+
         return $this->success(
             new TaskStateMessage($this->name, 'Увеличиваем число на 1'),
             new DataResponse(

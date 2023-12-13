@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\state;
 
-final class TaskFlag
+use Stringable;
+
+final class TaskFlag implements Stringable
 {
     private const FLAG_RUNNING = 1;
     private const FLAG_WAITING = 2;
@@ -149,6 +151,11 @@ final class TaskFlag
         return new self();
     }
 
+    public function toValue(): int
+    {
+        return $this->flag;
+    }
+
     /**
      * @return non-empty-string
      */
@@ -167,8 +174,8 @@ final class TaskFlag
         };
     }
 
-    public function toValue(): int
+    public function __toString(): string
     {
-        return $this->flag;
+        return $this->toString();
     }
 }
