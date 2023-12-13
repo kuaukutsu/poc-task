@@ -93,7 +93,7 @@ final class TaskProcessing
             $process->getOutput(),
         );
 
-        if ($task->isFinished() || $state->getFlag()->isFinished() === false) {
+        if ($task->isFinished()) {
             if ($state instanceof TaskStateRelation) {
                 $this->nextStage(
                     $this->factory($state->task),
@@ -104,7 +104,9 @@ final class TaskProcessing
             return;
         }
 
-        $this->nextStage($task, $process->stage);
+        if ($state->getFlag()->isFinished()) {
+            $this->nextStage($task, $process->stage);
+        }
     }
 
     /**
@@ -203,8 +205,10 @@ final class TaskProcessing
     {
         foreach ($this->taskQuery->getPromise($limit) as $item) {
             try {
-                $task = $this->taskFactory->create($item);
-                $this->processReady->pushStagePromise($task, $limit);
+                $this->processReady->pushStagePromise(
+                    $this->taskFactory->create($item),
+                    $limit,
+                );
             } catch (Throwable $exception) {
                 throw new ProcessingException(
                     "[$item->uuid] TaskLoading error: " . $exception->getMessage(),
@@ -222,8 +226,9 @@ final class TaskProcessing
     {
         foreach ($this->taskQuery->getForgotten($limit) as $item) {
             try {
-                $task = $this->taskFactory->create($item);
-                $this->processReady->pushStageOnForgotten($task);
+                $this->processReady->pushStageOnForgotten(
+                    $this->taskFactory->create($item)
+                );
             } catch (Throwable $exception) {
                 throw new ProcessingException(
                     "[$item->uuid] TaskLoading error: " . $exception->getMessage(),

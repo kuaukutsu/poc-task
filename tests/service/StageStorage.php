@@ -23,8 +23,8 @@ CREATE TABLE IF NOT EXISTS stage(
     uuid TEXT PRIMARY KEY, 
     task_uuid TEXT, 
     flag INT,
-    state TEXT,
-    handler TEXT,
+    state BLOB,
+    handler BLOB,
     "order" INT,
     created_at TEXT,
     updated_at TEXT
@@ -49,7 +49,7 @@ SQL
             )
             ->fetchArray(SQLITE3_ASSOC);
 
-        if ($data === false) {
+        if ($data === false || $data === []) {
             throw new NotFoundException('Stage Not Found.');
         }
 
