@@ -17,6 +17,7 @@ final class TaskView implements EntityArrable
         public readonly string $state,
         public readonly string $message,
         public readonly TaskMetrics $metrics,
+        public readonly ?TaskView $relation,
         public readonly string $createdAt,
         public readonly string $updatedAt,
     ) {
