@@ -17,6 +17,7 @@ final class TaskView implements EntityArrable
         public readonly string $state,
         public readonly string $message,
         public readonly TaskMetrics $metrics,
+        public readonly ?TaskView $relation,
         public readonly string $createdAt,
         public readonly string $updatedAt,
     ) {
@@ -27,6 +28,10 @@ final class TaskView implements EntityArrable
         /** @var array<string, string|array> $attributes */
         $attributes = get_object_vars($this);
         $attributes['metrics'] = $this->metrics->toArray();
+
+        if ($this->relation !== null) {
+            $attributes['relation'] = $this->relation->toArray();
+        }
 
         return $attributes;
     }

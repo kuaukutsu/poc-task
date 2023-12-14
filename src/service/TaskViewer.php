@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\service;
 
+use Throwable;
 use kuaukutsu\poc\task\dto\TaskView;
 use kuaukutsu\poc\task\exception\NotFoundException;
+use kuaukutsu\poc\task\state\TaskStateInterface;
+use kuaukutsu\poc\task\state\TaskStateWaiting;
 use kuaukutsu\poc\task\state\TaskFlag;
 use kuaukutsu\poc\task\state\TaskStatePrepare;
 use kuaukutsu\poc\task\EntityUuid;
@@ -28,17 +31,34 @@ final class TaskViewer
     {
         $uuid = new EntityUuid($taskUuid);
         $task = $this->taskQuery->getOne($uuid);
-        $state = $this->prepareState($task->state);
+
+        try {
+            $state = $this->prepareState($task->state);
+            $relation = $this->prepareRelation($state);
+        } catch (Throwable) {
+            $state = null;
+            $relation = null;
+        }
 
         return new TaskView(
             uuid: $task->uuid,
             title: $task->title,
             state: $this->prepareFlag($task->flag),
-            message: $state->getMessage()->message,
+            message: $state?->getMessage()->message ?? 'unrecognized',
             metrics: $this->stageQuery->getMetricsByTask($uuid),
+            relation: $relation,
             createdAt: $task->createdAt,
             updatedAt: $task->updatedAt,
         );
+    }
+
+    private function prepareRelation(TaskStateInterface $state): ?TaskView
+    {
+        if ($state instanceof TaskStateWaiting) {
+            return $this->get($state->task);
+        }
+
+        return null;
     }
 
     /**
