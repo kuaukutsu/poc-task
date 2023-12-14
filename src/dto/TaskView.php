@@ -29,6 +29,10 @@ final class TaskView implements EntityArrable
         $attributes = get_object_vars($this);
         $attributes['metrics'] = $this->metrics->toArray();
 
+        if ($this->relation !== null) {
+            $attributes['relation'] = $this->relation->toArray();
+        }
+
         return $attributes;
     }
 }
