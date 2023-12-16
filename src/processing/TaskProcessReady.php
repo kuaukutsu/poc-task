@@ -9,6 +9,7 @@ use SplQueue;
 use kuaukutsu\poc\task\dto\StageModel;
 use kuaukutsu\poc\task\dto\StageModelState;
 use kuaukutsu\poc\task\state\TaskCommand;
+use kuaukutsu\poc\task\state\TaskStateDelay;
 use kuaukutsu\poc\task\state\TaskStateMessage;
 use kuaukutsu\poc\task\state\TaskStateReady;
 use kuaukutsu\poc\task\state\TaskStateRunning;
@@ -147,13 +148,24 @@ final class TaskProcessReady
         $uuid = new EntityUuid($task->getUuid());
         $index = $this->query->indexReadyByTask($uuid, $limit);
         if ($index === []) {
-            $this->enqueueCommand($task, TaskCommand::state());
+            $this->enqueueCommand($task, TaskCommand::stop(), 10);
             return false;
         }
 
         foreach ($index as $stageUuid) {
             $this->enqueue($task, $this->processRun($stageUuid)->uuid);
         }
+
+        return true;
+    }
+
+    public function pushStageOnDelay(EntityTask $task, TaskStateDelay $state): bool
+    {
+        $this->enqueueCommand(
+            $task,
+            new TaskCommand($state->uuid),
+            $state->delay,
+        );
 
         return true;
     }
@@ -190,15 +202,20 @@ final class TaskProcessReady
         );
     }
 
-    private function enqueueCommand(EntityTask $task, TaskCommand $command): void
+    private function enqueueCommand(EntityTask $task, TaskCommand $command, int $delay = 0): void
     {
-        $this->queue->enqueue(
-            new TaskProcessContext(
-                task: $task->getUuid(),
-                stage: $command->toValue(),
-                options: $task->getOptions(),
-            )
-        );
+        if ($delay > 0) {
+            $this->queue->enqueue(
+                new TaskProcessContext(
+                    task: $task->getUuid(),
+                    stage: $command->toValue(),
+                    options: $task->getOptions(),
+                    timestamp: time() + min($delay, 300),
+                )
+            );
+        } else {
+            $this->enqueue($task, $command->toValue());
+        }
     }
 
     /**

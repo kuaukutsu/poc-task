@@ -10,6 +10,7 @@ use kuaukutsu\poc\task\handler\StateFactory;
 use kuaukutsu\poc\task\handler\TaskFactory;
 use kuaukutsu\poc\task\service\TaskQuery;
 use kuaukutsu\poc\task\service\TaskExecutor;
+use kuaukutsu\poc\task\state\TaskStateDelay;
 use kuaukutsu\poc\task\state\TaskStateRelation;
 use kuaukutsu\poc\task\TaskManagerOptions;
 use kuaukutsu\poc\task\EntityTask;
@@ -101,6 +102,11 @@ final class TaskProcessing
                 );
             }
 
+            return;
+        }
+
+        if ($state instanceof TaskStateDelay) {
+            $this->processReady->pushStageOnDelay($task, $state);
             return;
         }
 

@@ -38,6 +38,7 @@ final class TaskManagerOutput implements EventSubscriberInterface
             Event::ProcessPush => $this->stdout('push: ' . $event->getMessage()),
             Event::ProcessPull => $this->stdout('pull: ' . $event->getMessage()),
             Event::ProcessStop => $this->stdout('stop: ' . $event->getMessage()),
+            Event::ProcessDelay => $this->stdout('delay: ' . $event->getMessage()),
             Event::ProcessTimeout => $this->stdout('timeout: ' . $event->getMessage()),
             Event::ProcessException => $this->stdout('exception: ' . $event->getMessage()),
             default => $this->stdout($event->getMessage()),

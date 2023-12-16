@@ -20,10 +20,12 @@ final class TaskProcess
     public const ERROR = 1;
 
     /**
+     * @param non-empty-string $hash
      * @param non-empty-string $task
      * @param non-empty-string $stage
      */
     public function __construct(
+        public readonly string $hash,
         public readonly string $task,
         public readonly string $stage,
         private readonly Process $process,

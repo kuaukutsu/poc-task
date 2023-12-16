@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\processing;
 
-use kuaukutsu\poc\task\state\TaskStateRunning;
 use Throwable;
 use kuaukutsu\poc\task\dto\StageModel;
 use kuaukutsu\poc\task\dto\StageModelState;
@@ -17,6 +16,7 @@ use kuaukutsu\poc\task\service\StageQuery;
 use kuaukutsu\poc\task\service\TaskExecutor;
 use kuaukutsu\poc\task\service\TaskQuery;
 use kuaukutsu\poc\task\state\TaskStateError;
+use kuaukutsu\poc\task\state\TaskStateDelay;
 use kuaukutsu\poc\task\state\TaskStateRelation;
 use kuaukutsu\poc\task\state\TaskStateInterface;
 use kuaukutsu\poc\task\state\TaskStateMessage;
@@ -75,13 +75,18 @@ final class TaskHandler
 
     /**
      * @param non-empty-string $taskUuid
+     * @param non-empty-string $stageUuid
      * @throws ProcessingException
      */
-    public function complete(string $taskUuid): TaskStateInterface
+    public function complete(string $taskUuid, string $stageUuid): TaskStateInterface
     {
         $task = $this->getTask($taskUuid);
         if ($task->isFinished()) {
             return $task->getState();
+        }
+
+        if ($this->stageQuery->existsOpenByTask(new EntityUuid($taskUuid))) {
+            return new TaskStateDelay($stageUuid, 10, $task->getFlag());
         }
 
         try {
@@ -103,30 +108,6 @@ final class TaskHandler
         }
 
         return $state;
-    }
-
-    /**
-     * @param non-empty-string $taskUuid
-     * @throws ProcessingException
-     */
-    public function state(string $taskUuid): TaskStateInterface
-    {
-        $task = $this->getTask($taskUuid);
-        if ($task->isFinished()) {
-            return $task->getState();
-        }
-
-        if ($task->isPromised()) {
-            if ($this->stageQuery->existsOpenByTask(new EntityUuid($taskUuid))) {
-                return new TaskStateRunning(
-                    $task->getState()->getMessage()
-                );
-            }
-
-            return $this->complete($taskUuid);
-        }
-
-        return $task->getState();
     }
 
     /**
