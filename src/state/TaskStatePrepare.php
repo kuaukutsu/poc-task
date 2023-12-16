@@ -43,6 +43,7 @@ trait TaskStatePrepare
                     TaskStateSkip::class,
                     TaskStateSuccess::class,
                     TaskStateWaiting::class,
+                    TaskStateDelay::class,
                     ResponseWrapper::class,
                 ],
                 'max_depth' => 8,
