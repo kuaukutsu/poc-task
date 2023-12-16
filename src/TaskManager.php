@@ -17,9 +17,11 @@ use kuaukutsu\poc\task\event\LoopExceptionEvent;
 use kuaukutsu\poc\task\event\PublisherEvent;
 use kuaukutsu\poc\task\event\ProcessEvent;
 use kuaukutsu\poc\task\event\ProcessTimeoutEvent;
+use kuaukutsu\poc\task\event\ProcessContextEvent;
 use kuaukutsu\poc\task\event\ProcessExceptionEvent;
 use kuaukutsu\poc\task\exception\ProcessingException;
 use kuaukutsu\poc\task\processing\TaskProcess;
+use kuaukutsu\poc\task\processing\TaskProcessContext;
 use kuaukutsu\poc\task\processing\TaskProcessFactory;
 use kuaukutsu\poc\task\processing\TaskProcessing;
 
@@ -31,6 +33,11 @@ final class TaskManager implements EventPublisherInterface
      * @var array<non-empty-string, TaskProcess>
      */
     private array $processesActive = [];
+
+    /**
+     * @var array<non-empty-string, TaskProcessContext>
+     */
+    private array $processesDelay = [];
 
     /**
      * A unique identifier that can be used to cancel, enable or disable the callback.
@@ -58,7 +65,10 @@ final class TaskManager implements EventPublisherInterface
             function () use ($options): void {
                 $this->trigger(
                     Event::LoopTick,
-                    new LoopTickEvent(new DateTimeImmutable())
+                    new LoopTickEvent(
+                        count($this->processesActive),
+                        count($this->processesDelay),
+                    )
                 );
 
                 try {
@@ -88,9 +98,13 @@ final class TaskManager implements EventPublisherInterface
         $this->keeperId = EventLoop::repeat(
             $options->getKeeperInterval(),
             function () use ($options): void {
-                if ($this->processesActive === []) {
+                if ($this->processesActive === [] && $this->processesDelay === []) {
                     $this->keeperDisable();
                     return;
+                }
+
+                foreach ($this->processesDelay as $context) {
+                    $this->processDelayActive($context, $options);
                 }
 
                 foreach ($this->processesActive as $process) {
@@ -230,12 +244,43 @@ final class TaskManager implements EventPublisherInterface
             && count($this->processesActive) < $options->getQueueSize()
         ) {
             $context = $this->processing->getTaskProcess();
-            if (array_key_exists($context->stage, $this->processesActive) === false) {
-                $process = $this->processFactory->create($context, $options);
-                $process->start();
-
-                $this->processPush($process);
+            if ($context->timestamp > 0 && $context->timestamp > time()) {
+                $this->processDelayPush($context);
+                continue;
             }
+
+            $this->processStart($context, $options);
+        }
+    }
+
+    private function processStart(TaskProcessContext $context, TaskManagerOptions $options): void
+    {
+        if (array_key_exists($context->getHash(), $this->processesActive) === false) {
+            $process = $this->processFactory->create($context, $options);
+            $process->start();
+
+            $this->processPush($process);
+        }
+    }
+
+    private function processDelayPush(TaskProcessContext $context): void
+    {
+        if (
+            array_key_exists($context->getHash(), $this->processesDelay)
+            && $this->processesDelay[$context->getHash()]->timestamp > $context->timestamp
+        ) {
+            $context = $this->processesDelay[$context->getHash()];
+        }
+
+        $this->processesDelay[$context->getHash()] = $context;
+    }
+
+    private function processDelayActive(TaskProcessContext $context, TaskManagerOptions $options): void
+    {
+        if ($context->timestamp < time()) {
+            $this->processStart($context, $options);
+            $this->trigger(Event::ProcessDelay, new ProcessContextEvent($context));
+            unset($this->processesDelay[$context->getHash()]);
         }
     }
 
@@ -245,15 +290,19 @@ final class TaskManager implements EventPublisherInterface
             $this->keeperEnable();
         }
 
-        $this->processesActive[$process->stage] = $process;
+        $this->processesActive[$process->hash] = $process;
         $this->trigger(Event::ProcessPush, new ProcessEvent($process));
     }
 
     private function processPull(TaskProcess $process): void
     {
         $process->stop(0);
-        unset($this->processesActive[$process->stage]);
-        if ($this->processesActive === []) {
+        unset(
+            $this->processesActive[$process->hash],
+            $this->processesDelay[$process->hash],
+        );
+
+        if ($this->processesActive === [] && $this->processesDelay === []) {
             $this->keeperDisable();
         }
 

@@ -20,6 +20,8 @@ enum Event: string
 
     case ProcessStop = 'process-stop-event';
 
+    case ProcessDelay = 'process-delay-event';
+
     case ProcessSuccess = 'process-success-event';
 
     case ProcessError = 'process-error-event';

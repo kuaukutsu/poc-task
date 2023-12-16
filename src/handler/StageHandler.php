@@ -32,22 +32,7 @@ final class StageHandler
             try {
                 $this->stdout(
                     $this->stateSerialize(
-                        $this->handler->complete($taskUuid)
-                    )
-                );
-
-                return TaskProcess::SUCCESS;
-            } catch (ProcessingException $exception) {
-                $this->stderr($exception->getMessage());
-                return TaskProcess::ERROR;
-            }
-        }
-
-        if ((new TaskCommand($stageUuid))->isState()) {
-            try {
-                $this->stdout(
-                    $this->stateSerialize(
-                        $this->handler->state($taskUuid)
+                        $this->handler->complete($taskUuid, $stageUuid)
                     )
                 );
 

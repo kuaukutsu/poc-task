@@ -102,6 +102,7 @@ final class ProcessingPromiseTest extends TestCase
 
         $this->processing->next(
             new TaskProcess(
+                $context->getHash(),
                 $context->task,
                 $context->stage,
                 $this->getProcess(
@@ -129,6 +130,7 @@ final class ProcessingPromiseTest extends TestCase
         self::assertEquals(0, $exitCode);
         $this->processing->next(
             new TaskProcess(
+                $contextNestedTask->getHash(),
                 $contextNestedTask->task,
                 $contextNestedTask->stage,
                 $this->getProcess(
@@ -145,6 +147,7 @@ final class ProcessingPromiseTest extends TestCase
         self::assertEquals(0, $exitCode);
         $this->processing->next(
             new TaskProcess(
+                $contextNestedTask->getHash(),
                 $contextNestedTask->task,
                 $contextNestedTask->stage,
                 $this->getProcess(
@@ -164,6 +167,7 @@ final class ProcessingPromiseTest extends TestCase
         // Возврат контекста
         $this->processing->next(
             new TaskProcess(
+                $contextNestedTask->getHash(),
                 $contextNestedTask->task,
                 $contextNestedTask->stage,
                 $this->getProcess(
@@ -181,6 +185,7 @@ final class ProcessingPromiseTest extends TestCase
         self::assertEquals(0, $exitCode);
         $this->processing->next(
             new TaskProcess(
+                $contextReturnTask->getHash(),
                 $contextReturnTask->task,
                 $contextReturnTask->stage,
                 $this->getProcess(

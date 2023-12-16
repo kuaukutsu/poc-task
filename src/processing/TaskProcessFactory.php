@@ -23,6 +23,7 @@ final class TaskProcessFactory
         }
 
         return new TaskProcess(
+            hash: $context->getHash(),
             task: $context->task,
             stage: $context->stage,
             process: new Process(

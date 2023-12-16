@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\event;
 
-use DateTimeImmutable;
-
 /**
  * @psalm-immutable
  */
@@ -13,9 +11,10 @@ final class LoopTickEvent implements EventInterface
 {
     private readonly string $message;
 
-    public function __construct(DateTimeImmutable $tick)
+    public function __construct(int $countProcessActive, int $countProcessDelay)
     {
-        $this->message = 'tick: ' . $tick->format('c');
+        $datetime = gmdate('c');
+        $this->message = "tick: $datetime, active: $countProcessActive, delay: $countProcessDelay.";
     }
 
     public function getMessage(): string
