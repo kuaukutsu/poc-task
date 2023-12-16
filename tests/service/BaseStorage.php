@@ -1,4 +1,6 @@
-<?php /** @noinspection SqlResolve */
+<?php
+
+/** @noinspection SqlResolve */
 
 declare(strict_types=1);
 
