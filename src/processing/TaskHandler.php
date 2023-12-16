@@ -109,7 +109,12 @@ final class TaskHandler
             return $stateRelation;
         }
 
-        $this->finallyHandler->handle($task->getOptions(), $state);
+        $this->finallyHandler->handle(
+            $task->getUuid(),
+            $task->getOptions(),
+            $state,
+        );
+
         return $state;
     }
 

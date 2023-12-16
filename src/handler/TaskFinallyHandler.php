@@ -22,14 +22,17 @@ final class TaskFinallyHandler
     {
     }
 
-    public function handle(TaskOptions $options, TaskStateInterface $state): void
+    /**
+     * @param non-empty-string $uuid Task UUID
+     */
+    public function handle(string $uuid, TaskOptions $options, TaskStateInterface $state): void
     {
         if ($options->finally === null) {
             return;
         }
 
         try {
-            $this->factory($options->finally)->handle($state);
+            $this->factory($options->finally)->handle($uuid, $state);
         } catch (Throwable) {
         }
     }

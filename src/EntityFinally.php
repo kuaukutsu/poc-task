@@ -8,5 +8,8 @@ use kuaukutsu\poc\task\state\TaskStateInterface;
 
 interface EntityFinally
 {
-    public function handle(TaskStateInterface $state): void;
+    /**
+     * @param non-empty-string $uuid Task UUID
+     */
+    public function handle(string $uuid, TaskStateInterface $state): void;
 }
