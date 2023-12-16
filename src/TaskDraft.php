@@ -8,6 +8,7 @@ use kuaukutsu\poc\task\dto\TaskOptions;
 use kuaukutsu\poc\task\state\TaskFlagCommand;
 use kuaukutsu\poc\task\state\TaskStateInterface;
 use kuaukutsu\poc\task\state\TaskStateReady;
+use LogicException;
 
 final class TaskDraft implements EntityTask
 {
@@ -97,9 +98,14 @@ final class TaskDraft implements EntityTask
 
     /**
      * @param class-string<EntityFinally> $handler
+     * @throws LogicException
      */
     public function setFinally(string $handler): self
     {
+        if (is_a($handler, EntityFinally::class, true) === false) {
+            throw new LogicException("[$handler] must implement EntityFinally.");
+        }
+
         $this->finally = $handler;
         return $this;
     }
