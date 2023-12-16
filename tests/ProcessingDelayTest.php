@@ -16,10 +16,12 @@ use kuaukutsu\poc\task\state\TaskStateDelay;
 use kuaukutsu\poc\task\state\TaskStateInterface;
 use kuaukutsu\poc\task\service\TaskDestroyer;
 use kuaukutsu\poc\task\EntityWrapper;
+use kuaukutsu\poc\task\EntityNode;
 use kuaukutsu\poc\task\EntityUuid;
 use kuaukutsu\poc\task\EntityTask;
 use kuaukutsu\poc\task\TaskManagerOptions;
 use kuaukutsu\poc\task\TaskBuilder;
+use kuaukutsu\poc\task\tests\service\StubNode;
 use kuaukutsu\poc\task\tests\stub\TestStageStub;
 
 final class ProcessingDelayTest extends TestCase
@@ -27,6 +29,8 @@ final class ProcessingDelayTest extends TestCase
     use Container;
 
     private readonly EntityTask $task;
+
+    private readonly EntityNode $node;
 
     private readonly StageHandler $handler;
 
@@ -49,6 +53,7 @@ final class ProcessingDelayTest extends TestCase
         $this->processing = self::get(TaskProcessing::class);
         $this->builder = self::get(TaskBuilder::class);
         $this->handler = self::get(StageHandler::class);
+        $this->node = self::get(StubNode::class);
 
         $this->options = new TaskManagerOptions(
             bindir: __DIR__ . '/bin',
@@ -104,7 +109,7 @@ final class ProcessingDelayTest extends TestCase
             ),
         );
 
-        $this->task = $this->builder->build($draft);
+        $this->task = $this->builder->build($this->node, $draft);
     }
 
     protected function tearDown(): void

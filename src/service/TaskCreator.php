@@ -10,6 +10,7 @@ use kuaukutsu\poc\task\dto\StageModelCreate;
 use kuaukutsu\poc\task\dto\TaskModelCreate;
 use kuaukutsu\poc\task\dto\TaskModel;
 use kuaukutsu\poc\task\exception\BuilderException;
+use kuaukutsu\poc\task\exception\NotFoundException;
 use kuaukutsu\poc\task\state\TaskStateReady;
 use kuaukutsu\poc\task\state\TaskStateRelation;
 use kuaukutsu\poc\task\handler\TaskFactory;
@@ -25,7 +26,6 @@ final class TaskCreator
         private readonly TaskCommand $taskCommand,
         private readonly StageCommand $stageCommand,
         private readonly TaskFactory $factory,
-        private readonly TaskDestroyer $destroyer,
     ) {
     }
 
@@ -95,7 +95,7 @@ final class TaskCreator
                 );
             }
         } catch (Exception $exception) {
-            $this->destroyer->purge(
+            $this->purge(
                 new EntityUuid($task->uuid)
             );
 
@@ -120,6 +120,19 @@ final class TaskCreator
             throw new LogicException(
                 "[{$draft->getTitle()}] Stage must be declared."
             );
+        }
+    }
+
+    private function purge(EntityUuid $uuid): void
+    {
+        try {
+            $this->stageCommand->removeByTask($uuid);
+        } catch (NotFoundException) {
+        }
+
+        try {
+            $this->taskCommand->remove($uuid);
+        } catch (NotFoundException) {
         }
     }
 }

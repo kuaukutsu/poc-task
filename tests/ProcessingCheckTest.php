@@ -13,10 +13,12 @@ use kuaukutsu\poc\task\service\TaskDestroyer;
 use kuaukutsu\poc\task\service\TaskExecutor;
 use kuaukutsu\poc\task\service\StageQuery;
 use kuaukutsu\poc\task\EntityWrapper;
+use kuaukutsu\poc\task\EntityNode;
 use kuaukutsu\poc\task\EntityUuid;
 use kuaukutsu\poc\task\EntityTask;
 use kuaukutsu\poc\task\TaskManagerOptions;
 use kuaukutsu\poc\task\TaskBuilder;
+use kuaukutsu\poc\task\tests\service\StubNode;
 use kuaukutsu\poc\task\tests\stub\TestStageStub;
 
 final class ProcessingCheckTest extends TestCase
@@ -24,6 +26,8 @@ final class ProcessingCheckTest extends TestCase
     use Container;
 
     private readonly EntityTask $task;
+
+    private readonly EntityNode $node;
 
     private readonly TaskQuery $taskQuery;
 
@@ -52,6 +56,7 @@ final class ProcessingCheckTest extends TestCase
         $this->processing = self::get(TaskProcessing::class);
         $this->taskExecutor = self::get(TaskExecutor::class);
         $this->builder = self::get(TaskBuilder::class);
+        $this->node = self::get(StubNode::class);
 
         $this->options = new TaskManagerOptions(
             bindir: __DIR__ . '/bin',
@@ -100,7 +105,7 @@ final class ProcessingCheckTest extends TestCase
             ),
         );
 
-        $this->task = $this->builder->build($draft);
+        $this->task = $this->builder->build($this->node, $draft);
     }
 
     protected function tearDown(): void

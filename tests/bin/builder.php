@@ -11,6 +11,7 @@ declare(strict_types=1);
 use DI\Container;
 use kuaukutsu\poc\task\TaskBuilder;
 use kuaukutsu\poc\task\EntityWrapper;
+use kuaukutsu\poc\task\tests\service\StubNode;
 use kuaukutsu\poc\task\tests\stub\IncreaseNumberStageStub;
 use kuaukutsu\poc\task\tests\stub\NumberHandlerStageStub;
 use kuaukutsu\poc\task\tests\stub\NumberSaveStageStub;
@@ -23,12 +24,15 @@ $container = new Container($definitions);
 
 /** @noinspection PhpUnhandledExceptionInspection */
 $builder = $container->get(TaskBuilder::class);
+/** @noinspection PhpUnhandledExceptionInspection */
+$node = $container->get(StubNode::class);
 
 $taskCount = (int)argument('task', 4);
 while ($taskCount > 0) {
     $taskCount--;
 
     $builder->build(
+        $node,
         $builder->create(
             $taskCount . ' date: ' . date('c'),
             new EntityWrapper(

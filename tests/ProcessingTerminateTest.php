@@ -15,6 +15,7 @@ use kuaukutsu\poc\task\EntityTask;
 use kuaukutsu\poc\task\EntityUuid;
 use kuaukutsu\poc\task\TaskManagerOptions;
 use kuaukutsu\poc\task\TaskBuilder;
+use kuaukutsu\poc\task\tests\service\StubNode;
 
 final class ProcessingTerminateTest extends TestCase
 {
@@ -84,7 +85,8 @@ final class ProcessingTerminateTest extends TestCase
     protected function setUp(): void
     {
         $this->task = $this->generateTask(
-            self::get(TaskBuilder::class)
+            self::get(StubNode::class),
+            self::get(TaskBuilder::class),
         );
     }
 

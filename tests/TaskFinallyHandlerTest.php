@@ -4,18 +4,20 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\tests;
 
-use kuaukutsu\poc\task\state\TaskStateMessage;
-use kuaukutsu\poc\task\state\TaskStateSuccess;
-use kuaukutsu\poc\task\tests\service\BaseStorage;
-use kuaukutsu\poc\task\tests\stub\TestExceptionFinally;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerExceptionInterface;
 use kuaukutsu\poc\task\handler\TaskFinallyHandler;
 use kuaukutsu\poc\task\service\TaskDestroyer;
+use kuaukutsu\poc\task\state\TaskStateMessage;
+use kuaukutsu\poc\task\state\TaskStateSuccess;
+use kuaukutsu\poc\task\EntityNode;
 use kuaukutsu\poc\task\EntityTask;
 use kuaukutsu\poc\task\EntityUuid;
 use kuaukutsu\poc\task\EntityWrapper;
 use kuaukutsu\poc\task\TaskBuilder;
+use kuaukutsu\poc\task\tests\service\BaseStorage;
+use kuaukutsu\poc\task\tests\service\StubNode;
+use kuaukutsu\poc\task\tests\stub\TestExceptionFinally;
 use kuaukutsu\poc\task\tests\stub\TestFinally;
 use kuaukutsu\poc\task\tests\stub\TestStageStub;
 
@@ -24,6 +26,8 @@ final class TaskFinallyHandlerTest extends TestCase
     use Container;
 
     private readonly EntityTask $task;
+
+    private readonly EntityNode $node;
 
     private readonly TaskFinallyHandler $taskFinallyHandler;
 
@@ -44,11 +48,13 @@ final class TaskFinallyHandlerTest extends TestCase
         $this->builder = self::get(TaskBuilder::class);
         $this->taskFinallyHandler = self::get(TaskFinallyHandler::class);
         $this->storage = self::get(BaseStorage::class);
+        $this->node = self::get(StubNode::class);
     }
 
     public function testHandler(): void
     {
         $this->task = $this->builder->build(
+            $this->node,
             $this->builder
                 ->create(
                     'task finally builder',
@@ -81,6 +87,7 @@ final class TaskFinallyHandlerTest extends TestCase
     public function testHandlerException(): void
     {
         $this->task = $this->builder->build(
+            $this->node,
             $this->builder
                 ->create(
                     'task finally builder',

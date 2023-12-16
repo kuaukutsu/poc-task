@@ -12,10 +12,12 @@ use kuaukutsu\poc\task\state\TaskStateMessage;
 use kuaukutsu\poc\task\state\TaskStateSkip;
 use kuaukutsu\poc\task\service\TaskQuery;
 use kuaukutsu\poc\task\service\TaskDestroyer;
+use kuaukutsu\poc\task\EntityNode;
 use kuaukutsu\poc\task\EntityUuid;
 use kuaukutsu\poc\task\EntityTask;
 use kuaukutsu\poc\task\EntityWrapper;
 use kuaukutsu\poc\task\TaskBuilder;
+use kuaukutsu\poc\task\tests\service\StubNode;
 use kuaukutsu\poc\task\tests\stub\IncreaseNumberStageStub;
 use kuaukutsu\poc\task\tests\stub\TestStageStub;
 use kuaukutsu\poc\task\tests\stub\TestFinally;
@@ -26,6 +28,8 @@ final class TaskBuilderTest extends TestCase
     use Container;
 
     private ?EntityTask $task = null;
+
+    private readonly EntityNode $node;
 
     private readonly TaskBuilder $builder;
 
@@ -40,6 +44,7 @@ final class TaskBuilderTest extends TestCase
 
         $this->builder = self::get(TaskBuilder::class);
         $this->destroyer = self::get(TaskDestroyer::class);
+        $this->node = self::get(StubNode::class);
     }
 
     public function testDraftBuilder(): void
@@ -87,7 +92,7 @@ final class TaskBuilderTest extends TestCase
             )
             ->setTimeout(200);
 
-        $task = $this->builder->build($draft);
+        $task = $this->builder->build($this->node, $draft);
         self::assertEquals($draft->getTitle(), $task->getTitle());
         self::assertEquals(new TaskStateReady(), $task->getState());
         self::assertEquals($draft->getOptions()->timeout, $task->getOptions()->timeout);
@@ -118,7 +123,7 @@ final class TaskBuilderTest extends TestCase
                 )
             );
 
-        $task = $this->builder->build($draft);
+        $task = $this->builder->build($this->node, $draft);
         self::assertInstanceOf(TaskStateSkip::class, $task->getState());
         // default
         self::assertEquals(300., $task->getOptions()->timeout);
@@ -166,13 +171,13 @@ final class TaskBuilderTest extends TestCase
         $query = self::get(TaskQuery::class);
 
         $tasks = [];
-        $tasks[] = $this->builder->build($draft);
+        $tasks[] = $this->builder->build($this->node, $draft);
         self::assertTrue($query->existsOpenByChecksum($draft->getChecksum()));
 
-        $tasks[] = $this->builder->build($draftSimilar);
+        $tasks[] = $this->builder->build($this->node, $draftSimilar);
         self::assertTrue($query->existsOpenByChecksum($draftSimilar->getChecksum()));
 
-        $tasks[] = $this->builder->build($draftAnotherSimilar);
+        $tasks[] = $this->builder->build($this->node, $draftAnotherSimilar);
         self::assertTrue($query->existsOpenByChecksum($draftAnotherSimilar->getChecksum()));
 
         $destroyer = self::get(TaskDestroyer::class);
@@ -205,10 +210,10 @@ final class TaskBuilderTest extends TestCase
             ),
         );
 
-        $this->task = $this->builder->build($draft);
+        $this->task = $this->builder->build($this->node, $draft);
 
         $this->expectException(LogicException::class);
-        $this->builder->build($draftDuplicate);
+        $this->builder->build($this->node, $draftDuplicate);
     }
 
     public function testCreateFinally(): void

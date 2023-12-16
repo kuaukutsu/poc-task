@@ -9,11 +9,14 @@ use kuaukutsu\poc\task\EntityWrapper;
 use kuaukutsu\poc\task\TaskBuilder;
 use kuaukutsu\poc\task\TaskHandlerBase;
 use kuaukutsu\poc\task\TaskStageContext;
+use kuaukutsu\poc\task\tests\service\StubNode;
 
 final class TestHandlerStageStub extends TaskHandlerBase
 {
-    public function __construct(private readonly TaskBuilder $builder)
-    {
+    public function __construct(
+        private readonly TaskBuilder $builder,
+        private readonly StubNode $node,
+    ) {
     }
 
     public function handle(TaskStageContext $context): TaskStateInterface
@@ -35,7 +38,7 @@ final class TestHandlerStageStub extends TaskHandlerBase
         );
 
         return $this->wait(
-            $this->builder->build($task, $context),
+            $this->builder->build($this->node, $task, $context),
             $context,
         );
     }
