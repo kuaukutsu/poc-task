@@ -15,6 +15,11 @@ final class TaskDraft implements EntityTask
 
     private float $timeout = 300.;
 
+    /**
+     * @var class-string<EntityFinally>|null
+     */
+    private ?string $finally = null;
+
     private TaskStateInterface $state;
 
     private readonly EntityUuid $uuid;
@@ -49,6 +54,7 @@ final class TaskDraft implements EntityTask
     {
         return new TaskOptions(
             timeout: $this->timeout,
+            finally: $this->finally,
         );
     }
 
@@ -86,6 +92,15 @@ final class TaskDraft implements EntityTask
     public function setTimeout(float $timeout): self
     {
         $this->timeout = max(1, $timeout);
+        return $this;
+    }
+
+    /**
+     * @param class-string<EntityFinally> $handler
+     */
+    public function setFinally(string $handler): self
+    {
+        $this->finally = $handler;
         return $this;
     }
 }
