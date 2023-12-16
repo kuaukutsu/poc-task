@@ -267,12 +267,10 @@ final class TaskManager implements EventPublisherInterface
     {
         if (
             array_key_exists($context->getHash(), $this->processesDelay)
-            && $this->processesDelay[$context->getHash()]->timestamp > $context->timestamp
+            && $context->timestamp > $this->processesDelay[$context->getHash()]->timestamp
         ) {
-            $context = $this->processesDelay[$context->getHash()];
+            $this->processesDelay[$context->getHash()] = $context;
         }
-
-        $this->processesDelay[$context->getHash()] = $context;
     }
 
     private function processDelayActive(TaskProcessContext $context, TaskManagerOptions $options): void
