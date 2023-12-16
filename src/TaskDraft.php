@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task;
 
+use LogicException;
 use kuaukutsu\poc\task\dto\TaskOptions;
 use kuaukutsu\poc\task\state\TaskFlagCommand;
 use kuaukutsu\poc\task\state\TaskStateInterface;
@@ -14,6 +15,11 @@ final class TaskDraft implements EntityTask
     use TaskFlagCommand;
 
     private float $timeout = 300.;
+
+    /**
+     * @var class-string<EntityFinally>|null
+     */
+    private ?string $finally = null;
 
     private TaskStateInterface $state;
 
@@ -49,6 +55,7 @@ final class TaskDraft implements EntityTask
     {
         return new TaskOptions(
             timeout: $this->timeout,
+            finally: $this->finally,
         );
     }
 
@@ -86,6 +93,20 @@ final class TaskDraft implements EntityTask
     public function setTimeout(float $timeout): self
     {
         $this->timeout = max(1, $timeout);
+        return $this;
+    }
+
+    /**
+     * @param class-string<EntityFinally> $handler
+     * @throws LogicException not implement the EntityFinally
+     */
+    public function setFinally(string $handler): self
+    {
+        if (is_a($handler, EntityFinally::class, true) === false) {
+            throw new LogicException("[$handler] must implement the EntityFinally.");
+        }
+
+        $this->finally = $handler;
         return $this;
     }
 }

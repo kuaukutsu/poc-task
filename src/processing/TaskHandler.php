@@ -11,6 +11,7 @@ use kuaukutsu\poc\task\exception\ProcessingException;
 use kuaukutsu\poc\task\handler\StageContextFactory;
 use kuaukutsu\poc\task\handler\StageExecutor;
 use kuaukutsu\poc\task\handler\TaskFactory;
+use kuaukutsu\poc\task\handler\TaskFinallyHandler;
 use kuaukutsu\poc\task\service\StageCommand;
 use kuaukutsu\poc\task\service\StageQuery;
 use kuaukutsu\poc\task\service\TaskExecutor;
@@ -29,6 +30,7 @@ final class TaskHandler
         private readonly TaskQuery $taskQuery,
         private readonly TaskFactory $taskFactory,
         private readonly TaskExecutor $taskExecutor,
+        private readonly TaskFinallyHandler $finallyHandler,
         private readonly StageQuery $stageQuery,
         private readonly StageCommand $stageCommand,
         private readonly StageContextFactory $contextFactory,
@@ -106,6 +108,12 @@ final class TaskHandler
 
             return $stateRelation;
         }
+
+        $this->finallyHandler->handle(
+            $task->getUuid(),
+            $task->getOptions(),
+            $state,
+        );
 
         return $state;
     }

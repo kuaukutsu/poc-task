@@ -80,7 +80,7 @@ SQL
     {
         if (array_key_exists('options', $data)) {
             try {
-                $data['options'] = json_decode($data['options'], true, 512, JSON_THROW_ON_ERROR);
+                $data['options'] = json_decode((string)$data['options'], true, 512, JSON_THROW_ON_ERROR);
             } catch (Throwable) {
                 $data['options'] = [];
             }
