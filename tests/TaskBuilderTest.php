@@ -18,6 +18,8 @@ use kuaukutsu\poc\task\EntityWrapper;
 use kuaukutsu\poc\task\TaskBuilder;
 use kuaukutsu\poc\task\tests\stub\IncreaseNumberStageStub;
 use kuaukutsu\poc\task\tests\stub\TestStageStub;
+use kuaukutsu\poc\task\tests\stub\TestFinally;
+use kuaukutsu\poc\task\tests\stub\TestResponse;
 
 final class TaskBuilderTest extends TestCase
 {
@@ -207,6 +209,38 @@ final class TaskBuilderTest extends TestCase
 
         $this->expectException(LogicException::class);
         $this->builder->build($draftDuplicate);
+    }
+
+    public function testCreateFinally(): void
+    {
+        $draft = $this->builder->create(
+            'finaly',
+            new EntityWrapper(
+                class: TestStageStub::class,
+                params: [
+                    'name' => 'Test initialization.',
+                ],
+            ),
+        );
+
+        $draft->setFinally(TestFinally::class);
+        self::assertEquals(TestFinally::class, $draft->getOptions()->finally);
+    }
+
+    public function testCreateFinallyException(): void
+    {
+        $draft = $this->builder->create(
+            'finaly',
+            new EntityWrapper(
+                class: TestStageStub::class,
+                params: [
+                    'name' => 'Test initialization.',
+                ],
+            ),
+        );
+
+        $this->expectException(LogicException::class);
+        $draft->setFinally(TestResponse::class);
     }
 
     protected function tearDown(): void
