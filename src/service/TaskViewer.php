@@ -34,10 +34,13 @@ final class TaskViewer
 
         try {
             $state = $this->prepareState($task->state);
-            $relation = $this->prepareRelation($state);
         } catch (Throwable) {
             $state = null;
-            $relation = null;
+        }
+
+        $relation = null;
+        if ($state !== null) {
+            $relation = $this->prepareRelation($state);
         }
 
         return new TaskView(
