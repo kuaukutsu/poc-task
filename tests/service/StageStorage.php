@@ -123,7 +123,7 @@ trait StageStorage
 
         $result = $stmt->execute();
         if ($result === false) {
-            throw new RuntimeException('ModelRead error: ' . $this->connection->lastErrorMsg());
+            throw new RuntimeException('ModelRead error: ' . $db->lastErrorMsg());
         }
 
         return $result;
