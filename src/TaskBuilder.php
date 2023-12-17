@@ -5,14 +5,12 @@ declare(strict_types=1);
 namespace kuaukutsu\poc\task;
 
 use LogicException;
-use DI\FactoryInterface;
-use Psr\Container\ContainerExceptionInterface;
 use kuaukutsu\poc\task\exception\BuilderException;
 use kuaukutsu\poc\task\service\TaskCreator;
 
 final class TaskBuilder
 {
-    public function __construct(private readonly FactoryInterface $factory)
+    public function __construct(private readonly TaskCreator $creator)
     {
     }
 
@@ -28,34 +26,10 @@ final class TaskBuilder
      * @throws BuilderException
      * @throws LogicException
      */
-    public function build(EntityNode $node, TaskDraft $draft, ?TaskStageContext $context = null): EntityTask
+    public function build(TaskDraft $draft, ?TaskStageContext $context = null): EntityTask
     {
-        try {
-            $creator = $this->factoryCreatorByNode($node);
-        } catch (ContainerExceptionInterface $exception) {
-            throw new BuilderException("[{$draft->getTitle()}] TaskBuilder dependency resolv failed.", $exception);
-        }
-
         return $context === null
-            ? $creator->create($draft)
-            : $creator->createFromContext($draft, $context);
-    }
-
-    /**
-     * @throws ContainerExceptionInterface
-     */
-    private function factoryCreatorByNode(EntityNode $node): TaskCreator
-    {
-        /**
-         * @var TaskCreator
-         */
-        return $this->factory->make(
-            TaskCreator::class,
-            [
-                'taskQuery' => $node->getTaskQuery(),
-                'taskCommand' => $node->getTaskCommand(),
-                'stageCommand' => $node->getStageCommand(),
-            ]
-        );
+            ? $this->creator->create($draft)
+            : $this->creator->createFromContext($draft, $context);
     }
 }

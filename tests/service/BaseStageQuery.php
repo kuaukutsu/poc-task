@@ -13,16 +13,12 @@ use kuaukutsu\poc\task\state\TaskFlag;
 use kuaukutsu\poc\task\service\StageQuery;
 use kuaukutsu\poc\task\EntityUuid;
 
-final class StageQueryStub implements StageQuery
+/**
+ * @property-read SQLite3 $connection
+ */
+abstract class BaseStageQuery implements StageQuery
 {
     use StageStorage;
-
-    private readonly SQLite3 $connection;
-
-    public function __construct(private readonly Mutex $mutex)
-    {
-        $this->connection = $this->db();
-    }
 
     public function getOne(EntityUuid $uuid): StageModel
     {

@@ -15,7 +15,6 @@ use kuaukutsu\poc\task\service\TaskDestroyer;
 use kuaukutsu\poc\task\TaskBuilder;
 use kuaukutsu\poc\task\EntityTask;
 use kuaukutsu\poc\task\EntityUuid;
-use kuaukutsu\poc\task\tests\service\StubNode;
 
 final class StageServiceTest extends TestCase
 {
@@ -143,8 +142,7 @@ final class StageServiceTest extends TestCase
     protected function setUp(): void
     {
         $this->task = $this->generateTask(
-            self::get(StubNode::class),
-            self::get(TaskBuilder::class),
+            self::get(TaskBuilder::class)
         );
 
         $this->stage = $this->query

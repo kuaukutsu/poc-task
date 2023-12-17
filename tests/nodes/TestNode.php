@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace kuaukutsu\poc\task\tests\service;
+namespace kuaukutsu\poc\task\tests\nodes;
 
 use DI\FactoryInterface;
 use kuaukutsu\poc\task\EntityNode;
@@ -10,8 +10,12 @@ use kuaukutsu\poc\task\service\StageCommand;
 use kuaukutsu\poc\task\service\StageQuery;
 use kuaukutsu\poc\task\service\TaskCommand;
 use kuaukutsu\poc\task\service\TaskQuery;
+use kuaukutsu\poc\task\tests\nodes\test\TestStageCommand;
+use kuaukutsu\poc\task\tests\nodes\test\TestStageQuery;
+use kuaukutsu\poc\task\tests\nodes\test\TestTaskCommand;
+use kuaukutsu\poc\task\tests\nodes\test\TestTaskQuery;
 
-final class StubNode implements EntityNode
+final class TestNode implements EntityNode
 {
     public function __construct(private readonly FactoryInterface $factory)
     {
@@ -19,38 +23,38 @@ final class StubNode implements EntityNode
 
     public function label(): string
     {
-        return 'stub';
+        return 'test';
     }
 
     public function getTaskQuery(): TaskQuery
     {
         /**
-         * @var TaskQueryStub
+         * @var TestTaskQuery
          */
-        return $this->factory->make(TaskQueryStub::class);
+        return $this->factory->make(TestTaskQuery::class);
     }
 
     public function getTaskCommand(): TaskCommand
     {
         /**
-         * @var TaskCommandStub
+         * @var TestTaskCommand
          */
-        return $this->factory->make(TaskCommandStub::class);
+        return $this->factory->make(TestTaskCommand::class);
     }
 
     public function getStageQuery(): StageQuery
     {
         /**
-         * @var StageQueryStub
+         * @var TestStageQuery
          */
-        return $this->factory->make(StageQueryStub::class);
+        return $this->factory->make(TestStageQuery::class);
     }
 
     public function getStageCommand(): StageCommand
     {
         /**
-         * @var StageCommandStub
+         * @var TestStageCommand
          */
-        return $this->factory->make(StageCommandStub::class);
+        return $this->factory->make(TestStageCommand::class);
     }
 }

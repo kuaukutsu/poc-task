@@ -67,18 +67,10 @@ final class TaskCreator
      */
     private function save(TaskDraft $draft): TaskModel
     {
-        $task = $this->taskCommand->create(
-            new EntityUuid($draft->getUuid()),
-            new TaskModelCreate(
-                title: $draft->getTitle(),
-                flag: $draft->getFlag(),
-                state: serialize($draft->getState()),
-                options: $draft->getOptions(),
-                checksum: $draft->getChecksum(),
-            )
-        );
+        $uuid = new EntityUuid($draft->getUuid());
 
         $stageState = new TaskStateReady();
+        $stageStateSerialize = serialize($stageState);
 
         try {
             $order = 0;
@@ -86,18 +78,33 @@ final class TaskCreator
                 $this->stageCommand->create(
                     new EntityUuid(),
                     new StageModelCreate(
-                        taskUuid: $task->uuid,
+                        taskUuid: $draft->getUuid(),
                         flag: $stageState->getFlag()->toValue(),
-                        state: serialize($stageState),
+                        state: $stageStateSerialize,
                         handler: serialize($stage),
                         order: ++$order,
                     )
                 );
             }
         } catch (Exception $exception) {
-            $this->purge(
-                new EntityUuid($task->uuid)
+            $this->purge($uuid);
+
+            throw new BuilderException("[{$draft->getTitle()}] TaskBuilder failed.", $exception);
+        }
+
+        try {
+            $task = $this->taskCommand->create(
+                $uuid,
+                new TaskModelCreate(
+                    title: $draft->getTitle(),
+                    flag: $draft->getFlag(),
+                    state: serialize($draft->getState()),
+                    options: $draft->getOptions(),
+                    checksum: $draft->getChecksum(),
+                )
             );
+        } catch (Exception $exception) {
+            $this->purge($uuid);
 
             throw new BuilderException("[{$draft->getTitle()}] TaskBuilder failed.", $exception);
         }

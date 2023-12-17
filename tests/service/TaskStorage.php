@@ -15,27 +15,6 @@ use function kuaukutsu\poc\task\tools\entity_hydrator;
 
 trait TaskStorage
 {
-    private function db(): SQLite3
-    {
-        $connection = new SQLite3(__DIR__ . '/data/task.sqlite3');
-        $connection->exec(
-            <<<SQL
-CREATE TABLE IF NOT EXISTS task(
-    uuid TEXT PRIMARY KEY, 
-    title TEXT,
-    flag INT,
-    state BLOB,
-    options TEXT,
-    checksum TEXT,
-    created_at TEXT,
-    updated_at TEXT
-)
-SQL
-        );
-
-        return $connection;
-    }
-
     /**
      * @throws NotFoundException
      * @throws RuntimeException

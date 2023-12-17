@@ -12,16 +12,12 @@ use kuaukutsu\poc\task\service\TaskQuery;
 use kuaukutsu\poc\task\state\TaskFlag;
 use kuaukutsu\poc\task\EntityUuid;
 
-final class TaskQueryStub implements TaskQuery
+/**
+ * @property-read SQLite3 $connection
+ */
+abstract class BaseTaskQuery implements TaskQuery
 {
     use TaskStorage;
-
-    private readonly SQLite3 $connection;
-
-    public function __construct(private readonly Mutex $mutex)
-    {
-        $this->connection = $this->db();
-    }
 
     public function getOne(EntityUuid $uuid): TaskModel
     {
