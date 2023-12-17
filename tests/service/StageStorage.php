@@ -14,27 +14,6 @@ use function kuaukutsu\poc\task\tools\entity_hydrator;
 
 trait StageStorage
 {
-    private function db(): SQLite3
-    {
-        $connection = new SQLite3(__DIR__ . '/data/stage.sqlite3');
-        $connection->exec(
-            <<<SQL
-CREATE TABLE IF NOT EXISTS stage(
-    uuid TEXT PRIMARY KEY, 
-    task_uuid TEXT, 
-    flag INT,
-    state BLOB,
-    handler BLOB,
-    "order" INT,
-    created_at TEXT,
-    updated_at TEXT
-)
-SQL
-        );
-
-        return $connection;
-    }
-
     /**
      * @throws NotFoundException
      * @throws RuntimeException

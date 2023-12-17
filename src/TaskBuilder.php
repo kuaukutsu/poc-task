@@ -10,7 +10,7 @@ use kuaukutsu\poc\task\service\TaskCreator;
 
 final class TaskBuilder
 {
-    public function __construct(private readonly TaskCreator $factory)
+    public function __construct(private readonly TaskCreator $creator)
     {
     }
 
@@ -29,7 +29,7 @@ final class TaskBuilder
     public function build(TaskDraft $draft, ?TaskStageContext $context = null): EntityTask
     {
         return $context === null
-            ? $this->factory->create($draft)
-            : $this->factory->createFromContext($draft, $context);
+            ? $this->creator->create($draft)
+            : $this->creator->createFromContext($draft, $context);
     }
 }

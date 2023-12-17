@@ -14,10 +14,10 @@ use kuaukutsu\poc\task\service\StageCommand;
 use kuaukutsu\poc\task\service\StageQuery;
 use kuaukutsu\poc\task\service\TaskCommand;
 use kuaukutsu\poc\task\service\TaskQuery;
-use kuaukutsu\poc\task\tests\service\StageCommandStub;
-use kuaukutsu\poc\task\tests\service\StageQueryStub;
-use kuaukutsu\poc\task\tests\service\TaskCommandStub;
-use kuaukutsu\poc\task\tests\service\TaskQueryStub;
+use kuaukutsu\poc\task\tests\nodes\test\TestStageCommand;
+use kuaukutsu\poc\task\tests\nodes\test\TestStageQuery;
+use kuaukutsu\poc\task\tests\nodes\test\TestTaskCommand;
+use kuaukutsu\poc\task\tests\nodes\test\TestTaskQuery;
 
 use function DI\autowire;
 use function DI\create;
@@ -40,10 +40,10 @@ trait Container
         if (self::$container === null) {
             self::$container = new \DI\Container(
                 [
-                    TaskQuery::class => autowire(TaskQueryStub::class),
-                    TaskCommand::class => autowire(TaskCommandStub::class),
-                    StageQuery::class => autowire(StageQueryStub::class),
-                    StageCommand::class => autowire(StageCommandStub::class),
+                    TaskQuery::class => autowire(TestTaskQuery::class),
+                    TaskCommand::class => autowire(TestTaskCommand::class),
+                    StageQuery::class => autowire(TestStageQuery::class),
+                    StageCommand::class => autowire(TestStageCommand::class),
                     OutputInterface::class => create(NullOutput::class),
                     ConsoleOutputInterface::class => autowire(NullConsoleOutput::class),
                 ]

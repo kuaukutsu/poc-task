@@ -15,7 +15,7 @@ use function kuaukutsu\poc\task\tools\get_previous_uuid;
 use function kuaukutsu\poc\task\tools\get_stage_uuid;
 use function kuaukutsu\poc\task\tools\get_task_uuid;
 
-require __DIR__ . '/bootstrap.php';
+require __DIR__ . '/bootstrap.odd.php';
 
 $container = new Container($definitions);
 

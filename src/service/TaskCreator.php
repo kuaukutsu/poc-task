@@ -10,6 +10,7 @@ use kuaukutsu\poc\task\dto\StageModelCreate;
 use kuaukutsu\poc\task\dto\TaskModelCreate;
 use kuaukutsu\poc\task\dto\TaskModel;
 use kuaukutsu\poc\task\exception\BuilderException;
+use kuaukutsu\poc\task\exception\NotFoundException;
 use kuaukutsu\poc\task\state\TaskStateReady;
 use kuaukutsu\poc\task\state\TaskStateRelation;
 use kuaukutsu\poc\task\handler\TaskFactory;
@@ -25,7 +26,6 @@ final class TaskCreator
         private readonly TaskCommand $taskCommand,
         private readonly StageCommand $stageCommand,
         private readonly TaskFactory $factory,
-        private readonly TaskDestroyer $destroyer,
     ) {
     }
 
@@ -67,18 +67,10 @@ final class TaskCreator
      */
     private function save(TaskDraft $draft): TaskModel
     {
-        $task = $this->taskCommand->create(
-            new EntityUuid($draft->getUuid()),
-            new TaskModelCreate(
-                title: $draft->getTitle(),
-                flag: $draft->getFlag(),
-                state: serialize($draft->getState()),
-                options: $draft->getOptions(),
-                checksum: $draft->getChecksum(),
-            )
-        );
+        $uuid = new EntityUuid($draft->getUuid());
 
         $stageState = new TaskStateReady();
+        $stageStateSerialize = serialize($stageState);
 
         try {
             $order = 0;
@@ -86,18 +78,33 @@ final class TaskCreator
                 $this->stageCommand->create(
                     new EntityUuid(),
                     new StageModelCreate(
-                        taskUuid: $task->uuid,
+                        taskUuid: $draft->getUuid(),
                         flag: $stageState->getFlag()->toValue(),
-                        state: serialize($stageState),
+                        state: $stageStateSerialize,
                         handler: serialize($stage),
                         order: ++$order,
                     )
                 );
             }
         } catch (Exception $exception) {
-            $this->destroyer->purge(
-                new EntityUuid($task->uuid)
+            $this->purge($uuid);
+
+            throw new BuilderException("[{$draft->getTitle()}] TaskBuilder failed.", $exception);
+        }
+
+        try {
+            $task = $this->taskCommand->create(
+                $uuid,
+                new TaskModelCreate(
+                    title: $draft->getTitle(),
+                    flag: $draft->getFlag(),
+                    state: serialize($draft->getState()),
+                    options: $draft->getOptions(),
+                    checksum: $draft->getChecksum(),
+                )
             );
+        } catch (Exception $exception) {
+            $this->purge($uuid);
 
             throw new BuilderException("[{$draft->getTitle()}] TaskBuilder failed.", $exception);
         }
@@ -120,6 +127,19 @@ final class TaskCreator
             throw new LogicException(
                 "[{$draft->getTitle()}] Stage must be declared."
             );
+        }
+    }
+
+    private function purge(EntityUuid $uuid): void
+    {
+        try {
+            $this->stageCommand->removeByTask($uuid);
+        } catch (NotFoundException) {
+        }
+
+        try {
+            $this->taskCommand->remove($uuid);
+        } catch (NotFoundException) {
         }
     }
 }

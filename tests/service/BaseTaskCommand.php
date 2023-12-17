@@ -15,16 +15,12 @@ use kuaukutsu\poc\task\service\TaskCommand;
 use kuaukutsu\poc\task\state\TaskFlag;
 use kuaukutsu\poc\task\EntityUuid;
 
-final class TaskCommandStub implements TaskCommand
+/**
+ * @property-read SQLite3 $connection
+ */
+abstract class BaseTaskCommand implements TaskCommand
 {
     use TaskStorage;
-
-    private readonly SQLite3 $connection;
-
-    public function __construct(private readonly Mutex $mutex)
-    {
-        $this->connection = $this->db();
-    }
 
     /**
      * @throws RuntimeException

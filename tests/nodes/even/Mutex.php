@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace kuaukutsu\poc\task\tests\service;
+namespace kuaukutsu\poc\task\tests\nodes\even;
 
 use RuntimeException;
 use SyncMutex;
@@ -10,7 +10,7 @@ use SyncMutex;
 final class Mutex
 {
     public function __construct(
-        private readonly SyncMutex $mutex = new SyncMutex('fileStorage')
+        private readonly SyncMutex $mutex = new SyncMutex('mutex.node.even')
     ) {
     }
 
