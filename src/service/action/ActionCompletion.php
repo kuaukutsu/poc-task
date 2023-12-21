@@ -50,6 +50,33 @@ final class ActionCompletion implements TaskAction
     private function handleStagesState(EntityTask $task): TaskStateInterface
     {
         $uuid = new EntityUuid($task->getUuid());
+        $state = $task->isPromised()
+            ? $this->handleContextByPromised($uuid)
+            : $this->handleContext($uuid);
+
+        if ($state->getFlag()->isError() === false) {
+            $this->stageCommand->removeByTask($uuid);
+        }
+
+        return $state;
+    }
+
+    private function stateCreate(StageModel $stage): TaskStateInterface
+    {
+        try {
+            return $this->stateFactory->create($stage->taskUuid, $stage->state);
+        } catch (ProcessingException $exception) {
+            return new TaskStateError(
+                new TaskStateMessage(
+                    $exception->getMessage(),
+                    $exception->getTraceAsString(),
+                ),
+            );
+        }
+    }
+
+    private function handleContext(EntityUuid $uuid): TaskStateInterface
+    {
         $context = new ResponseContextWrapper();
         foreach ($this->stageQuery->iterableByTask($uuid) as $item) {
             $state = $this->stateCreate($item);
@@ -69,25 +96,30 @@ final class ActionCompletion implements TaskAction
             }
         }
 
-        $this->stageCommand->removeByTask($uuid);
-
         return new TaskStateSuccess(
             message: new TaskStateMessage('TaskCompletion'),
             response: $context,
         );
     }
 
-    private function stateCreate(StageModel $stage): TaskStateInterface
+    private function handleContextByPromised(EntityUuid $uuid): TaskStateInterface
     {
-        try {
-            return $this->stateFactory->create($stage->taskUuid, $stage->state);
-        } catch (ProcessingException $exception) {
-            return new TaskStateError(
-                new TaskStateMessage(
-                    $exception->getMessage(),
-                    $exception->getTraceAsString(),
-                ),
-            );
+        $context = new ResponseContextWrapper();
+        foreach ($this->stageQuery->iterableByTask($uuid) as $item) {
+            $state = $this->stateCreate($item);
+            if ($state->getFlag()->isFinished()) {
+                $response = $state->getResponse();
+                if ($response !== null) {
+                    $state->getFlag()->isSuccess()
+                        ? $context->pushSuccessResponse($response)
+                        : $context->pushFailureResponse($response);
+                }
+            }
         }
+
+        return new TaskStateSuccess(
+            message: new TaskStateMessage('TaskPromiseCompletion'),
+            response: $context,
+        );
     }
 }
