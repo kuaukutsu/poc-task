@@ -49,6 +49,8 @@ final class TaskManager implements EventPublisherInterface
      */
     private ?string $keeperId = null;
 
+    private bool $isCheckForgotten = false;
+
     public function __construct(
         private readonly TaskProcessing $processing,
         private readonly TaskProcessFactory $processFactory,
@@ -82,9 +84,10 @@ final class TaskManager implements EventPublisherInterface
 
                 $this->processRun($options);
 
-                if ($this->processesActive === []) {
+                if ($this->isCheckForgotten && $this->processesActive === []) {
+                    $this->isCheckForgotten = false;
                     try {
-                        $this->processing->checkTaskProcess($options);
+                        $this->processing->loadTaskProcessForgotten($options);
                     } catch (ProcessingException $exception) {
                         $this->trigger(
                             Event::LoopException,
@@ -287,6 +290,7 @@ final class TaskManager implements EventPublisherInterface
     private function processPush(TaskProcess $process): void
     {
         if ($this->processesActive === []) {
+            $this->isCheckForgotten = true;
             $this->keeperEnable();
         }
 
