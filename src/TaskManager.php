@@ -225,9 +225,12 @@ final class TaskManager implements EventPublisherInterface
 
         foreach ($this->processesActive as $process) {
             if ($process->isRunning() || $process->isStarted()) {
-                $this->trigger(Event::ProcessStop, new ProcessEvent($process));
-                $process->stop(10., $signal);
+                if ($process->stop(10., $signal) === null) {
+                    continue;
+                }
+
                 $this->processing->pause($process);
+                $this->trigger(Event::ProcessStop, new ProcessEvent($process));
             }
         }
 
@@ -258,7 +261,6 @@ final class TaskManager implements EventPublisherInterface
         if (array_key_exists($context->getHash(), $this->processesActive) === false) {
             $process = $this->processFactory->create($context, $options);
             $process->start();
-
             $this->processPush($process);
         }
     }
@@ -277,8 +279,8 @@ final class TaskManager implements EventPublisherInterface
     {
         if ($context->timestamp < time()) {
             $this->processStart($context, $options);
-            $this->trigger(Event::ProcessDelay, new ProcessContextEvent($context));
             unset($this->processesDelay[$context->getHash()]);
+            $this->trigger(Event::ProcessDelay, new ProcessContextEvent($context));
         }
     }
 

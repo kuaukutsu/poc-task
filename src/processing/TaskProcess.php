@@ -67,15 +67,15 @@ final class TaskProcess
         $this->process->start();
     }
 
-    public function stop(float $timeout = 10., int $signal = SIGTERM): int
+    public function stop(float $timeout = 10., int $signal = SIGTERM): ?int
     {
         try {
-            return $this->process->stop($timeout, $signal) ?? 0;
+            return $this->process->stop($timeout, $signal);
         } catch (LogicException) {
             // Cannot send signal on a non-running process.
         }
 
-        return 0;
+        return null;
     }
 
     /**
