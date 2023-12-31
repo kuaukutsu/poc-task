@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace kuaukutsu\poc\task\event;
 
 /**
+ * @readonly
  * @psalm-immutable
  */
 final class LoopTickEvent implements EventInterface

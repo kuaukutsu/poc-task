@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\event;
 
-use DateTimeImmutable;
-
 /**
+ * @readonly
  * @psalm-immutable
  */
 final class LoopTimeoutEvent implements EventInterface
 {
     private readonly string $message;
 
-    public function __construct(DateTimeImmutable $time)
+    public function __construct(int $countProcessActive, int $countProcessDelay)
     {
-        $this->message = 'timeout: ' . $time->format('c');
+        $datetime = gmdate('c');
+        $this->message = "timeout: $datetime, active: $countProcessActive, delay: $countProcessDelay.";
     }
 
     public function getMessage(): string
