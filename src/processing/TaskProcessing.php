@@ -62,7 +62,7 @@ final class TaskProcessing
     /**
      * @throws ProcessingException
      */
-    public function checkTaskProcess(TaskManagerOptions $options): void
+    public function loadTaskProcessForgotten(TaskManagerOptions $options): void
     {
         if ($this->processReady->isEmpty()) {
             $this->loadingForgotten(

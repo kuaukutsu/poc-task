@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace kuaukutsu\poc\task;
 
 use RuntimeException;
-use DateTimeImmutable;
 use Revolt\EventLoop;
 use Revolt\EventLoop\UnsupportedFeatureException;
 use Symfony\Component\Process\Exception\ProcessTimedOutException;
@@ -49,6 +48,8 @@ final class TaskManager implements EventPublisherInterface
      */
     private ?string $keeperId = null;
 
+    private bool $isCheckForgotten = false;
+
     public function __construct(
         private readonly TaskProcessing $processing,
         private readonly TaskProcessFactory $processFactory,
@@ -82,9 +83,10 @@ final class TaskManager implements EventPublisherInterface
 
                 $this->processRun($options);
 
-                if ($this->processesActive === []) {
+                if ($this->isCheckForgotten && $this->processesActive === []) {
+                    $this->isCheckForgotten = false;
                     try {
-                        $this->processing->checkTaskProcess($options);
+                        $this->processing->loadTaskProcessForgotten($options);
                     } catch (ProcessingException $exception) {
                         $this->trigger(
                             Event::LoopException,
@@ -109,19 +111,24 @@ final class TaskManager implements EventPublisherInterface
 
                 foreach ($this->processesActive as $process) {
                     if ($process->isRunning() === false) {
-                        $this->trigger(
-                            $process->isSuccessful() ? Event::ProcessSuccess : Event::ProcessError,
-                            new ProcessEvent($process)
-                        );
-
                         try {
-                            $process->isSuccessful()
-                                ? $this->processing->next($process)
-                                : $this->processing->cancel($process);
+                            if ($process->isSuccessful()) {
+                                $this->processing->next($process);
+                                $this->trigger(
+                                    Event::ProcessSuccess,
+                                    new ProcessEvent($process)
+                                );
+                            } else {
+                                $this->processing->cancel($process);
+                                $this->trigger(
+                                    Event::ProcessError,
+                                    new ProcessEvent($process)
+                                );
+                            }
                         } catch (ProcessingException $exception) {
                             $this->trigger(
                                 Event::ProcessException,
-                                new ProcessExceptionEvent($process, $exception)
+                                new ProcessExceptionEvent($process, $exception),
                             );
                         }
 
@@ -133,13 +140,12 @@ final class TaskManager implements EventPublisherInterface
                     try {
                         $process->checkTimeout();
                     } catch (ProcessTimedOutException $exception) {
-                        $this->trigger(
-                            Event::ProcessTimeout,
-                            new ProcessTimeoutEvent($process, $exception->getMessage())
-                        );
-
                         try {
                             $this->processing->cancel($process);
+                            $this->trigger(
+                                Event::ProcessTimeout,
+                                new ProcessTimeoutEvent($process, $exception->getMessage())
+                            );
                         } catch (ProcessingException $exception) {
                             $this->trigger(
                                 Event::ProcessException,
@@ -184,8 +190,12 @@ final class TaskManager implements EventPublisherInterface
         EventLoop::delay($timeout, function (): void {
             $this->trigger(
                 Event::LoopTimeout,
-                new LoopTimeoutEvent(new DateTimeImmutable())
+                new LoopTimeoutEvent(
+                    count($this->processesActive),
+                    count($this->processesDelay),
+                )
             );
+
             $this->loopExit(SIGTERM);
         });
     }
@@ -230,7 +240,10 @@ final class TaskManager implements EventPublisherInterface
                 }
 
                 $this->processing->pause($process);
-                $this->trigger(Event::ProcessStop, new ProcessEvent($process));
+                $this->trigger(
+                    Event::ProcessStop,
+                    new ProcessEvent($process)
+                );
             }
         }
 
@@ -280,18 +293,25 @@ final class TaskManager implements EventPublisherInterface
         if ($context->timestamp < time()) {
             $this->processStart($context, $options);
             unset($this->processesDelay[$context->getHash()]);
-            $this->trigger(Event::ProcessDelay, new ProcessContextEvent($context));
+            $this->trigger(
+                Event::ProcessDelay,
+                new ProcessContextEvent($context)
+            );
         }
     }
 
     private function processPush(TaskProcess $process): void
     {
         if ($this->processesActive === []) {
+            $this->isCheckForgotten = true;
             $this->keeperEnable();
         }
 
         $this->processesActive[$process->hash] = $process;
-        $this->trigger(Event::ProcessPush, new ProcessEvent($process));
+        $this->trigger(
+            Event::ProcessPush,
+            new ProcessEvent($process)
+        );
     }
 
     private function processPull(TaskProcess $process): void
@@ -306,6 +326,9 @@ final class TaskManager implements EventPublisherInterface
             $this->keeperDisable();
         }
 
-        $this->trigger(Event::ProcessPull, new ProcessEvent($process));
+        $this->trigger(
+            Event::ProcessPull,
+            new ProcessEvent($process)
+        );
     }
 }

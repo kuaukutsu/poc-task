@@ -81,7 +81,7 @@ final class ProcessingCheckTest extends TestCase
         $this->processing->loadTaskProcess($this->options);
         self::assertFalse($this->processing->hasTaskProcess());
 
-        $this->processing->checkTaskProcess($this->options);
+        $this->processing->loadTaskProcessForgotten($this->options);
         self::assertTrue($this->processing->hasTaskProcess());
         foreach ($this->stageQuery->iterableByTask($uuid) as $stage) {
             self::assertEquals($flag->unset()->setRunning()->toValue(), $stage->flag);
