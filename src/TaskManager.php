@@ -48,7 +48,7 @@ final class TaskManager implements EventPublisherInterface
      */
     private ?string $keeperId = null;
 
-    private bool $isCheckForgotten = false;
+    private bool $isCheckForgotten = true;
 
     public function __construct(
         private readonly TaskProcessing $processing,
