@@ -126,13 +126,7 @@ final class TaskProcessing
         }
 
         try {
-            $this->taskExecutor->cancel(
-                $task,
-                $this->stateFactory->create(
-                    $process->task,
-                    $process->getMessage(),
-                )
-            );
+            $this->taskExecutor->cancel($task);
         } catch (Throwable $exception) {
             throw new ProcessingException(
                 "[$process->task] TaskCanceled error: " . $exception->getMessage(),

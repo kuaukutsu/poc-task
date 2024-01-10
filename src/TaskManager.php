@@ -112,19 +112,11 @@ final class TaskManager implements EventPublisherInterface
                 foreach ($this->processesActive as $process) {
                     if ($process->isRunning() === false) {
                         try {
-                            if ($process->isSuccessful()) {
-                                $this->processing->next($process);
-                                $this->trigger(
-                                    Event::ProcessSuccess,
-                                    new ProcessEvent($process)
-                                );
-                            } else {
-                                $this->processing->cancel($process);
-                                $this->trigger(
-                                    Event::ProcessError,
-                                    new ProcessEvent($process)
-                                );
-                            }
+                            $this->processing->next($process);
+                            $this->trigger(
+                                Event::ProcessSuccess,
+                                new ProcessEvent($process)
+                            );
                         } catch (ProcessingException $exception) {
                             $this->trigger(
                                 Event::ProcessException,

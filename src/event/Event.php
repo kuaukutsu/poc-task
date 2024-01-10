@@ -24,8 +24,6 @@ enum Event: string
 
     case ProcessSuccess = 'process-success-event';
 
-    case ProcessError = 'process-error-event';
-
     case ProcessException = 'process-error-exception';
 
     case ProcessTimeout = 'process-timeout-event';
