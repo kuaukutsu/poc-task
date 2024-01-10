@@ -24,7 +24,6 @@ final class TaskManagerOutput implements EventSubscriberInterface
         }
 
         $subscriptions[Event::ProcessSuccess->value] = $this->traceProcessSuccess(...);
-        $subscriptions[Event::ProcessError->value] = $this->traceProcessError(...);
 
         /**
          * @var array<class-string<Event>, callable(Event $name, EventInterface $event):void>
@@ -51,14 +50,6 @@ final class TaskManagerOutput implements EventSubscriberInterface
     public function traceProcessSuccess(Event $name, ProcessEvent $event): void
     {
         $this->stdout("success: [{$event->getUuid()}] " . $event->getOutput());
-    }
-
-    /**
-     * @noinspection PhpUnusedParameterInspection
-     */
-    public function traceProcessError(Event $name, ProcessEvent $event): void
-    {
-        $this->stdout("error: [{$event->getUuid()}] " . $event->getOutput());
     }
 
     private function stdout(string $message): void
