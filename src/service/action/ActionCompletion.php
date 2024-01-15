@@ -33,7 +33,7 @@ final class ActionCompletion implements TaskAction
 
     public function execute(EntityTask $task, ?TaskStateInterface $state = null): EntityTask
     {
-        if ($task->getState()->getFlag()->isFinished()) {
+        if ($task->isFinished()) {
             return $task;
         }
 
