@@ -23,7 +23,7 @@ final class Task implements EntityTask
         private readonly string $uuid,
         private readonly string $title,
         private readonly TaskStateInterface $state,
-        private readonly array $options = []
+        private readonly array $options = [],
     ) {
         $this->flag = $this->state->getFlag();
     }
