@@ -29,7 +29,7 @@ final class ActionCancel implements TaskAction
 
     public function execute(EntityTask $task, ?TaskStateInterface $state = null): EntityTask
     {
-        if ($task->isCanceled()) {
+        if ($task->isFinished()) {
             return $task;
         }
 
