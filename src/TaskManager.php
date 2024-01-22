@@ -164,6 +164,13 @@ final class TaskManager implements EventPublisherInterface
         EventLoop::run();
     }
 
+    public function __destruct()
+    {
+        if ($this->runnerId !== null) {
+            $this->loopExit(SIGTERM);
+        }
+    }
+
     /**
      * @param int[] $signals ext-pcntl
      * @throws UnsupportedFeatureException
@@ -223,7 +230,9 @@ final class TaskManager implements EventPublisherInterface
         }
 
         EventLoop::cancel($this->runnerId);
+        $this->runnerId = null;
         EventLoop::cancel($this->keeperId);
+        $this->keeperId = null;
 
         foreach ($this->processesActive as $process) {
             if ($process->isRunning() || $process->isStarted()) {
@@ -231,11 +240,18 @@ final class TaskManager implements EventPublisherInterface
                     continue;
                 }
 
-                $this->processing->pause($process);
-                $this->trigger(
-                    Event::ProcessStop,
-                    new ProcessEvent($process)
-                );
+                try {
+                    $this->processing->pause($process);
+                    $this->trigger(
+                        Event::ProcessStop,
+                        new ProcessEvent($process)
+                    );
+                } catch (ProcessingException $exception) {
+                    $this->trigger(
+                        Event::ProcessException,
+                        new ProcessExceptionEvent($process, $exception),
+                    );
+                }
             }
         }
 
