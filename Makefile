@@ -59,9 +59,9 @@ test-builder:
 test-even:
 	docker-compose -f ./docker-compose.yml run --rm -u ${USER} -w /src/tests \
 		-e XDEBUG_MODE=off \
-		cli php ./bin/task.even.php --heartbeat=5 --iterval=1 --process=5
+		cli php ./bin/task.even.php --heartbeat=5 --iterval=1 --process=1
 
 test-odd:
 	docker-compose -f ./docker-compose.yml run --rm -u ${USER} -w /src/tests \
 		-e XDEBUG_MODE=off \
-		cli php ./bin/task.odd.php --heartbeat=5 --iterval=1 --process=5
+		cli php ./bin/task.odd.php --heartbeat=5 --iterval=1 --process=1
