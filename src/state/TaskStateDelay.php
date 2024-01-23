@@ -10,6 +10,10 @@ final class TaskStateDelay implements TaskStateInterface
 {
     use TaskStateSerialize;
 
+    public const DELAY_OPEN_STAGE = 5;
+    public const DELAY_PROMISE = 5;
+    public const DELAY_MAX_SECOND = 300;
+
     /**
      * @param non-empty-string $uuid Stage[Command] UUID
      * @param positive-int $delay Second

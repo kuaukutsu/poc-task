@@ -61,16 +61,23 @@ final class TaskHandler
                 $this->taskExecutor->wait($task, $state);
             } catch (Throwable $exception) {
                 throw new ProcessingException(
-                    "[{$task->getUuid()}] TaskProcessing error: " . $exception->getMessage(),
+                    "[$taskUuid] TaskProcessing error: " . $exception->getMessage(),
                     $exception,
                 );
             }
         }
 
-        $this->stageCommand->state(
-            new EntityUuid($stageUuid),
-            new StageModelState($state),
-        );
+        try {
+            $this->stageCommand->state(
+                new EntityUuid($stageUuid),
+                new StageModelState($state),
+            );
+        } catch (Throwable $exception) {
+            throw new ProcessingException(
+                "[$taskUuid:$stageUuid] StageState error: " . $exception->getMessage(),
+                $exception,
+            );
+        }
 
         return $state;
     }
@@ -88,7 +95,11 @@ final class TaskHandler
         }
 
         if ($this->stageQuery->existsOpenByTask(new EntityUuid($taskUuid))) {
-            return new TaskStateDelay($stageUuid, 10, $task->getFlag());
+            return new TaskStateDelay(
+                $stageUuid,
+                TaskStateDelay::DELAY_OPEN_STAGE,
+                $task->getFlag(),
+            );
         }
 
         try {

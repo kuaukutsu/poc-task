@@ -6,7 +6,6 @@ namespace kuaukutsu\poc\task\handler;
 
 use Throwable;
 use Symfony\Component\Console\Output\ConsoleOutputInterface;
-use kuaukutsu\poc\task\exception\ProcessingException;
 use kuaukutsu\poc\task\processing\TaskHandler;
 use kuaukutsu\poc\task\processing\TaskProcess;
 use kuaukutsu\poc\task\state\TaskStateInterface;
@@ -37,7 +36,7 @@ final class StageHandler
                 );
 
                 return TaskProcess::SUCCESS;
-            } catch (ProcessingException $exception) {
+            } catch (Throwable $exception) {
                 $this->stderr($exception->getMessage());
                 return TaskProcess::ERROR;
             }
