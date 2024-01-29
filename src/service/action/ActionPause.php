@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\service\action;
 
-use kuaukutsu\poc\task\state\TaskStateError;
 use Throwable;
 use kuaukutsu\poc\task\dto\StageModelState;
 use kuaukutsu\poc\task\dto\TaskModelState;
@@ -14,6 +13,7 @@ use kuaukutsu\poc\task\service\TaskCommand;
 use kuaukutsu\poc\task\state\TaskStateInterface;
 use kuaukutsu\poc\task\state\TaskStateMessage;
 use kuaukutsu\poc\task\state\TaskStatePaused;
+use kuaukutsu\poc\task\state\TaskStateError;
 use kuaukutsu\poc\task\EntityUuid;
 use kuaukutsu\poc\task\EntityTask;
 

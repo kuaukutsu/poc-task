@@ -148,7 +148,12 @@ final class TaskProcessReady
         $uuid = new EntityUuid($task->getUuid());
         $index = $this->query->indexReadyByTask($uuid, $limit);
         if ($index === []) {
-            $this->enqueueCommand($task, TaskCommand::stop(), 10);
+            $this->enqueueCommand(
+                $task,
+                TaskCommand::stop(),
+                TaskStateDelay::DELAY_PROMISE,
+            );
+
             return false;
         }
 
@@ -210,7 +215,7 @@ final class TaskProcessReady
                     task: $task->getUuid(),
                     stage: $command->toValue(),
                     options: $task->getOptions(),
-                    timestamp: time() + min($delay, 300),
+                    timestamp: time() + min($delay, TaskStateDelay::DELAY_MAX_SECOND),
                 )
             );
         } else {
