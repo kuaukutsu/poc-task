@@ -1,4 +1,4 @@
-PHP_VERSION ?= 8.1
+PHP_VERSION ?= 8.3
 USER = $$(id -u)
 
 composer:
@@ -54,7 +54,7 @@ cli:
 test-builder:
 	docker-compose -f ./docker-compose.yml run --rm -u ${USER} -w /src/tests \
 		-e XDEBUG_MODE=off \
-		cli php ./bin/builder.php --task=5
+		cli php ./bin/builder.php --task=2
 
 test-even:
 	docker-compose -f ./docker-compose.yml run --rm -u ${USER} -w /src/tests \

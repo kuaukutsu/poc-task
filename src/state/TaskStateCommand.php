@@ -68,7 +68,7 @@ trait TaskStateCommand
      */
     final protected function preparePrevious(TaskStageContext $context): TaskStateInterface
     {
-        if ($context->previous === null) {
+        if (!$context->previous instanceof TaskStateInterface) {
             throw new NotFoundException("[$context->stage] previous not found.");
         }
 
