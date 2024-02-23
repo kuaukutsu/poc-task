@@ -19,6 +19,7 @@ use kuaukutsu\poc\task\service\StageQuery;
 use kuaukutsu\poc\task\service\TaskCommand;
 use kuaukutsu\poc\task\EntityTask;
 use kuaukutsu\poc\task\EntityUuid;
+use kuaukutsu\poc\task\TaskResponseInterface;
 
 final class ActionCompletion implements TaskAction
 {
@@ -88,7 +89,7 @@ final class ActionCompletion implements TaskAction
 
             if ($state->getFlag()->isFinished()) {
                 $response = $state->getResponse();
-                if ($response !== null) {
+                if ($response instanceof TaskResponseInterface) {
                     $state->getFlag()->isSuccess()
                         ? $context->pushSuccessResponse($response)
                         : $context->pushFailureResponse($response);
@@ -109,7 +110,7 @@ final class ActionCompletion implements TaskAction
             $state = $this->stateCreate($item);
             if ($state->getFlag()->isFinished()) {
                 $response = $state->getResponse();
-                if ($response !== null) {
+                if ($response instanceof TaskResponseInterface) {
                     $state->getFlag()->isSuccess()
                         ? $context->pushSuccessResponse($response)
                         : $context->pushFailureResponse($response);

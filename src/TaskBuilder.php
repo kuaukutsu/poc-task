@@ -28,8 +28,8 @@ final class TaskBuilder
      */
     public function build(TaskDraft $draft, ?TaskStageContext $context = null): EntityTask
     {
-        return $context === null
-            ? $this->creator->create($draft)
-            : $this->creator->createFromContext($draft, $context);
+        return $context instanceof TaskStageContext
+            ? $this->creator->createFromContext($draft, $context)
+            : $this->creator->create($draft);
     }
 }

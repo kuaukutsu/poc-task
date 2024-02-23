@@ -245,7 +245,7 @@ final class TaskBuilderTest extends TestCase
 
     protected function tearDown(): void
     {
-        if ($this->task !== null) {
+        if ($this->task instanceof EntityTask) {
             $this->destroyer->purge(
                 new EntityUuid($this->task->getUuid())
             );

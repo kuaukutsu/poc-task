@@ -61,7 +61,7 @@ final class TaskProcessReady
         $stage = $this->query->findPausedByTask($uuid)
             ?? $this->query->findReadyByTask($uuid);
 
-        if ($stage === null) {
+        if (!$stage instanceof StageModel) {
             $this->enqueueCommand($task, TaskCommand::stop());
             return false;
         }
@@ -82,7 +82,7 @@ final class TaskProcessReady
     {
         $uuid = new EntityUuid($task->getUuid());
         $stage = $this->query->findReadyByTask($uuid);
-        if ($stage === null) {
+        if (!$stage instanceof StageModel) {
             $this->enqueueCommand($task, TaskCommand::stop());
             return false;
         }
@@ -102,7 +102,7 @@ final class TaskProcessReady
     {
         $uuid = new EntityUuid($task->getUuid());
         $stage = $this->query->findForgottenByTask($uuid);
-        if ($stage === null) {
+        if (!$stage instanceof StageModel) {
             $this->enqueueCommand($task, TaskCommand::stop());
             return false;
         }
@@ -126,7 +126,7 @@ final class TaskProcessReady
         $stage = $this->query->findPausedByTask($uuid)
             ?? $this->query->findReadyByTask($uuid);
 
-        if ($stage === null) {
+        if (!$stage instanceof StageModel) {
             $this->enqueueCommand($task, TaskCommand::stop());
             return false;
         }

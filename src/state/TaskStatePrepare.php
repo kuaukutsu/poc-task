@@ -20,15 +20,16 @@ trait TaskStatePrepare
             's:0:"";',
         ];
 
+        $state = trim($state);
         if ($state === '' || in_array($state, $emptyToken, true)) {
             return new TaskStateReady();
         }
 
         /**
-         * @var TaskStateInterface
+         * @var TaskStateInterface|false $taskState
          * @psalm-suppress InvalidArgument with additional array shape fields (max_depth)
          */
-        return unserialize(
+        $taskState = unserialize(
             $state,
             [
                 'allowed_classes' => [
@@ -49,5 +50,11 @@ trait TaskStatePrepare
                 'max_depth' => 8,
             ]
         );
+
+        if ($taskState instanceof TaskStateInterface) {
+            return $taskState;
+        }
+
+        throw new TypeError("unserialize(): error.");
     }
 }

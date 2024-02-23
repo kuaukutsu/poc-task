@@ -39,7 +39,7 @@ final class TaskViewer
         }
 
         $relation = null;
-        if ($state !== null) {
+        if ($state instanceof TaskStateInterface) {
             $relation = $this->prepareRelation($state);
         }
 

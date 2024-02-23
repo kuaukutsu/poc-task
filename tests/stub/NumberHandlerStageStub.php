@@ -19,7 +19,7 @@ final class NumberHandlerStageStub extends TaskHandlerBase
 
     public function handle(TaskStageContext $context): TaskStateInterface
     {
-        if ($context->previous === null) {
+        if (!$context->previous instanceof TaskStateInterface) {
             return $this->error(
                 new TaskStateMessage('NumberHandler failure.', 'Previous is empty.'),
             );

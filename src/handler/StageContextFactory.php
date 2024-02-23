@@ -16,7 +16,7 @@ final class StageContextFactory
     public function create(StageModel $stage, ?StageModel $previousStage = null): TaskStageContext
     {
         $previous = null;
-        if ($previousStage !== null) {
+        if ($previousStage instanceof StageModel) {
             try {
                 $previous = $this->prepareState($previousStage->state);
             } catch (Throwable) {
