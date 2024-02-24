@@ -6,12 +6,12 @@ namespace kuaukutsu\poc\task;
 
 use Ramsey\Uuid\Uuid;
 
-final class EntityUuid
+final readonly class EntityUuid
 {
     /**
      * @var non-empty-string
      */
-    private readonly string $uuid;
+    private string $uuid;
 
     /**
      * @param non-empty-string|null $uuid

@@ -33,8 +33,8 @@ final class ActionCancel implements TaskAction
             return $task;
         }
 
-        $state ??= new TaskStateCanceled(
-            message: new TaskStateMessage('Task Canceled.'),
+        $state = new TaskStateCanceled(
+            message: $state?->getMessage() ?? new TaskStateMessage('Task Canceled.'),
             flag: $task->getFlag(),
         );
 
