@@ -26,7 +26,7 @@ final class TaskManagerOutput implements EventSubscriberInterface
         $subscriptions[Event::ProcessSuccess->value] = $this->traceProcessSuccess(...);
 
         /**
-         * @var array<class-string<Event>, callable(Event $name, EventInterface $event):void>
+         * @var array<class-string<Event>, callable(Event $name, EventInterface $event):void> $subscriptions
          */
         return $subscriptions;
     }

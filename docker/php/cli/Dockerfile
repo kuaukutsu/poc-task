@@ -1,6 +1,8 @@
-FROM ghcr.io/kuaukutsu/php:8.3-cli as app_cli_build
+FROM ghcr.io/kuaukutsu/php:8.1-cli as app_cli_81_build
+FROM ghcr.io/kuaukutsu/php:8.2-cli as app_cli_82_build
+FROM ghcr.io/kuaukutsu/php:8.3-cli as app_cli_83_build
 
-FROM app_cli_build AS app_setup
+FROM app_cli_83_build AS app_setup
 
 # Arguments
 ARG UID=10001
