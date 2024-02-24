@@ -9,9 +9,9 @@ use kuaukutsu\poc\task\state\TaskStateMessage;
 use kuaukutsu\poc\task\state\TaskStateTerminate;
 use kuaukutsu\poc\task\service\TaskCommand;
 
-final class ActionTerminate
+final readonly class ActionTerminate
 {
-    public function __construct(private readonly TaskCommand $command)
+    public function __construct(private TaskCommand $command)
     {
     }
 

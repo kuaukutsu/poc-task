@@ -19,13 +19,13 @@ use kuaukutsu\poc\task\EntityTask;
 use kuaukutsu\poc\task\TaskStageContext;
 use kuaukutsu\poc\task\TaskDraft;
 
-final class TaskCreator
+final readonly class TaskCreator
 {
     public function __construct(
-        private readonly TaskQuery $taskQuery,
-        private readonly TaskCommand $taskCommand,
-        private readonly StageCommand $stageCommand,
-        private readonly TaskFactory $factory,
+        private TaskQuery $taskQuery,
+        private TaskCommand $taskCommand,
+        private StageCommand $stageCommand,
+        private TaskFactory $factory,
     ) {
     }
 

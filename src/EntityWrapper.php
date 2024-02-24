@@ -7,15 +7,15 @@ namespace kuaukutsu\poc\task;
 use Serializable;
 use kuaukutsu\poc\task\exception\UnsupportedException;
 
-final class EntityWrapper implements Serializable
+final readonly class EntityWrapper implements Serializable
 {
     /**
      * @param class-string<EntityHandler> $class
      * @param array<string, string|int|bool|string[]|int[]|array|object|null> $params Конфигурация объекта.
      */
     public function __construct(
-        public readonly string $class,
-        public readonly array $params = [],
+        public string $class,
+        public array $params = [],
     ) {
     }
 

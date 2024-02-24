@@ -11,7 +11,7 @@ use Symfony\Component\Process\Process;
 /**
  * Process Decorator.
  */
-final class TaskProcess
+final readonly class TaskProcess
 {
     /**
      * @see https://tldp.org/LDP/abs/html/exitcodes.html
@@ -25,10 +25,10 @@ final class TaskProcess
      * @param non-empty-string $stage
      */
     public function __construct(
-        public readonly string $hash,
-        public readonly string $task,
-        public readonly string $stage,
-        private readonly Process $process,
+        public string $hash,
+        public string $task,
+        public string $stage,
+        private Process $process,
     ) {
     }
 

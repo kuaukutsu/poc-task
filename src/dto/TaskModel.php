@@ -9,7 +9,7 @@ use kuaukutsu\poc\task\EntityArrable;
 /**
  * @readonly
  */
-final class TaskModel implements EntityArrable
+final readonly class TaskModel implements EntityArrable
 {
     /**
      * @param non-empty-string $uuid
@@ -20,14 +20,14 @@ final class TaskModel implements EntityArrable
      * @param non-empty-string $updatedAt
      */
     public function __construct(
-        public readonly string $uuid,
-        public readonly string $title,
-        public readonly int $flag,
-        public readonly string $state,
-        public readonly array $options,
-        public readonly string $checksum,
-        public readonly string $createdAt,
-        public readonly string $updatedAt,
+        public string $uuid,
+        public string $title,
+        public int $flag,
+        public string $state,
+        public array $options,
+        public string $checksum,
+        public string $createdAt,
+        public string $updatedAt,
     ) {
     }
 

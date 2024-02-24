@@ -6,7 +6,7 @@ namespace kuaukutsu\poc\task\state;
 
 use Stringable;
 
-final class TaskCommand implements Stringable
+final readonly class TaskCommand implements Stringable
 {
     private const COMMAND_NULL = '00000000-0000-0000-0000-000000000000';
     private const COMMAND_STOP = '00000000-0000-0000-0000-000000000001';
@@ -14,7 +14,7 @@ final class TaskCommand implements Stringable
     /**
      * @param non-empty-string $command
      */
-    public function __construct(private readonly string $command = self::COMMAND_NULL)
+    public function __construct(private string $command = self::COMMAND_NULL)
     {
     }
 

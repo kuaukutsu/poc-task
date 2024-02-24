@@ -9,9 +9,9 @@ use Symfony\Component\Serializer\Exception\UnsupportedFormatException;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Serializer;
 
-final class SerializerJson
+final readonly class SerializerJson
 {
-    private readonly Serializer $serializer;
+    private Serializer $serializer;
 
     public function __construct()
     {

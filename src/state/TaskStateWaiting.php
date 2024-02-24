@@ -6,7 +6,7 @@ namespace kuaukutsu\poc\task\state;
 
 use kuaukutsu\poc\task\TaskResponseInterface;
 
-final class TaskStateWaiting implements TaskStateInterface
+final readonly class TaskStateWaiting implements TaskStateInterface
 {
     use TaskStateSerialize;
 
@@ -15,10 +15,10 @@ final class TaskStateWaiting implements TaskStateInterface
      * @param non-empty-string $task TaskRelation::UUID
      */
     public function __construct(
-        public readonly string $uuid,
-        public readonly string $task,
-        private readonly TaskStateMessage $message,
-        private readonly ?TaskResponseInterface $response = null,
+        public string $uuid,
+        public string $task,
+        private TaskStateMessage $message,
+        private ?TaskResponseInterface $response = null,
     ) {
     }
 

@@ -14,11 +14,11 @@ use kuaukutsu\poc\task\state\TaskStateInterface;
 use kuaukutsu\poc\task\state\TaskStatePrepare;
 use kuaukutsu\poc\task\EntityFinally;
 
-final class TaskFinallyHandler
+final readonly class TaskFinallyHandler
 {
     use TaskStatePrepare;
 
-    public function __construct(private readonly ContainerInterface $container)
+    public function __construct(private ContainerInterface $container)
     {
     }
 

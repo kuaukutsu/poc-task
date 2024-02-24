@@ -21,14 +21,14 @@ use kuaukutsu\poc\task\EntityTask;
 use kuaukutsu\poc\task\EntityUuid;
 use kuaukutsu\poc\task\TaskResponseInterface;
 
-final class ActionCompletion implements TaskAction
+final readonly class ActionCompletion implements TaskAction
 {
     public function __construct(
-        private readonly StageQuery $stageQuery,
-        private readonly StageCommand $stageCommand,
-        private readonly StateFactory $stateFactory,
-        private readonly TaskCommand $taskCommand,
-        private readonly TaskFactory $factory,
+        private StageQuery $stageQuery,
+        private StageCommand $stageCommand,
+        private StateFactory $stateFactory,
+        private TaskCommand $taskCommand,
+        private TaskFactory $factory,
     ) {
     }
 

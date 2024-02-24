@@ -6,11 +6,11 @@ namespace kuaukutsu\poc\task\state;
 
 use kuaukutsu\poc\task\TaskResponseInterface;
 
-final class TaskStateRunning implements TaskStateInterface
+final readonly class TaskStateRunning implements TaskStateInterface
 {
     use TaskStateSerialize;
 
-    public function __construct(private readonly TaskStateMessage $message)
+    public function __construct(private TaskStateMessage $message)
     {
     }
 

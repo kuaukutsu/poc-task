@@ -6,7 +6,7 @@ namespace kuaukutsu\poc\task\state;
 
 use kuaukutsu\poc\task\TaskResponseInterface;
 
-final class TaskStateDelay implements TaskStateInterface
+final readonly class TaskStateDelay implements TaskStateInterface
 {
     use TaskStateSerialize;
 
@@ -19,9 +19,9 @@ final class TaskStateDelay implements TaskStateInterface
      * @param positive-int $delay Second
      */
     public function __construct(
-        public readonly string $uuid,
-        public readonly int $delay,
-        public readonly int $flag,
+        public string $uuid,
+        public int $delay,
+        public int $flag,
     ) {
     }
 

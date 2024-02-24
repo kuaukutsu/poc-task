@@ -12,11 +12,11 @@ use kuaukutsu\poc\task\state\TaskStateReady;
 use kuaukutsu\poc\task\EntityTask;
 use kuaukutsu\poc\task\EntityUuid;
 
-final class ActionReady implements TaskAction
+final readonly class ActionReady implements TaskAction
 {
     public function __construct(
-        private readonly TaskCommand $command,
-        private readonly TaskFactory $factory,
+        private TaskCommand $command,
+        private TaskFactory $factory,
     ) {
     }
 

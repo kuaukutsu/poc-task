@@ -10,9 +10,9 @@ use kuaukutsu\poc\task\event\EventInterface;
 use kuaukutsu\poc\task\event\EventSubscriberInterface;
 use kuaukutsu\poc\task\event\ProcessEvent;
 
-final class TaskManagerOutput implements EventSubscriberInterface
+final readonly class TaskManagerOutput implements EventSubscriberInterface
 {
-    public function __construct(private readonly ConsoleOutputInterface $output)
+    public function __construct(private ConsoleOutputInterface $output)
     {
     }
 

@@ -12,12 +12,12 @@ use kuaukutsu\poc\task\state\TaskStateWaiting;
 use kuaukutsu\poc\task\EntityTask;
 use kuaukutsu\poc\task\EntityUuid;
 
-final class ActionWait implements TaskAction
+final readonly class ActionWait implements TaskAction
 {
     public function __construct(
-        private readonly TaskCommand $command,
-        private readonly TaskFactory $factory,
-        private readonly TransitionState $transition,
+        private TaskCommand $command,
+        private TaskFactory $factory,
+        private TransitionState $transition,
     ) {
     }
 

@@ -24,17 +24,17 @@ use kuaukutsu\poc\task\state\TaskStateMessage;
 use kuaukutsu\poc\task\EntityTask;
 use kuaukutsu\poc\task\EntityUuid;
 
-final class TaskHandler
+final readonly class TaskHandler
 {
     public function __construct(
-        private readonly TaskQuery $taskQuery,
-        private readonly TaskFactory $taskFactory,
-        private readonly TaskExecutor $taskExecutor,
-        private readonly TaskFinallyHandler $finallyHandler,
-        private readonly StageQuery $stageQuery,
-        private readonly StageCommand $stageCommand,
-        private readonly StageContextFactory $contextFactory,
-        private readonly StageExecutor $executor,
+        private TaskQuery $taskQuery,
+        private TaskFactory $taskFactory,
+        private TaskExecutor $taskExecutor,
+        private TaskFinallyHandler $finallyHandler,
+        private StageQuery $stageQuery,
+        private StageCommand $stageCommand,
+        private StageContextFactory $contextFactory,
+        private StageExecutor $executor,
     ) {
     }
 

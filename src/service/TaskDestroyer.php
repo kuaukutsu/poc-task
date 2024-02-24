@@ -8,11 +8,11 @@ use RuntimeException;
 use kuaukutsu\poc\task\exception\NotFoundException;
 use kuaukutsu\poc\task\EntityUuid;
 
-final class TaskDestroyer
+final readonly class TaskDestroyer
 {
     public function __construct(
-        private readonly TaskCommand $taskCommand,
-        private readonly StageCommand $stageCommand,
+        private TaskCommand $taskCommand,
+        private StageCommand $stageCommand,
     ) {
     }
 

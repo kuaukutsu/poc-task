@@ -6,16 +6,16 @@ namespace kuaukutsu\poc\task;
 
 use kuaukutsu\poc\task\state\TaskStateInterface;
 
-final class TaskStageContext
+final readonly class TaskStageContext
 {
     /**
      * @param non-empty-string $task
      * @param non-empty-string $stage
      */
     public function __construct(
-        public readonly string $task,
-        public readonly string $stage,
-        public readonly ?TaskStateInterface $previous = null,
+        public string $task,
+        public string $stage,
+        public ?TaskStateInterface $previous = null,
     ) {
     }
 }

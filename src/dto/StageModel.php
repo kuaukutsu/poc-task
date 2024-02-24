@@ -9,7 +9,7 @@ use kuaukutsu\poc\task\EntityArrable;
 /**
  * @readonly
  */
-final class StageModel implements EntityArrable
+final readonly class StageModel implements EntityArrable
 {
     /**
      * @param non-empty-string $uuid
@@ -19,14 +19,14 @@ final class StageModel implements EntityArrable
      * @param non-empty-string $updatedAt
      */
     public function __construct(
-        public readonly string $uuid,
-        public readonly string $taskUuid,
-        public readonly int $flag,
-        public readonly string $state,
-        public readonly string $handler,
-        public readonly int $order,
-        public readonly string $createdAt,
-        public readonly string $updatedAt,
+        public string $uuid,
+        public string $taskUuid,
+        public int $flag,
+        public string $state,
+        public string $handler,
+        public int $order,
+        public string $createdAt,
+        public string $updatedAt,
     ) {
     }
 

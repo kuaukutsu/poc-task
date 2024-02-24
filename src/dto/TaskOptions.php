@@ -10,15 +10,15 @@ use kuaukutsu\poc\task\EntityFinally;
 /**
  * @readonly
  */
-final class TaskOptions implements EntityArrable
+final readonly class TaskOptions implements EntityArrable
 {
     /**
      * @param float $timeout В секундах.
      * @param class-string<EntityFinally>|null $finally
      */
     public function __construct(
-        public readonly float $timeout,
-        public readonly ?string $finally = null,
+        public float $timeout,
+        public ?string $finally = null,
     ) {
     }
 
