@@ -12,9 +12,9 @@ use kuaukutsu\poc\task\state\TaskStateInterface;
 use kuaukutsu\poc\task\state\TaskStateMessage;
 use kuaukutsu\poc\task\TaskStageContext;
 
-final class StageExecutor
+final readonly class StageExecutor
 {
-    public function __construct(private readonly StageHandlerFactory $handlerFactory)
+    public function __construct(private StageHandlerFactory $handlerFactory)
     {
     }
 

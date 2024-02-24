@@ -15,17 +15,17 @@ use kuaukutsu\poc\task\service\action\ActionWait;
 use kuaukutsu\poc\task\state\TaskStateInterface;
 use kuaukutsu\poc\task\EntityTask;
 
-final class TaskExecutor
+final readonly class TaskExecutor
 {
     public function __construct(
-        private readonly ActionCancel $actionCancel,
-        private readonly ActionCompletion $actionCompletion,
-        private readonly ActionPause $actionPause,
-        private readonly ActionReady $actionReady,
-        private readonly ActionResume $actionResume,
-        private readonly ActionRun $actionRun,
-        private readonly ActionWait $actionWait,
-        private readonly ActionTerminate $actionTerminate,
+        private ActionCancel $actionCancel,
+        private ActionCompletion $actionCompletion,
+        private ActionPause $actionPause,
+        private ActionReady $actionReady,
+        private ActionResume $actionResume,
+        private ActionRun $actionRun,
+        private ActionWait $actionWait,
+        private ActionTerminate $actionTerminate,
     ) {
     }
 

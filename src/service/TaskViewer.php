@@ -13,13 +13,13 @@ use kuaukutsu\poc\task\state\TaskFlag;
 use kuaukutsu\poc\task\state\TaskStatePrepare;
 use kuaukutsu\poc\task\EntityUuid;
 
-final class TaskViewer
+final readonly class TaskViewer
 {
     use TaskStatePrepare;
 
     public function __construct(
-        private readonly TaskQuery $taskQuery,
-        private readonly StageQuery $stageQuery,
+        private TaskQuery $taskQuery,
+        private StageQuery $stageQuery,
     ) {
     }
 

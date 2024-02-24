@@ -6,12 +6,12 @@ namespace kuaukutsu\poc\task\processing;
 
 use kuaukutsu\poc\task\dto\TaskOptions;
 
-final class TaskProcessContext
+final readonly class TaskProcessContext
 {
     /**
      * @var non-empty-string
      */
-    private readonly string $hash;
+    private string $hash;
 
     /**
      * @param non-empty-string $task Task UUID
@@ -20,11 +20,11 @@ final class TaskProcessContext
      * @param positive-int|null $timestamp Примерное время (Unix) не раньше которого задача должна быть выполнена.
      */
     public function __construct(
-        public readonly string $task,
-        public readonly string $stage,
-        public readonly TaskOptions $options,
-        public readonly ?string $previous = null,
-        public readonly ?int $timestamp = null,
+        public string $task,
+        public string $stage,
+        public TaskOptions $options,
+        public ?string $previous = null,
+        public ?int $timestamp = null,
     ) {
         $this->hash = hash('crc32b', $this->task . $this->stage);
     }

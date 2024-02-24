@@ -6,7 +6,7 @@ namespace kuaukutsu\poc\task\state;
 
 use kuaukutsu\poc\task\TaskResponseInterface;
 
-final class TaskStateRelation implements TaskStateInterface
+final readonly class TaskStateRelation implements TaskStateInterface
 {
     use TaskStateSerialize;
 
@@ -15,8 +15,8 @@ final class TaskStateRelation implements TaskStateInterface
      * @param non-empty-string $stage StageRelation::UUID
      */
     public function __construct(
-        public readonly string $task,
-        public readonly string $stage,
+        public string $task,
+        public string $stage,
     ) {
     }
 

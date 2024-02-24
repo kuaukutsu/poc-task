@@ -17,13 +17,13 @@ use kuaukutsu\poc\task\state\TaskStateError;
 use kuaukutsu\poc\task\EntityUuid;
 use kuaukutsu\poc\task\EntityTask;
 
-final class ActionPause implements TaskAction
+final readonly class ActionPause implements TaskAction
 {
     public function __construct(
-        private readonly StageCommand $stageCommand,
-        private readonly TaskCommand $taskCommand,
-        private readonly TaskFactory $factory,
-        private readonly TransitionState $transition,
+        private StageCommand $stageCommand,
+        private TaskCommand $taskCommand,
+        private TaskFactory $factory,
+        private TransitionState $transition,
     ) {
     }
 

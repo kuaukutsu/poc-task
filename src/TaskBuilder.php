@@ -8,9 +8,9 @@ use LogicException;
 use kuaukutsu\poc\task\exception\BuilderException;
 use kuaukutsu\poc\task\service\TaskCreator;
 
-final class TaskBuilder
+final readonly class TaskBuilder
 {
-    public function __construct(private readonly TaskCreator $creator)
+    public function __construct(private TaskCreator $creator)
     {
     }
 

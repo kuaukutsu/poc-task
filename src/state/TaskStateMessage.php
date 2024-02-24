@@ -6,13 +6,13 @@ namespace kuaukutsu\poc\task\state;
 
 use Serializable;
 
-final class TaskStateMessage implements Serializable
+final readonly class TaskStateMessage implements Serializable
 {
     use TaskStateSerialize;
 
     public function __construct(
-        public readonly string $message,
-        public readonly ?string $description = null,
+        public string $message,
+        public ?string $description = null,
     ) {
     }
 }

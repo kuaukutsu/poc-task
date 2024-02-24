@@ -16,14 +16,14 @@ use kuaukutsu\poc\task\TaskManagerOptions;
 use kuaukutsu\poc\task\EntityTask;
 use kuaukutsu\poc\task\EntityUuid;
 
-final class TaskProcessing
+final readonly class TaskProcessing
 {
     public function __construct(
-        private readonly TaskQuery $taskQuery,
-        private readonly TaskFactory $taskFactory,
-        private readonly TaskExecutor $taskExecutor,
-        private readonly TaskProcessReady $processReady,
-        private readonly StateFactory $stateFactory,
+        private TaskQuery $taskQuery,
+        private TaskFactory $taskFactory,
+        private TaskExecutor $taskExecutor,
+        private TaskProcessReady $processReady,
+        private StateFactory $stateFactory,
     ) {
     }
 
@@ -86,6 +86,11 @@ final class TaskProcessing
     {
         $task = $this->factory($process->task);
         if ($task->isPromised()) {
+            return;
+        }
+
+        if ($process->isSuccessful() === false) {
+            $this->cancel($process);
             return;
         }
 

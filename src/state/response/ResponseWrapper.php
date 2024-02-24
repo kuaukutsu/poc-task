@@ -6,14 +6,14 @@ namespace kuaukutsu\poc\task\state\response;
 
 use kuaukutsu\poc\task\TaskResponseInterface;
 
-final class ResponseWrapper
+final readonly class ResponseWrapper
 {
     /**
      * @param class-string<TaskResponseInterface> $class
      */
     public function __construct(
-        public readonly string $class,
-        public readonly string $serializeData,
+        public string $class,
+        public string $serializeData,
     ) {
     }
 }

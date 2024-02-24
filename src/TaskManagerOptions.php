@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task;
 
-final class TaskManagerOptions
+final readonly class TaskManagerOptions
 {
     /**
      * @param float $heartbeat in Seconds
@@ -13,13 +13,13 @@ final class TaskManagerOptions
      * @param int[] $interruptSignals A POSIX signal
      */
     public function __construct(
-        private readonly ?string $bindir = null,
-        private readonly float $heartbeat = 30.,
-        private readonly float $keeperInterval = 5.,
-        private readonly int $queueSize = 10,
-        public readonly ?float $timeout = null,
-        public readonly string $handler = 'handler.php',
-        public readonly array $interruptSignals = [SIGHUP, SIGINT, SIGTERM],
+        private ?string $bindir = null,
+        private float $heartbeat = 30.,
+        private float $keeperInterval = 5.,
+        private int $queueSize = 10,
+        public ?float $timeout = null,
+        public string $handler = 'handler.php',
+        public array $interruptSignals = [SIGHUP, SIGINT, SIGTERM],
     ) {
     }
 

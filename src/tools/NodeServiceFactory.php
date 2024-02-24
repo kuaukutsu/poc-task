@@ -11,9 +11,9 @@ use kuaukutsu\poc\task\EntityNode;
 /**
  * @template T
  */
-final class NodeServiceFactory
+final readonly class NodeServiceFactory
 {
-    public function __construct(private readonly FactoryInterface $factory)
+    public function __construct(private FactoryInterface $factory)
     {
     }
 

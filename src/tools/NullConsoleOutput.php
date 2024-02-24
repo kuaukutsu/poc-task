@@ -10,9 +10,9 @@ use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Output\ConsoleSectionOutput;
 use Symfony\Component\Console\Output\OutputInterface;
 
-final class NullConsoleOutput implements ConsoleOutputInterface
+final readonly class NullConsoleOutput implements ConsoleOutputInterface
 {
-    public function __construct(private readonly OutputInterface $output)
+    public function __construct(private OutputInterface $output)
     {
     }
 

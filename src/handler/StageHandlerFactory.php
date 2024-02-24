@@ -13,9 +13,9 @@ use kuaukutsu\poc\task\EntityHandler;
 use kuaukutsu\poc\task\EntityWrapper;
 use kuaukutsu\poc\task\exception\BuilderException;
 
-final class StageHandlerFactory
+final readonly class StageHandlerFactory
 {
-    public function __construct(private readonly FactoryInterface $container)
+    public function __construct(private FactoryInterface $container)
     {
     }
 

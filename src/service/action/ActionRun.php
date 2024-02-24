@@ -13,12 +13,12 @@ use kuaukutsu\poc\task\state\TaskStateRunning;
 use kuaukutsu\poc\task\EntityUuid;
 use kuaukutsu\poc\task\EntityTask;
 
-final class ActionRun implements TaskAction
+final readonly class ActionRun implements TaskAction
 {
     public function __construct(
-        private readonly TaskCommand $command,
-        private readonly TaskFactory $factory,
-        private readonly TransitionState $transition,
+        private TaskCommand $command,
+        private TaskFactory $factory,
+        private TransitionState $transition,
     ) {
     }
 

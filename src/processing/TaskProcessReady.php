@@ -18,16 +18,16 @@ use kuaukutsu\poc\task\service\StageCommand;
 use kuaukutsu\poc\task\EntityTask;
 use kuaukutsu\poc\task\EntityUuid;
 
-final class TaskProcessReady
+final readonly class TaskProcessReady
 {
     /**
      * @var SplQueue<TaskProcessContext> $queue
      */
-    private readonly SplQueue $queue;
+    private SplQueue $queue;
 
     public function __construct(
-        private readonly StageQuery $query,
-        private readonly StageCommand $command,
+        private StageQuery $query,
+        private StageCommand $command,
     ) {
         $this->queue = new SplQueue();
     }

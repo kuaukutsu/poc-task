@@ -12,11 +12,11 @@ use kuaukutsu\poc\task\state\TaskStateInterface;
 use kuaukutsu\poc\task\state\TaskStateSuccess;
 use kuaukutsu\poc\task\state\TaskCommand;
 
-final class StageHandler
+final readonly class StageHandler
 {
     public function __construct(
-        private readonly TaskHandler $handler,
-        private readonly ConsoleOutputInterface $output,
+        private TaskHandler $handler,
+        private ConsoleOutputInterface $output,
     ) {
     }
 

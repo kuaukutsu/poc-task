@@ -9,14 +9,14 @@ use kuaukutsu\poc\task\EntityArrable;
 /**
  * @readonly
  */
-final class StageModelCreate implements EntityArrable
+final readonly class StageModelCreate implements EntityArrable
 {
     public function __construct(
-        public readonly string $taskUuid,
-        public readonly int $flag,
-        public readonly string $state,
-        public readonly string $handler,
-        public readonly int $order,
+        public string $taskUuid,
+        public int $flag,
+        public string $state,
+        public string $handler,
+        public int $order,
     ) {
     }
 
