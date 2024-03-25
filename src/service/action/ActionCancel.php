@@ -8,6 +8,7 @@ use Throwable;
 use kuaukutsu\poc\task\dto\StageModelState;
 use kuaukutsu\poc\task\dto\TaskModelState;
 use kuaukutsu\poc\task\handler\TaskFactory;
+use kuaukutsu\poc\task\handler\TaskFinallyHandler;
 use kuaukutsu\poc\task\service\StageCommand;
 use kuaukutsu\poc\task\service\TaskCommand;
 use kuaukutsu\poc\task\state\TaskStateError;
@@ -23,6 +24,7 @@ final readonly class ActionCancel implements TaskAction
         private StageCommand $stageCommand,
         private TaskCommand $taskCommand,
         private TaskFactory $factory,
+        private TaskFinallyHandler $finallyHandler,
         private TransitionState $transition,
     ) {
     }
@@ -55,8 +57,16 @@ final readonly class ActionCancel implements TaskAction
             );
         }
 
-        return $this->factory->create(
+        $task = $this->factory->create(
             $this->taskCommand->state($uuid, new TaskModelState($state))
         );
+
+        $this->finallyHandler->handle(
+            $task->getUuid(),
+            $task->getOptions(),
+            $task->getState(),
+        );
+
+        return $task;
     }
 }
