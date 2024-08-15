@@ -8,9 +8,9 @@ use kuaukutsu\poc\task\EntityFinally;
 use kuaukutsu\poc\task\state\TaskStateInterface;
 use kuaukutsu\poc\task\tests\service\BaseStorage;
 
-final class TestFinally implements EntityFinally
+final readonly class TestFinally implements EntityFinally
 {
-    public function __construct(private readonly BaseStorage $storage)
+    public function __construct(private BaseStorage $storage)
     {
     }
 
