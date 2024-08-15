@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace kuaukutsu\poc\task\tests;
 
+use kuaukutsu\poc\task\state\TaskStateCanceled;
+use kuaukutsu\poc\task\tests\service\BaseStorage;
+use kuaukutsu\poc\task\tests\stub\TestFinally;
 use PHPUnit\Framework\MockObject\Exception;
 use Psr\Container\ContainerExceptionInterface;
 use PHPUnit\Framework\TestCase;
@@ -49,6 +52,8 @@ final class ProcessingPromiseTest extends TestCase
 
     private readonly TaskManagerOptions $options;
 
+    private readonly BaseStorage $storage;
+
     /**
      * @throws ContainerExceptionInterface
      */
@@ -62,6 +67,7 @@ final class ProcessingPromiseTest extends TestCase
         $this->processing = self::get(TaskProcessing::class);
         $this->builder = self::get(TaskBuilder::class);
         $this->handler = self::get(StageHandler::class);
+        $this->storage = self::get(BaseStorage::class);
 
         $this->options = new TaskManagerOptions(
             bindir: __DIR__ . '/bin',
@@ -119,6 +125,10 @@ final class ProcessingPromiseTest extends TestCase
         // Смена контекста на вложенную задачу
         $contextNestedTask = $this->processing->getTaskProcess();
         self::assertNotEquals($context->task, $contextNestedTask->task);
+
+        // Root Task is Waiting
+        $task = $this->taskQuery->getOne($uuid);
+        self::assertEquals($flag->unset()->setWaiting()->toValue(), $task->flag);
 
         // Nested Task
         $nestedUuid = new EntityUuid($contextNestedTask->task);
@@ -212,18 +222,87 @@ final class ProcessingPromiseTest extends TestCase
         $this->destroyer->purge($nestedUuid);
     }
 
+    /**
+     * @throws Exception
+     */
+    public function testCancelPromise(): void
+    {
+        $flag = new TaskFlag();
+        $uuid = new EntityUuid($this->task->getUuid());
+
+        $this->processing->loadTaskProcess($this->options);
+
+        $context = $this->processing->getTaskProcess();
+        $exitCode = $this->handler->handle($context->task, $context->stage);
+        self::assertEquals(0, $exitCode);
+
+        $this->processing->next(
+            new TaskProcess(
+                $context->getHash(),
+                $context->task,
+                $context->stage,
+                $this->getProcess(
+                    new TaskStateWaiting(
+                        uuid: $context->stage,
+                        task: $context->task,
+                        message: new TaskStateMessage('Waiting')
+                    )
+                ),
+            )
+        );
+
+        $this->processing->loadTaskProcess($this->options);
+        // Смена контекста на вложенную задачу
+        $contextNestedTask = $this->processing->getTaskProcess();
+        $nestedUuid = new EntityUuid($contextNestedTask->task);
+        // one stage
+        $exitCode = $this->handler->handle($contextNestedTask->task, $contextNestedTask->stage);
+        self::assertEquals(0, $exitCode);
+
+        $this->processing->cancel(
+            new TaskProcess(
+                $contextNestedTask->getHash(),
+                $contextNestedTask->task,
+                $contextNestedTask->stage,
+                $this->getProcess(
+                    new TaskStateCanceled(
+                        new TaskStateMessage('Hidden message')
+                    )
+                ),
+            )
+        );
+
+        $task = $this->taskQuery->getOne($nestedUuid);
+        self::assertEquals(
+            $flag->unset()->setPromised()->setCanceled()->toValue(),
+            $task->flag,
+        );
+
+        $task = $this->taskQuery->getOne($uuid);
+        self::assertEquals(
+            $flag->unset()->setWaiting()->setCanceled()->toValue(),
+            $task->flag,
+        );
+
+        self::assertEquals('Canceled.', $this->storage->get($this->task->getUuid()));
+    }
+
     protected function setUp(): void
     {
         $this->task = $this->builder->build(
-            $this->builder->create(
-                'task test promise',
-                new EntityWrapper(
-                    class: TestHandlerStageStub::class,
-                ),
-                new EntityWrapper(
-                    class: TestContextResponseStageStub::class,
-                ),
-            )
+            $this->builder
+                ->create(
+                    'task test promise',
+                    new EntityWrapper(
+                        class: TestHandlerStageStub::class,
+                    ),
+                    new EntityWrapper(
+                        class: TestContextResponseStageStub::class,
+                    ),
+                )
+                ->setFinally(
+                    TestFinally::class,
+                )
         );
     }
 
