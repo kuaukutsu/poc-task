@@ -144,7 +144,6 @@ final readonly class TaskProcessing
             if ($stateRelation instanceof TaskStateRelation) {
                 $this->taskExecutor->cancel(
                     $this->factory($stateRelation->task),
-                    $stateRelation,
                 );
             }
         }
