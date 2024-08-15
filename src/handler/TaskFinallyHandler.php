@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace kuaukutsu\poc\task\handler;
 
 use Throwable;
+use DI\FactoryInterface;
 use DI\DependencyException;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
-use Psr\Container\ContainerInterface;
 use kuaukutsu\poc\task\dto\TaskOptions;
 use kuaukutsu\poc\task\state\TaskStateInterface;
 use kuaukutsu\poc\task\state\TaskStatePrepare;
@@ -18,7 +18,7 @@ final readonly class TaskFinallyHandler
 {
     use TaskStatePrepare;
 
-    public function __construct(private ContainerInterface $container)
+    public function __construct(private FactoryInterface $container)
     {
     }
 
@@ -32,7 +32,7 @@ final readonly class TaskFinallyHandler
         }
 
         try {
-            $this->factory($options->finally)->handle($uuid, $state);
+            $this->factory($options->finally, $options->params)->handle($uuid, $state);
         } catch (Throwable) {
         }
     }
@@ -41,10 +41,10 @@ final readonly class TaskFinallyHandler
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
-    private function factory(string $className): EntityFinally
+    private function factory(string $className, array $params): EntityFinally
     {
         /** @var EntityFinally|object $handler */
-        $handler = $this->container->get($className);
+        $handler = $this->container->make($className, $params);
         if ($handler instanceof EntityFinally) {
             return $handler;
         }

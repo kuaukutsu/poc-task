@@ -16,6 +16,7 @@ use kuaukutsu\poc\task\EntityWrapper;
 use kuaukutsu\poc\task\TaskBuilder;
 use kuaukutsu\poc\task\tests\service\BaseStorage;
 use kuaukutsu\poc\task\tests\stub\TestExceptionFinally;
+use kuaukutsu\poc\task\tests\stub\TestParamsFinally;
 use kuaukutsu\poc\task\tests\stub\TestFinally;
 use kuaukutsu\poc\task\tests\stub\TestStageStub;
 
@@ -73,6 +74,41 @@ final class TaskFinallyHandlerTest extends TestCase
         );
 
         self::assertEquals('test finally', $this->storage->get($this->task->getUuid()));
+
+        $this->storage->unset($this->task->getUuid());
+        self::assertEmpty($this->storage->get($this->task->getUuid()));
+    }
+
+    public function testParamsHandler(): void
+    {
+        $this->task = $this->builder->build(
+            $this->builder
+                ->create(
+                    'task finally builder',
+                    new EntityWrapper(
+                        class: TestStageStub::class,
+                        params: [
+                            'name' => 'Test initialization.',
+                        ],
+                    ),
+                )
+                ->setFinally(
+                    TestParamsFinally::class,
+                    [
+                        'name' => 'prefix'
+                    ]
+                )
+        );
+
+        $this->taskFinallyHandler->handle(
+            $this->task->getUuid(),
+            $this->task->getOptions(),
+            new TaskStateSuccess(
+                new TaskStateMessage('test finally')
+            ),
+        );
+
+        self::assertEquals('prefixtest finally', $this->storage->get($this->task->getUuid()));
 
         $this->storage->unset($this->task->getUuid());
         self::assertEmpty($this->storage->get($this->task->getUuid()));

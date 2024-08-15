@@ -13,20 +13,23 @@ use kuaukutsu\poc\task\EntityFinally;
 final readonly class TaskOptions implements EntityArrable
 {
     /**
-     * @param float $timeout В секундах.
+     * @param float $timeout Seconds.
      * @param class-string<EntityFinally>|null $finally
+     * @param array<string, scalar> $params
      */
     public function __construct(
         public float $timeout,
         public ?string $finally = null,
+        public array $params = [],
     ) {
     }
 
     public function toArray(): array
     {
-        /**
-         * @var array<string, scalar>
-         */
-        return get_object_vars($this);
+        return [
+            'timeout' => $this->timeout,
+            'finally' => $this->finally,
+            'params' => $this->params,
+        ];
     }
 }
