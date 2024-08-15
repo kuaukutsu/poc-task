@@ -36,7 +36,7 @@ final readonly class ActionCancel implements TaskAction
         }
 
         $state = new TaskStateCanceled(
-            message: $state?->getMessage() ?? new TaskStateMessage('Task Canceled.'),
+            message: $state?->getMessage() ?? new TaskStateMessage('Canceled.'),
             flag: $task->getFlag(),
         );
 
@@ -47,6 +47,7 @@ final readonly class ActionCancel implements TaskAction
         );
 
         $uuid = new EntityUuid($task->getUuid());
+        $isRoot = $task->isPromised() === false;
 
         try {
             $this->stageCommand->stateByTask($uuid, new StageModelState($state));
@@ -61,11 +62,13 @@ final readonly class ActionCancel implements TaskAction
             $this->taskCommand->state($uuid, new TaskModelState($state))
         );
 
-        $this->finallyHandler->handle(
-            $task->getUuid(),
-            $task->getOptions(),
-            $task->getState(),
-        );
+        if ($isRoot) {
+            $this->finallyHandler->handle(
+                $task->getUuid(),
+                $task->getOptions(),
+                $task->getState(),
+            );
+        }
 
         return $task;
     }

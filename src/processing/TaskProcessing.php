@@ -138,6 +138,16 @@ final readonly class TaskProcessing
                 $exception,
             );
         }
+
+        if ($task->isPromised()) {
+            $stateRelation = $task->getState();
+            if ($stateRelation instanceof TaskStateRelation) {
+                $this->taskExecutor->cancel(
+                    $this->factory($stateRelation->task),
+                    $stateRelation,
+                );
+            }
+        }
     }
 
     /**
