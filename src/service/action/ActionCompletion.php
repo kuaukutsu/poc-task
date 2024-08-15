@@ -14,6 +14,7 @@ use kuaukutsu\poc\task\state\TaskStateMessage;
 use kuaukutsu\poc\task\state\TaskStateSuccess;
 use kuaukutsu\poc\task\handler\StateFactory;
 use kuaukutsu\poc\task\handler\TaskFactory;
+use kuaukutsu\poc\task\handler\TaskFinallyHandler;
 use kuaukutsu\poc\task\service\StageCommand;
 use kuaukutsu\poc\task\service\StageQuery;
 use kuaukutsu\poc\task\service\TaskCommand;
@@ -29,6 +30,7 @@ final readonly class ActionCompletion implements TaskAction
         private StateFactory $stateFactory,
         private TaskCommand $taskCommand,
         private TaskFactory $factory,
+        private TaskFinallyHandler $finallyHandler,
     ) {
     }
 
@@ -38,7 +40,8 @@ final readonly class ActionCompletion implements TaskAction
             return $task;
         }
 
-        return $this->factory->create(
+        $isRoot = $task->isPromised() === false;
+        $task = $this->factory->create(
             $this->taskCommand->state(
                 new EntityUuid($task->getUuid()),
                 new TaskModelState(
@@ -46,6 +49,16 @@ final readonly class ActionCompletion implements TaskAction
                 ),
             )
         );
+
+        if ($isRoot) {
+            $this->finallyHandler->handle(
+                $task->getUuid(),
+                $task->getOptions(),
+                $task->getState(),
+            );
+        }
+
+        return $task;
     }
 
     private function handleStagesState(EntityTask $task): TaskStateInterface
