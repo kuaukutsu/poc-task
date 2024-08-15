@@ -21,6 +21,11 @@ final class TaskDraft implements EntityTask
      */
     private ?string $finally = null;
 
+    /**
+     * @var array<string, scalar>
+     */
+    private array $params = [];
+
     private TaskStateInterface $state;
 
     private readonly EntityUuid $uuid;
@@ -56,6 +61,7 @@ final class TaskDraft implements EntityTask
         return new TaskOptions(
             timeout: $this->timeout,
             finally: $this->finally,
+            params: $this->params,
         );
     }
 
@@ -98,15 +104,17 @@ final class TaskDraft implements EntityTask
 
     /**
      * @param class-string<EntityFinally> $handler
+     * @param array<string, scalar> $params Params for implementating EntityFinally
      * @throws LogicException not implement the EntityFinally
      */
-    public function setFinally(string $handler): self
+    public function setFinally(string $handler, array $params = []): self
     {
         if (is_a($handler, EntityFinally::class, true) === false) {
             throw new LogicException("[$handler] must implement the EntityFinally.");
         }
 
         $this->finally = $handler;
+        $this->params = $params;
         return $this;
     }
 }
