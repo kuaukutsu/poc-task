@@ -95,7 +95,7 @@ final class TaskFinallyHandlerTest extends TestCase
                 ->setFinally(
                     TestParamsFinally::class,
                     [
-                        'name' => 'prefix'
+                        'name' => 'prefix',
                     ]
                 )
         );
