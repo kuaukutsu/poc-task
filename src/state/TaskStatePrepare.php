@@ -30,7 +30,7 @@ trait TaskStatePrepare
          * @psalm-suppress InvalidArgument with additional array shape fields (max_depth)
          */
         $taskState = unserialize(
-            $state,
+            $this->clearState($state),
             [
                 'allowed_classes' => [
                     TaskStateCanceled::class,
@@ -56,5 +56,14 @@ trait TaskStatePrepare
         }
 
         throw new TypeError("unserialize(): error.");
+    }
+
+    private function clearState(string $rawState): string
+    {
+        if (str_starts_with($rawState, '{')) {
+            return preg_replace('~^\{.*}\R+~', '', $rawState, 1);
+        }
+
+        return $rawState;
     }
 }
